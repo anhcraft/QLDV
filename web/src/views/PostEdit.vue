@@ -7,7 +7,9 @@
     <div class="col-start-2 col-span-3 flex flex-col gap-5">
       <div v-if="postLoaded">
         <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model="post.title">
-        <TiptapEditor :content="post.content" @onChange="this.onContentChange"></TiptapEditor>
+        <div class="mt-10">
+          <TiptapEditor :content="post.content" @onChange="this.onContentChange"></TiptapEditor>
+        </div>
         <button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-3 py-1 w-36 text-center" v-if="!submittingPost" @click="submitPost">{{ $route.params.id === undefined ? "Đăng bài" : "Lưu chỉnh sửa" }}</button>
       </div>
       <div v-else>
