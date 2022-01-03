@@ -83,35 +83,31 @@ export default {
     },
     submitPost() {
       this.submittingPost = true
-      this.attachmentUploadQueue = this.attachmentUpload.length
-      if(this.attachmentUploadQueue === 0) {
-        server.changePost(this.$route.params.id, this.post.title, this.post.content, this.removeAttachments, auth.getToken()).then(s => {
-          if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+      server.changePost(this.$route.params.id, this.post.title, this.post.content, this.removeAttachments, auth.getToken()).then(s => {
+        if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+          this.attachmentUploadQueue = this.attachmentUpload.length
+          if(this.attachmentUploadQueue === 0) {
             this.submittingPost = false
-            window.location.reload();
+            this.$router.push('/pm/')
           } else {
-            alert(`Lỗi lưu bài viết: ${s["error"]}`)
-          }
-        })
-      } else {
-        for (let i = 0; i < this.attachmentUpload.length; i++) {
-          server.uploadPostAttachment(this.$route.params.id, this.attachmentUpload[i], auth.getToken()).then(s => {
-            if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-              this.attachmentUploadQueue--
-              if (this.attachmentUploadQueue === 0) {
-                server.changePost(this.$route.params.id, this.post.title, this.post.content, this.post.removeAttachments, auth.getToken()).then(s => {
-                  if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+            for (let i = 0; i < this.attachmentUpload.length; i++) {
+              server.uploadPostAttachment(s["id"], this.attachmentUpload[i], auth.getToken()).then(s => {
+                if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+                  this.attachmentUploadQueue--
+                  if (this.attachmentUploadQueue === 0) {
                     this.submittingPost = false
-                    window.location.reload();
-                  } else {
-                    alert(`Lỗi lưu bài viết: ${s["error"]}`)
+                    this.$router.push('/pm/')
                   }
-                })
-              }
+                } else {
+                  alert(`Lỗi lưu bài viết: ${s["error"]}`)
+                }
+              })
             }
-          })
+          }
+        } else {
+          alert(`Lỗi lưu bài viết: ${s["error"]}`)
         }
-      }
+      })
     },
     onContentChange(content) {
       this.post.content = content

@@ -53,7 +53,6 @@ const server = {
                 "error": "CLIENT"
             };
         }
-        console.log(removeAttachments)
         return ky.post(`${conf.server}/change-post`, {
             method: 'post',
             headers: {

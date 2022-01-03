@@ -82,7 +82,7 @@ func getPost(id string) *Post {
 	}
 }
 
-func postChange(id string, title string, content string) bool {
+func postChange(id string, title string, content string) *Post {
 	if id == "" {
 		hash := sha256.New()
 		hash.Write([]byte(id + title + time.Now().String()))
@@ -99,7 +99,7 @@ func postChange(id string, title string, content string) bool {
 		Columns:   []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"title", "content"}),
 	}).Create(&post)
-	return true
+	return &post
 }
 
 func uploadAttachment(postId string, data []byte, ext string) bool {
@@ -303,7 +303,9 @@ func main() {
 				return c.SendString(res.String())
 			}
 		}
-		_, _ = res.Set(postChange(payload.Id, payload.Title, payload.Content), "success")
+		p := postChange(payload.Id, payload.Title, payload.Content)
+		_, _ = res.Set(true, "success")
+		_, _ = res.Set(p.ID, "id")
 		return c.SendString(res.String())
 	})
 
