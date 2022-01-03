@@ -5,8 +5,11 @@
   </div>
   <div class="grid grid-cols-5 mt-36 mb-36">
     <article class="col-start-2 col-span-3" v-if="this.loaded">
-      <header class="text-5xl">L{{ this.post.title }}</header>
+      <header class="text-5xl">{{ post.title }}</header>
       <div class="mt-10 break-all" v-html="post.content"></div>
+      <div class="border-t-2 border-t-slate-300 pt-10 mt-10 flex flex-row flex-wrap gap-3" v-if="post.attachments.length > 0">
+        <img v-for="att in post.attachments" class="w-64 h-64 cursor-pointer hover:opacity-80" :src="serverBaseURL + '/static/' + att.id" alt="" @click="previewImage(att.id)" />
+      </div>
     </article>
     <div class="col-start-2 col-span-3" v-else>
       <svg class="animate-spin h-16 w-16 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -20,11 +23,16 @@
     <ChevronDoubleUpIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="jumpToTop"></ChevronDoubleUpIcon>
     <ChevronDoubleDownIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="jumpToBottom"></ChevronDoubleDownIcon>
   </div>
+  <div v-if="previewImageId !== undefined" @click="previewImage(undefined)">
+    <div class="bg-black opacity-75 fixed top-0 left-0 w-screen h-screen"></div>
+    <img class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10" :src="serverBaseURL + '/static/' + previewImageId" alt="" />
+  </div>
 </template>
 
 <script>
 import { ChevronDoubleUpIcon, ChevronDoubleDownIcon, HomeIcon } from '@heroicons/vue/solid'
 import server from "../api/server";
+import conf from "../conf";
 
 export default {
   name: "Post",
@@ -32,7 +40,13 @@ export default {
   data() {
     return {
       post: {},
-      loaded: false
+      loaded: false,
+      previewImageId: undefined
+    }
+  },
+  computed: {
+    serverBaseURL() {
+      return conf.server
     }
   },
   methods: {
@@ -44,6 +58,9 @@ export default {
     },
     backToHome() {
       this.$router.push('/')
+    },
+    previewImage(id) {
+      this.previewImageId = id
     }
   },
   mounted() {

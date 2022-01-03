@@ -47,12 +47,13 @@ const server = {
             }
         }).json();
     },
-    changePost: async function(id: string, title: string, content: string, token: string) {
+    changePost: async function(id: string, title: string, content: string, removeAttachments: string[], token: string) {
         if(token == null || token.length == 0) {
             return {
                 "error": "CLIENT"
             };
         }
+        console.log(removeAttachments)
         return ky.post(`${conf.server}/change-post`, {
             method: 'post',
             headers: {
@@ -62,8 +63,25 @@ const server = {
             body: JSON.stringify({
                 'id': id === undefined ? '' : id,
                 'title': title,
-                'content': content
+                'content': content,
+                'remove_attachments': removeAttachments
             })
+        }).json();
+    },
+    uploadPostAttachment: async function(id: string, attachment: Blob, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/upload-attachment`, {
+            method: 'post',
+            headers: {
+                'content-type': undefined,
+                'token': token,
+                'id': id
+            },
+            body: attachment
         }).json();
     },
     loadUsers: async function(limit: number, offset: number, token: string) {

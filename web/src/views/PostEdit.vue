@@ -5,10 +5,24 @@
   </div>
   <div class="grid grid-cols-5 mt-36 mb-36">
     <div class="col-start-2 col-span-3 flex flex-col gap-5">
-      <div v-if="postLoaded">
+      <div v-if="postLoaded && !submittingPost">
         <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model="post.title">
         <div class="mt-10">
           <TiptapEditor :content="post.content" @onChange="this.onContentChange"></TiptapEditor>
+        </div>
+        <div class="mt-10">
+          <p>Ảnh đính kèm:</p>
+          <div class="my-10">
+            <div class="flex flex-row flex-wrap gap-3">
+              <img v-for="att in post.attachments" class="w-64 h-64" :class="{'border-2 border-slate-500 opacity-50' : removeAttachments.includes(att.id)}" :src="serverBaseURL + '/static/' + att.id" alt="" @click="removeAttachment(att.id)" />
+            </div>
+            <p class="text-red-500 mt-3" v-if="removeAttachments.length > 0">Sẽ xóa {{ removeAttachments.length }} ảnh được chọn.</p>
+          </div>
+          <p>Tải ảnh mới:</p>
+          <input @change="onAttachmentChange" accept="image/*" multiple class="block px-3 py-1.5 text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" type="file">
+          <div class="flex flex-row flex-wrap gap-3 my-10">
+            <img v-for="url in attachmentUploadPreviews" class="w-64 h-64" :src="url" alt=""/>
+          </div>
         </div>
         <button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-3 py-1 w-36 text-center" v-if="!submittingPost" @click="submitPost">{{ $route.params.id === undefined ? "Đăng bài" : "Lưu chỉnh sửa" }}</button>
       </div>
@@ -32,6 +46,7 @@ import {ArrowLeftIcon, ChevronDoubleDownIcon, ChevronDoubleUpIcon} from '@heroic
 import TiptapEditor from "../components/TiptapEditor.vue";
 import server from "../api/server";
 import auth from "../api/auth";
+import conf from "../conf";
 
 export default {
   "name": "PostEdit",
@@ -40,10 +55,20 @@ export default {
     return {
       post: {
         title: "",
-        content: ""
+        content: "",
+        attachments: []
       },
       postLoaded: false,
-      submittingPost: false
+      submittingPost: false,
+      attachmentUpload: [],
+      attachmentUploadQueue: 0,
+      attachmentUploadPreviews: [],
+      removeAttachments: []
+    }
+  },
+  computed: {
+    serverBaseURL() {
+      return conf.server
     }
   },
   methods: {
@@ -58,16 +83,53 @@ export default {
     },
     submitPost() {
       this.submittingPost = true
-      server.changePost(this.$route.params.id, this.post.title, this.post.content, auth.getToken()).then(s => {
-        if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-          this.$router.push('/pm/')
-        } else {
-          alert(`Lỗi lưu bài viết: ${s["error"]}`)
+      this.attachmentUploadQueue = this.attachmentUpload.length
+      if(this.attachmentUploadQueue === 0) {
+        server.changePost(this.$route.params.id, this.post.title, this.post.content, this.removeAttachments, auth.getToken()).then(s => {
+          if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+            this.submittingPost = false
+            window.location.reload();
+          } else {
+            alert(`Lỗi lưu bài viết: ${s["error"]}`)
+          }
+        })
+      } else {
+        for (let i = 0; i < this.attachmentUpload.length; i++) {
+          server.uploadPostAttachment(this.$route.params.id, this.attachmentUpload[i], auth.getToken()).then(s => {
+            if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+              this.attachmentUploadQueue--
+              if (this.attachmentUploadQueue === 0) {
+                server.changePost(this.$route.params.id, this.post.title, this.post.content, this.post.removeAttachments, auth.getToken()).then(s => {
+                  if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+                    this.submittingPost = false
+                    window.location.reload();
+                  } else {
+                    alert(`Lỗi lưu bài viết: ${s["error"]}`)
+                  }
+                })
+              }
+            }
+          })
         }
-      })
+      }
     },
     onContentChange(content) {
       this.post.content = content
+    },
+    onAttachmentChange(e) {
+      const data = [];
+      for(let i = 0; i < e.target.files.length; i++){
+        data.push(URL.createObjectURL(e.target.files[i]))
+      }
+      this.attachmentUploadPreviews = data
+      this.attachmentUpload = e.target.files
+    },
+    removeAttachment(id) {
+      if(this.removeAttachments.includes(id)) {
+        this.removeAttachments = this.removeAttachments.filter(a => a !== id)
+      } else {
+        this.removeAttachments = this.removeAttachments.concat(id)
+      }
     }
   },
   mounted() {

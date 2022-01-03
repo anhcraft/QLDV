@@ -15,6 +15,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"log"
+	"os"
 	"strconv"
 	"time"
 )
@@ -42,7 +43,7 @@ func setupDB() {
 	if err != nil {
 		log.Fatalf("error connecting database: %v\n", err)
 	}
-	err = db_.AutoMigrate(&User{}, &Rate{}, &Achievement{}, &Post{})
+	err = db_.AutoMigrate(&User{}, &Rate{}, &Achievement{}, &Post{}, &Attachment{})
 	if err != nil {
 		log.Fatalf("error migrating: %v\n", err)
 	}
@@ -98,6 +99,39 @@ func postChange(id string, title string, content string) bool {
 		Columns:   []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"title", "content"}),
 	}).Create(&post)
+	return true
+}
+
+func uploadAttachment(postId string, data []byte, ext string) bool {
+	_ = os.Mkdir("public", os.ModePerm)
+	hash := sha256.New()
+	hash.Write([]byte(postId + time.Now().String()))
+	md := hash.Sum(nil)
+	attId := hex.EncodeToString(md)
+	att := Attachment{
+		ID:     attId + ext,
+		PostId: postId,
+		Date:   time.Now().UnixMilli(),
+	}
+	err := os.WriteFile("./public/"+attId+ext, data, os.ModePerm)
+	if err != nil {
+		return false
+	}
+	_ = db.Clauses(clause.OnConflict{DoNothing: true}).Create(&att)
+	return true
+}
+
+func getAttachments(postId string) []Attachment {
+	var atts []Attachment
+	_ = db.Where("post_id = ?", postId).Order("date desc").Find(&atts)
+	return atts
+}
+
+func removeAttachments(postId string, atts []string) bool {
+	var att Attachment
+	for _, v := range atts {
+		db.Where("id = ?", v).Where("post_id = ?", postId).Delete(&att)
+	}
 	return true
 }
 
@@ -210,6 +244,10 @@ func main() {
 		}
 		res = post.serialize()
 		_, _ = res.Set(post.Content, "content")
+		_, _ = res.Array("attachments")
+		for _, att := range getAttachments(id) {
+			_ = res.ArrayAppend(att.serialize(), "attachments")
+		}
 		return c.SendString(res.String())
 	})
 
@@ -232,9 +270,10 @@ func main() {
 		}
 
 		payload := struct {
-			Id      string `json:"id,omitempty"`
-			Title   string `json:"title,omitempty"`
-			Content string `json:"content,omitempty"`
+			Id                string   `json:"id,omitempty"`
+			Title             string   `json:"title,omitempty"`
+			Content           string   `json:"content,omitempty"`
+			RemoveAttachments []string `json:"remove_attachments,omitempty"`
 		}{}
 
 		if err := c.BodyParser(&payload); err != nil {
@@ -258,6 +297,12 @@ func main() {
 			return c.SendString(res.String())
 		}
 
+		if len(payload.RemoveAttachments) > 0 {
+			if !removeAttachments(payload.Id, payload.RemoveAttachments) {
+				_, _ = res.Set("ERR_ATTACHMENT_REMOVE_FAILED", "error")
+				return c.SendString(res.String())
+			}
+		}
 		_, _ = res.Set(postChange(payload.Id, payload.Title, payload.Content), "success")
 		return c.SendString(res.String())
 	})
@@ -333,6 +378,47 @@ func main() {
 		_, _ = res.Set(changeUserCert(payload.Certified), "success")
 		return c.SendString(res.String())
 	})
+
+	app.Post("/upload-attachment", func(c *fiber.Ctx) error {
+		res := gabs.New()
+		token := c.Get("token")
+		success, txt := analyzeTokenToEmail(token, c.UserContext())
+		if !success {
+			_, _ = res.Set(txt, "error")
+			return c.SendString(res.String())
+		}
+		user := getProfile(txt)
+		if user == nil {
+			_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+			return c.SendString(res.String())
+		}
+		if !user.Admin {
+			_, _ = res.Set("ERR_NO_PERMISSION", "error")
+			return c.SendString(res.String())
+		}
+
+		id := c.Get("id")
+		post := getPost(id)
+		if post == nil {
+			_, _ = res.Set("ERR_UNKNOWN_POST", "error")
+			return c.SendString(res.String())
+		}
+
+		t := c.Get("content-type")
+
+		if t == "image/png" {
+			_, _ = res.Set(uploadAttachment(id, c.Body(), ".png"), "success")
+		} else if t == "image/jpeg" {
+			_, _ = res.Set(uploadAttachment(id, c.Body(), ".jpeg"), "success")
+		} else {
+			_, _ = res.Set("ERR_ILLEGAL_ATTACHMENT", "error")
+			return c.SendString(res.String())
+		}
+
+		return c.SendString(res.String())
+	})
+
+	app.Static("/static/", "./public")
 
 	err := app.Listen(":3002")
 	if err != nil {
