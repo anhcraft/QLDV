@@ -107,6 +107,20 @@ func getPosts(limit int, older int64) []Post {
 	return posts
 }
 
+func getUsers(limit int, offset int) []User {
+	var users []User
+	_ = db.Offset(offset).Order("class, name").Limit(limit).Find(&users)
+	return users
+}
+
+func changeUserCert(certified map[string]bool) bool {
+	var user User
+	for k, v := range certified {
+		db.Model(&user).Where("email = ?", k).Update("certified", v)
+	}
+	return true
+}
+
 func analyzeTokenToEmail(token string, c context.Context) (bool, string) {
 	tkn, err := client.VerifyIDToken(c, token)
 	if err != nil {
@@ -224,7 +238,8 @@ func main() {
 		}{}
 
 		if err := c.BodyParser(&payload); err != nil {
-			return err
+			_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
+			return c.SendString(res.String())
 		}
 
 		if len(payload.Title) < 5 {
@@ -244,6 +259,78 @@ func main() {
 		}
 
 		_, _ = res.Set(postChange(payload.Id, payload.Title, payload.Content), "success")
+		return c.SendString(res.String())
+	})
+
+	app.Post("/users", func(c *fiber.Ctx) error {
+		res := gabs.New()
+		token := c.Get("token")
+		success, txt := analyzeTokenToEmail(token, c.UserContext())
+		if !success {
+			_, _ = res.Set(txt, "error")
+			return c.SendString(res.String())
+		}
+		requester := getProfile(txt)
+		if requester == nil {
+			_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+			return c.SendString(res.String())
+		}
+		if !requester.Admin {
+			_, _ = res.Set("ERR_NO_PERMISSION", "error")
+			return c.SendString(res.String())
+		}
+
+		payload := struct {
+			Limit  int `json:"limit,omitempty"`
+			Offset int `json:"offset,omitempty"`
+		}{}
+
+		if err := c.BodyParser(&payload); err != nil {
+			_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
+			return c.SendString(res.String())
+		}
+
+		if payload.Limit > 10 {
+			payload.Limit = 10
+		}
+		if payload.Offset < 0 {
+			payload.Offset = 0
+		}
+		_, _ = res.Array("users")
+		for _, post := range getUsers(payload.Limit, payload.Offset) {
+			_ = res.ArrayAppend(post.serialize(), "users")
+		}
+		return c.SendString(res.String())
+	})
+
+	app.Post("/change-users", func(c *fiber.Ctx) error {
+		res := gabs.New()
+		token := c.Get("token")
+		success, txt := analyzeTokenToEmail(token, c.UserContext())
+		if !success {
+			_, _ = res.Set(txt, "error")
+			return c.SendString(res.String())
+		}
+		requester := getProfile(txt)
+		if requester == nil {
+			_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+			return c.SendString(res.String())
+		}
+		if !requester.Admin {
+			_, _ = res.Set("ERR_NO_PERMISSION", "error")
+			return c.SendString(res.String())
+		}
+
+		payload := struct {
+			Certified map[string]bool `json:"certified,omitempty"`
+		}{}
+
+		if err := c.BodyParser(&payload); err != nil {
+			_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
+			return c.SendString(res.String())
+		}
+
+		_, _ = res.Set(changeUserCert(payload.Certified), "success")
 		return c.SendString(res.String())
 	})
 

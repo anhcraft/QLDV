@@ -5,7 +5,8 @@ const routes = [
     { path: '/p/:id', component: () => import("./views/Post.vue") },
     { path: '/pe/', component: () => import("./views/PostEdit.vue") },
     { path: '/pe/:id', component: () => import("./views/PostEdit.vue") },
-    { path: '/pm/', component: () => import("./views/PostManage.vue") }
+    { path: '/pm/', component: () => import("./views/PostManage.vue") },
+    { path: '/um/', component: () => import("./views/UserManage.vue") }
 ]
 
 const router = createRouter({

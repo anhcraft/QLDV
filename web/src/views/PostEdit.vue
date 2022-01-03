@@ -32,7 +32,7 @@ import server from "../api/server";
 import auth from "../api/auth";
 
 export default {
-  "name": "Post",
+  "name": "PostEdit",
   components: {TiptapEditor, ChevronDoubleUpIcon, ChevronDoubleDownIcon, ArrowLeftIcon },
   data() {
     return {

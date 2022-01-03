@@ -3,8 +3,8 @@
     <img src="src/assets/das_logo.png" alt="" class="h-10 inline-flex" />
     <span class="text-xl ml-5">Quản lý bài viết</span>
   </div>
-  <div class="grid grid-cols-5 mt-36 mb-36">
-    <div class="col-start-2 col-span-3 flex flex-col gap-5 ">
+  <div class="grid grid-cols-7 mt-36 mb-36">
+    <div class="col-start-2 col-span-5 flex flex-col gap-5 ">
       <button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-3 py-1 w-32 text-center" @click="createPost">Tạo bài viết</button>
       <div class="w-full mt-10" v-for="post in posts">
         <div class="w-full flex flex-row gap-3">
@@ -37,7 +37,7 @@ import {ChevronDoubleUpIcon, HomeIcon, PencilIcon, TrashIcon} from '@heroicons/v
 import server from "../api/server";
 
 export default {
-  name: "Post",
+  name: "PostManage",
   components: { ChevronDoubleUpIcon, HomeIcon, PencilIcon, TrashIcon },
   data() {
     return {

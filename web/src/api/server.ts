@@ -65,6 +65,39 @@ const server = {
                 'content': content
             })
         }).json();
+    },
+    loadUsers: async function(limit: number, offset: number, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/users`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            },
+            body: JSON.stringify({
+                'limit': limit,
+                'offset': offset
+            })
+        }).json();
+    },
+    saveUserChanges: async function(changes: {}, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/change-users`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            },
+            body: JSON.stringify(changes)
+        }).json();
     }
 }
 
