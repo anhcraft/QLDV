@@ -6,9 +6,7 @@
   <div class="grid grid-cols-5 mt-36 mb-36">
     <article class="col-start-2 col-span-3" v-if="this.loaded">
       <header class="text-5xl">L{{ this.post.title }}</header>
-      <div class="mt-10 break-all">
-        {{ this.post.content }}
-      </div>
+      <div class="mt-10 break-all" v-html="post.content"></div>
     </article>
     <div class="col-start-2 col-span-3" v-else>
       <svg class="animate-spin h-16 w-16 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

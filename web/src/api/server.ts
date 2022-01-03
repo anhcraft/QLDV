@@ -46,6 +46,25 @@ const server = {
                 'token': token
             }
         }).json();
+    },
+    changePost: async function(id: string, title: string, content: string, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/change-post`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            },
+            body: JSON.stringify({
+                'id': id === undefined ? '' : id,
+                'title': title,
+                'content': content
+            })
+        }).json();
     }
 }
 

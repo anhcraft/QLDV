@@ -3,15 +3,16 @@ package main
 import "github.com/Jeffail/gabs/v2"
 
 type User struct {
-	Email string `gorm:"primaryKey"`
+	Email     string `gorm:"primaryKey"`
 	StudentId string
-	Name string
-	Gender bool
-	Birthday int64
+	Name      string
+	Gender    bool
+	Birthday  int64
 	EntryYear int
-	Phone string
+	Phone     string
 	Certified bool
-	Class string
+	Class     string
+	Admin     bool
 }
 
 func (u *User) serialize() *gabs.Container {
@@ -25,5 +26,6 @@ func (u *User) serialize() *gabs.Container {
 	_, _ = res.Set(u.Certified, "certified")
 	_, _ = res.Set(u.Class, "class")
 	_, _ = res.Set(u.StudentId, "sid")
+	_, _ = res.Set(u.Admin, "admin")
 	return res
 }

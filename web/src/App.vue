@@ -15,6 +15,7 @@ export default {
       profile: {
         name: "Guest",
         certified: false,
+        admin: false,
         gender: false,
         class: "XX",
         entryDate: 2022,
@@ -72,6 +73,7 @@ export default {
         }
         this.profile.name = s["name"];
         this.profile.certified = s["certified"];
+        this.profile.admin = s["admin"];
         this.profile.gender = s["gender"];
         this.profile.entryDate = parseInt(s["entry"]);
         this.profile.endDate = this.profile.entryDate + 3;

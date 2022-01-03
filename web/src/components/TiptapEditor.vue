@@ -37,6 +37,10 @@ export default {
     BubbleMenu,
     FloatingMenu,
   },
+  props: {
+    content: String
+  },
+  emits: ['onChange'],
   data() {
     return {
       editor: null,
@@ -44,10 +48,14 @@ export default {
   },
   mounted() {
     this.editor = new Editor({
-      content: '<p>🎉</p>',
+      content: this.content,
       extensions: [
         StarterKit,
       ],
+      onUpdate: ({ editor }) => {
+        const html = editor.getHTML()
+        this.$emit('onChange', html)
+      },
     })
   },
   beforeUnmount() {

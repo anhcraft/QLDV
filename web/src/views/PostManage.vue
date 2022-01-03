@@ -75,6 +75,9 @@ export default {
     }
   },
   mounted() {
+    if(!this.$root.isLoggedIn) {
+      this.$router.push(`/`)
+    }
     this.loadNextPosts()
   }
 }
