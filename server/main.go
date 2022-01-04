@@ -17,6 +17,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -147,9 +148,23 @@ func getPosts(limit int, older int64) []Post {
 	return posts
 }
 
-func getUsers(limit int, offset int) []User {
+func getUsers(limit int, offset int, name string, class string, email string) []User {
+	name = strings.ToLower(strings.TrimSpace(name))
+	class = strings.ToLower(strings.TrimSpace(class))
+	email = strings.ToLower(strings.TrimSpace(email))
+
 	var users []User
-	_ = db.Offset(offset).Order("class, name").Limit(limit).Find(&users)
+	a := db.Offset(offset).Order("student_id").Limit(limit)
+	if len(name) > 0 {
+		a = a.Where("LOWER(`name`) like ?", "%"+name+"%")
+	}
+	if len(class) > 0 {
+		a = a.Where("LOWER(`class`) like ?", "%"+class+"%")
+	}
+	if len(email) > 0 {
+		a = a.Where("LOWER(`email`) like ?", "%"+email+"%")
+	}
+	a = a.Find(&users)
 	return users
 }
 
@@ -357,8 +372,11 @@ func main() {
 		}
 
 		payload := struct {
-			Limit  int `json:"limit,omitempty"`
-			Offset int `json:"offset,omitempty"`
+			Limit       int    `json:"limit,omitempty"`
+			Offset      int    `json:"offset,omitempty"`
+			FilterName  string `json:"filter_name,omitempty"`
+			FilterClass string `json:"filter_class,omitempty"`
+			FilterEmail string `json:"filter_email,omitempty"`
 		}{}
 
 		if err := c.BodyParser(&payload); err != nil {
@@ -373,7 +391,7 @@ func main() {
 			payload.Offset = 0
 		}
 		_, _ = res.Array("users")
-		for _, post := range getUsers(payload.Limit, payload.Offset) {
+		for _, post := range getUsers(payload.Limit, payload.Offset, payload.FilterName, payload.FilterClass, payload.FilterEmail) {
 			_ = res.ArrayAppend(post.serialize(), "users")
 		}
 		return c.SendString(res.String())

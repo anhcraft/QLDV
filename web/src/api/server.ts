@@ -98,7 +98,7 @@ const server = {
             body: attachment
         }).json();
     },
-    loadUsers: async function(limit: number, offset: number, token: string) {
+    loadUsers: async function (limit: number, offset: number, filter: { name: string; class: string; email: string }, token: string) {
         if(token == null || token.length == 0) {
             return {
                 "error": "CLIENT"
@@ -112,7 +112,10 @@ const server = {
             },
             body: JSON.stringify({
                 'limit': limit,
-                'offset': offset
+                'offset': offset,
+                'filter_name': filter.name,
+                'filter_class': filter.class,
+                'filter_email': filter.email
             })
         }).json();
     },

@@ -15,14 +15,24 @@
             <th>Tên</th>
             <th>Email</th>
             <th>Lớp</th>
-            <th>Ngày sinh</th>
-            <th>Giới tính</th>
+            <th>N.Sinh</th>
+            <th>Giới</th>
             <th>SĐT</th>
-            <th>Mã thẻ</th>
-            <th>Đoàn viên</th>
+            <th>Mã</th>
+            <th>ĐV</th>
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td><input placeholder="..." class="border-2 border-pink-300 px-2 py-0.5 w-full" v-model="filter.name"></td>
+            <td><input placeholder="..." class="border-2 border-pink-300 px-2 py-0.5 w-full" v-model="filter.email"></td>
+            <td><input placeholder="..." class="border-2 border-pink-300 px-2 py-0.5 w-full" v-model="filter.class"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td><button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-2 py-0.5 text-center" @click="search" v-if="!loadingUsers">Tìm</button></td>
+          </tr>
           <tr v-for="user in users">
             <td :class="{'text-red-500' : user.admin}">{{ user.name }}</td>
             <td>{{ user.email }}</td>
@@ -69,7 +79,12 @@ export default {
       userAvailable: true,
       users: [],
       dataOffset: 0,
-      certChanges: {}
+      certChanges: {},
+      filter: {
+        name: "",
+        email: "",
+        class: ""
+      }
     }
   },
   methods: {
@@ -81,7 +96,7 @@ export default {
     },
     loadNextUsers(){
       this.loadingUsers = true
-      server.loadUsers(50, this.dataOffset, auth.getToken()).then(s => {
+      server.loadUsers(50, this.dataOffset, this.filter, auth.getToken()).then(s => {
         if(s.users.length === 0) {
           this.userAvailable = false
         } else {
@@ -112,6 +127,14 @@ export default {
           alert(`Lỗi lưu thay đổi: ${s["error"]}`)
         }
       })
+    },
+    search() {
+      this.userAvailable = true
+      this.users = []
+      this.loadingUsers = false
+      this.dataOffset = 0
+      this.certChanges = {}
+      this.loadNextUsers()
     }
   },
   computed: {
