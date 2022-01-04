@@ -43,7 +43,7 @@
             <td></td>
             <td>{{ this.users.filter(u => u.certified).length }}/{{ this.users.length }}</td>
           </tr>
-          <tr v-for="user in users">
+          <tr v-for="user in users" class="hover:bg-blue-200">
             <td :class="{'text-red-500' : user.admin}">{{ user.name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.class }}</td>
