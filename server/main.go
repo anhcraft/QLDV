@@ -44,10 +44,10 @@ func setupDB() {
 	if err != nil {
 		log.Fatalf("error connecting database: %v\n", err)
 	}
-	err = db_.AutoMigrate(&User{}, &Rate{}, &Achievement{}, &Post{}, &Attachment{})
+	/*err = db_.AutoMigrate(&User{}, &Rate{}, &Achievement{}, &Post{}, &Attachment{})
 	if err != nil {
 		log.Fatalf("error migrating: %v\n", err)
-	}
+	}*/
 	db = db_
 }
 
@@ -464,6 +464,44 @@ func main() {
 			return c.SendString(res.String())
 		}
 
+		return c.SendString(res.String())
+	})
+
+	app.Post("/get-user-stats", func(c *fiber.Ctx) error {
+		res := gabs.New()
+		token := c.Get("token")
+		success, txt := analyzeTokenToEmail(token, c.UserContext())
+		if !success {
+			_, _ = res.Set(txt, "error")
+			return c.SendString(res.String())
+		}
+		requester := getProfile(txt)
+		if requester == nil {
+			_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+			return c.SendString(res.String())
+		}
+		if !requester.Admin {
+			_, _ = res.Set("ERR_NO_PERMISSION", "error")
+			return c.SendString(res.String())
+		}
+
+		result := struct {
+			a int64
+			b int64
+			c int64
+			d int64
+			e int64
+			f int64
+		}{}
+
+		x := db.Raw("select count(*) as a, count(if(gender=true,1,null)) as b, count(if(certified=true,1,null)) as c, count(if(class like '10%',1,null)) as d, count(if(class like '11%',1,null)) as e, count(if(class like '12%',1,null)) as f from users")
+		log.Println(x.Row().Scan(&result.a, &result.b, &result.c, &result.d, &result.e, &result.f))
+		_, _ = res.Set(result.a, "total")
+		_, _ = res.Set(result.b, "women")
+		_, _ = res.Set(result.c, "certified")
+		_, _ = res.Set(result.d, "class10")
+		_, _ = res.Set(result.e, "class11")
+		_, _ = res.Set(result.f, "class12")
 		return c.SendString(res.String())
 	})
 

@@ -133,7 +133,21 @@ const server = {
             },
             body: JSON.stringify(changes)
         }).json();
-    }
+    },
+    getUserStats: async function(token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/get-user-stats`, {
+            method: 'post',
+            headers: {
+                'content-type': undefined,
+                'token': token
+            }
+        }).json();
+    },
 }
 
 export default server;
