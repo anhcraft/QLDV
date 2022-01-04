@@ -33,6 +33,16 @@
             <td></td>
             <td><button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-2 py-0.5 text-center" @click="search" v-if="!loadingUsers">Tìm</button></td>
           </tr>
+          <tr class="border-b-2 border-b-slate-400">
+            <td>{{ this.users.length }} thành viên</td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>{{ this.users.filter(u => u.gender).length }} nữ</td>
+            <td></td>
+            <td></td>
+            <td>{{ this.users.filter(u => u.certified).length }}/{{ this.users.length }}</td>
+          </tr>
           <tr v-for="user in users">
             <td :class="{'text-red-500' : user.admin}">{{ user.name }}</td>
             <td>{{ user.email }}</td>
@@ -53,10 +63,7 @@
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
       </div>
-      <div class="mt-10" v-else-if="userAvailable">
-        <button class="bg-white hover:bg-blue-300 cursor-pointer border-2 border-blue-300 px-3 py-1 w-32 text-center" @click="loadNextUsers">Xem thêm...</button>
-      </div>
-      <div class="mt-10" v-else>Đã tải hết thành viên.</div>
+      <div class="mt-10" v-if="!userAvailable">Đã tải hết thành viên.</div>
     </div>
   </div>
   <div class="fixed right-10 bottom-10 flex flex-col gap-2">
@@ -135,6 +142,13 @@ export default {
       this.dataOffset = 0
       this.certChanges = {}
       this.loadNextUsers()
+    },
+    handleScroll() {
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+        if(!this.loadingUsers && this.userAvailable) {
+          this.loadNextUsers()
+        }
+      }
     }
   },
   computed: {
@@ -142,11 +156,15 @@ export default {
       return Object.keys(this.certChanges).length
     }
   },
+  unmounted () {
+    window.removeEventListener('scroll', this.handleScroll);
+  },
   mounted() {
     if(!this.$root.isLoggedIn) {
       this.$router.push(`/`)
     }
     this.loadNextUsers()
+    window.addEventListener('scroll', this.handleScroll)
   }
 }
 </script>
