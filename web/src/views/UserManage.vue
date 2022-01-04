@@ -24,7 +24,7 @@
         </thead>
         <tbody>
           <tr v-for="user in users">
-            <td class="text-xl flex flex-row gap-3" :class="{'text-red-500' : user.admin}">{{ user.name }}</td>
+            <td :class="{'text-red-500' : user.admin}">{{ user.name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.class }}</td>
             <td>{{ new Intl.DateTimeFormat("vi-VN" , {dateStyle: "short"}).format(new Date(user.birth)) }}</td>
@@ -81,7 +81,7 @@ export default {
     },
     loadNextUsers(){
       this.loadingUsers = true
-      server.loadUsers(5, this.dataOffset, auth.getToken()).then(s => {
+      server.loadUsers(50, this.dataOffset, auth.getToken()).then(s => {
         if(s.users.length === 0) {
           this.userAvailable = false
         } else {

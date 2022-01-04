@@ -61,7 +61,7 @@ export default {
     loadNextPosts(){
       this.loadingPosts = true
       const older = this.posts.length === 0 ? new Date().getTime() : this.posts[this.posts.length - 1].date
-      server.loadPosts(5, older).then(s => {
+      server.loadPosts(20, older).then(s => {
         if(s.posts.length === 0) {
           this.postAvailable = false
         }

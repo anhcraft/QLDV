@@ -222,8 +222,8 @@ func main() {
 	app.Get("/posts", func(c *fiber.Ctx) error {
 		res := gabs.New()
 		limit, err1 := strconv.Atoi(c.Query("limit", ""))
-		if err1 != nil || limit > 10 {
-			limit = 10
+		if err1 != nil || limit > 50 {
+			limit = 50
 		}
 		older, err2 := strconv.ParseInt(c.Query("older", ""), 10, 64)
 		if err2 != nil {
@@ -366,8 +366,8 @@ func main() {
 			return c.SendString(res.String())
 		}
 
-		if payload.Limit > 10 {
-			payload.Limit = 10
+		if payload.Limit > 50 {
+			payload.Limit = 50
 		}
 		if payload.Offset < 0 {
 			payload.Offset = 0
