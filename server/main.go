@@ -102,6 +102,12 @@ func postChange(id string, title string, content string) *Post {
 	return &post
 }
 
+func removePost(id string) bool {
+	var post Post
+	db.Where("id = ?", id).Delete(&post)
+	return true
+}
+
 func uploadAttachment(postId string, data []byte, ext string) bool {
 	_ = os.Mkdir("public", os.ModePerm)
 	hash := sha256.New()
@@ -306,6 +312,29 @@ func main() {
 		p := postChange(payload.Id, payload.Title, payload.Content)
 		_, _ = res.Set(true, "success")
 		_, _ = res.Set(p.ID, "id")
+		return c.SendString(res.String())
+	})
+
+	app.Post("/remove-post", func(c *fiber.Ctx) error {
+		res := gabs.New()
+		token := c.Get("token")
+		success, txt := analyzeTokenToEmail(token, c.UserContext())
+		if !success {
+			_, _ = res.Set(txt, "error")
+			return c.SendString(res.String())
+		}
+		user := getProfile(txt)
+		if user == nil {
+			_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+			return c.SendString(res.String())
+		}
+		if !user.Admin {
+			_, _ = res.Set("ERR_NO_PERMISSION", "error")
+			return c.SendString(res.String())
+		}
+
+		id := c.Get("id")
+		_, _ = res.Set(removePost(id), "success")
 		return c.SendString(res.String())
 	})
 

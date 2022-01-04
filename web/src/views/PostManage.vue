@@ -10,7 +10,7 @@
         <div class="w-full flex flex-row gap-3">
           <p class="text-xl grow">{{ post.title }}</p>
           <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="editPost(post.id)"></PencilIcon>
-          <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="removePost(post.id)"></TrashIcon>
+          <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="removePost(post.id, post.title)"></TrashIcon>
           <p class="text-gray-500">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</p>
         </div>
       </div>
@@ -30,20 +30,25 @@
     <HomeIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="backToHome"></HomeIcon>
     <ChevronDoubleUpIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="jumpToTop"></ChevronDoubleUpIcon>
   </div>
+  <Prompt :content="'<p class=font-bold>Bạn có muốn xóa bài viết này?</p><br>' + postRemoveTitle" @callback="removePostCallback" ref="removePrompt"></Prompt>
 </template>
 
 <script>
 import {ChevronDoubleUpIcon, HomeIcon, PencilIcon, TrashIcon} from '@heroicons/vue/solid'
 import server from "../api/server";
+import Prompt from "../components/Prompt.vue";
+import auth from "../api/auth";
 
 export default {
   name: "PostManage",
-  components: { ChevronDoubleUpIcon, HomeIcon, PencilIcon, TrashIcon },
+  components: { ChevronDoubleUpIcon, HomeIcon, PencilIcon, TrashIcon, Prompt },
   data() {
     return {
       loadingPosts: false,
       postAvailable: true,
-      posts: []
+      posts: [],
+      postRemoveId: '',
+      postRemoveTitle: ''
     }
   },
   methods: {
@@ -70,8 +75,23 @@ export default {
     editPost(id) {
       this.$router.push(`/pe/${id}/`)
     },
-    removePost(id) {
-
+    removePost(id, name) {
+      this.postRemoveId = id
+      this.postRemoveTitle = name
+      this.$refs.removePrompt.toggle()
+    },
+    removePostCallback(b) {
+      if(b) {
+        server.removePost(this.postRemoveId, auth.getToken()).then(s => {
+          if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+            this.posts = this.posts.filter(p => p.id !== this.postRemoveId)
+            this.postRemoveId = ""
+            this.postRemoveTitle = ""
+          } else {
+            alert(`Lỗi xóa bài viết: ${s["error"]}`)
+          }
+        })
+      }
     }
   },
   mounted() {

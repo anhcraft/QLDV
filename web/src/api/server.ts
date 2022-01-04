@@ -67,6 +67,21 @@ const server = {
             })
         }).json();
     },
+    removePost: async function(id: string, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/remove-post`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token,
+                'id': id === undefined ? '' : id
+            }
+        }).json();
+    },
     uploadPostAttachment: async function(id: string, attachment: Blob, token: string) {
         if(token == null || token.length == 0) {
             return {
