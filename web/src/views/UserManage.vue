@@ -251,16 +251,12 @@ export default {
         value: s["class12"],
         name: "12"
       })
-      this.option.series[0].data.push({
-        value: s["total"] - s["class10"] - s["class11"] - s["class12"],
-        name: "Khác"
-      })
       this.option.series[1].data.push({
         value: s["women"],
         name: "Nữ"
       })
       this.option.series[1].data.push({
-        value: s["total"] - s["women"],
+        value: s["class10"] + s["class11"] + s["class12"] - s["women"],
         name: "Nam"
       })
       this.option.series[2].data.push({
@@ -268,7 +264,7 @@ export default {
         name: "Đoàn viên"
       })
       this.option.series[2].data.push({
-        value: s["total"] - s["certified"],
+        value: s["class10"] + s["class11"] + s["class12"] - s["certified"],
         name: "Thanh niên"
       })
     })

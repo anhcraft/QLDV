@@ -491,17 +491,15 @@ func main() {
 			c int64
 			d int64
 			e int64
-			f int64
 		}{}
 
-		x := db.Raw("select count(*) as a, count(if(gender=true,1,null)) as b, count(if(certified=true,1,null)) as c, count(if(class like '10%',1,null)) as d, count(if(class like '11%',1,null)) as e, count(if(class like '12%',1,null)) as f from users")
-		log.Println(x.Row().Scan(&result.a, &result.b, &result.c, &result.d, &result.e, &result.f))
-		_, _ = res.Set(result.a, "total")
-		_, _ = res.Set(result.b, "women")
-		_, _ = res.Set(result.c, "certified")
-		_, _ = res.Set(result.d, "class10")
-		_, _ = res.Set(result.e, "class11")
-		_, _ = res.Set(result.f, "class12")
+		x := db.Raw("select count(if(gender = true and (class like '10%' or class like '11%' or class like '12%'), 1, null)) as a, count(if(certified = true and (class like '10%' or class like '11%' or class like '12%'), 1, null)) as b, count(if(class like '10%', 1, null)) as c, count(if(class like '11%', 1, null)) as d, count(if(class like '12%', 1, null)) as e from users")
+		_ = x.Row().Scan(&result.a, &result.b, &result.c, &result.d, &result.e)
+		_, _ = res.Set(result.a, "women")
+		_, _ = res.Set(result.b, "certified")
+		_, _ = res.Set(result.c, "class10")
+		_, _ = res.Set(result.d, "class11")
+		_, _ = res.Set(result.e, "class12")
 		return c.SendString(res.String())
 	})
 
