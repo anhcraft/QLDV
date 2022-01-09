@@ -39,15 +39,15 @@ func setupFirebase() {
 }
 
 func setupDB() {
-	dsn := "sql6462579:rgxWwnqF21@tcp(sql6.freemysqlhosting.net:3306)/sql6462579?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := os.Getenv("sql")
 	db_, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("error connecting database: %v\n", err)
 	}
-	/*err = db_.AutoMigrate(&User{}, &Rate{}, &Achievement{}, &Post{}, &Attachment{})
+	err = db_.AutoMigrate(&User{}, &Rate{}, &Achievement{}, &Post{}, &Attachment{})
 	if err != nil {
 		log.Fatalf("error migrating: %v\n", err)
-	}*/
+	}
 	db = db_
 }
 
