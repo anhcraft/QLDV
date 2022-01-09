@@ -26,23 +26,22 @@
             <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.name"></td>
             <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.email"></td>
             <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.class"></td>
-            <td><button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-2 py-0.5 text-center" @click="search" v-if="!loadingUsers">Tìm & lọc</button></td>
+            <td></td>
             <td></td>
             <td></td>
             <td></td>
             <td>
-              <button class="bg-pink-300 cursor-pointer px-3 py-1 text-center" @click="saveChanges" :class="{'opacity-20' : countUserChanges === 0}">Lưu thay đổi ({{ countUserChanges }})</button>
+              <select v-model="filter.certified" class="bg-white">
+                <option v-for="option in filter.certified_options" v-bind:value="option.value">
+                  {{ option.text }}
+                </option>
+              </select>
             </td>
           </tr>
           <tr class="border-b-2 border-b-slate-400">
-            <td>{{ this.users.length }} thành viên</td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td>{{ this.users.filter(u => u.gender).length }} nữ</td>
-            <td></td>
-            <td></td>
-            <td>{{ this.users.filter(u => u.certified).length }}/{{ this.users.length }}</td>
+            <td colspan="6" class="text-sm italic">(Đang hiện {{ this.users.length }} thành viên, trong đó có {{ this.users.filter(u => u.gender).length }} nữ. Tổng cộng có {{ this.users.filter(u => u.certified).length }} đoàn viên)</td>
+            <td><button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-2 py-0.5 text-center" @click="search" v-if="!loadingUsers">Tìm & lọc</button></td>
+            <td><button class="bg-sky-300 cursor-pointer px-3 py-1 text-center" @click="saveChanges" :class="{'opacity-20' : countUserChanges === 0}">Lưu ({{ countUserChanges }})</button></td>
           </tr>
           <tr v-for="user in users" class="hover:bg-blue-200" :class="{'bg-red-200' : !user.certified}">
             <td :class="{'text-red-500' : user.admin}">{{ user.name }}</td>
@@ -109,7 +108,13 @@ export default {
       filter: {
         name: "",
         email: "",
-        class: ""
+        class: "",
+        certified: 0,
+        certified_options: [
+          { text: 'Tất cả', value: 0 },
+          { text: 'Đoàn viên', value: 1 },
+          { text: 'Thanh niên', value: 2 }
+        ]
       },
       option: {
         title: {

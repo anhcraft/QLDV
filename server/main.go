@@ -148,7 +148,7 @@ func getPosts(limit int, older int64) []Post {
 	return posts
 }
 
-func getUsers(limit int, offset int, name string, class string, email string) []User {
+func getUsers(limit int, offset int, name string, class string, email string, certified int) []User {
 	name = strings.ToLower(strings.TrimSpace(name))
 	class = strings.ToLower(strings.TrimSpace(class))
 	email = strings.ToLower(strings.TrimSpace(email))
@@ -163,6 +163,11 @@ func getUsers(limit int, offset int, name string, class string, email string) []
 	}
 	if len(email) > 0 {
 		a = a.Where("LOWER(`email`) like ?", "%"+email+"%")
+	}
+	if certified == 1 {
+		a = a.Where("`certified` = 1")
+	} else if certified == 2 {
+		a = a.Where("`certified` = 0")
 	}
 	a = a.Find(&users)
 	return users
@@ -372,11 +377,12 @@ func main() {
 		}
 
 		payload := struct {
-			Limit       int    `json:"limit,omitempty"`
-			Offset      int    `json:"offset,omitempty"`
-			FilterName  string `json:"filter_name,omitempty"`
-			FilterClass string `json:"filter_class,omitempty"`
-			FilterEmail string `json:"filter_email,omitempty"`
+			Limit           int    `json:"limit,omitempty"`
+			Offset          int    `json:"offset,omitempty"`
+			FilterName      string `json:"filter_name,omitempty"`
+			FilterClass     string `json:"filter_class,omitempty"`
+			FilterEmail     string `json:"filter_email,omitempty"`
+			FilterCertified int    `json:"filter_certified,omitempty"`
 		}{}
 
 		if err := c.BodyParser(&payload); err != nil {
@@ -391,7 +397,7 @@ func main() {
 			payload.Offset = 0
 		}
 		_, _ = res.Array("users")
-		for _, post := range getUsers(payload.Limit, payload.Offset, payload.FilterName, payload.FilterClass, payload.FilterEmail) {
+		for _, post := range getUsers(payload.Limit, payload.Offset, payload.FilterName, payload.FilterClass, payload.FilterEmail, payload.FilterCertified) {
 			_ = res.ArrayAppend(post.serialize(), "users")
 		}
 		return c.SendString(res.String())
