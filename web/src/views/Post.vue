@@ -6,9 +6,9 @@
   <div class="grid grid-cols-5 mt-36 mb-36">
     <article class="col-start-2 col-span-3" v-if="this.loaded">
       <header class="text-5xl">{{ post.title }}</header>
-      <div class="mt-10 break-all" v-html="post.content"></div>
+      <div class="mt-10 break-words" v-html="post.content"></div>
       <div class="border-t-2 border-t-slate-300 pt-10 mt-10 flex flex-row flex-wrap gap-3" v-if="post.attachments.length > 0">
-        <img v-for="att in post.attachments" class="w-64 h-64 cursor-pointer hover:opacity-80" :src="serverBaseURL + '/static/' + att.id" alt="" @click="previewImage(att.id)" />
+        <img v-for="att in post.attachments" class="max-w-md cursor-pointer hover:opacity-80" :src="serverBaseURL + '/static/' + att.id" alt="" @click="previewImage(att.id)" />
       </div>
     </article>
     <div class="col-start-2 col-span-3" v-else>

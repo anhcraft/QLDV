@@ -251,7 +251,12 @@ func main() {
 		}
 		_, _ = res.Array("posts")
 		for _, post := range getPosts(limit, older) {
-			_ = res.ArrayAppend(post.serialize(), "posts")
+			p := post.serialize()
+			_, _ = p.Array("attachments")
+			for _, att := range getAttachments(post.ID) {
+				_ = p.ArrayAppend(att.serialize(), "attachments")
+			}
+			_ = res.ArrayAppend(p, "posts")
 		}
 		return c.SendString(res.String())
 	})

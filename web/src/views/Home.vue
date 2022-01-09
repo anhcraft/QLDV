@@ -19,9 +19,9 @@
         </svg>
       </div>
       <div v-else-if="posts.length > 0">
-        <PostWidget :id="posts[0].id" :title="posts[0].title" large></PostWidget>
+        <PostWidget :id="posts[0].id" :title="posts[0].title" :bg="getBg(posts[0].attachments)" large></PostWidget>
         <div class="grid grid-cols-2 gap-4 mt-10">
-          <PostWidget v-for="value in posts.slice(1)" :id="value.id" :title="value.title"></PostWidget>
+          <PostWidget v-for="value in posts.slice(1)" :id="value.id" :title="value.title" :bg="getBg(value.attachments)"></PostWidget>
         </div>
       </div>
     </div>
@@ -77,6 +77,7 @@ import auth from "../api/auth";
 import CardWidget from "../components/CardWidget.vue";
 import {CogIcon, LogoutIcon, NewspaperIcon, UsersIcon} from "@heroicons/vue/solid";
 import server from "../api/server";
+import conf from "../conf";
 
 export default {
   name: "Home",
@@ -99,6 +100,9 @@ export default {
     },
     manageUsers() {
       this.$router.push('/um/')
+    },
+    getBg(a) {
+      return a.length === 0 ? "../assets/blank.jpg" : (conf.server + '/static/' + a[0].id)
     }
   },
   mounted() {
