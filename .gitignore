@@ -1,1 +1,4 @@
 /server/public/
+/.idea/webServers.xml
+/.idea/deployment.xml
+/.idea/sshConfigs.xml

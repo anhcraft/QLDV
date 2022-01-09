@@ -44,14 +44,14 @@
             <td></td>
             <td>{{ this.users.filter(u => u.certified).length }}/{{ this.users.length }}</td>
           </tr>
-          <tr v-for="user in users" class="hover:bg-blue-200">
+          <tr v-for="user in users" class="hover:bg-blue-200" :class="{'bg-red-200' : !user.certified}">
             <td :class="{'text-red-500' : user.admin}">{{ user.name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.class }}</td>
             <td>{{ new Intl.DateTimeFormat("vi-VN" , {dateStyle: "short"}).format(new Date(user.birth)) }}</td>
             <td>{{ user.gender ? "Nữ" : "Nam" }}</td>
             <td>{{ user.phone }}</td>
-            <td>{{ user.sid.substring(8) }}</td>
+            <td>{{ user.sid.substring(4) }}</td>
             <td>
               <BadgeCheckIcon class="w-6 m-auto" :class="user.certified ? 'text-sky-400' : 'text-gray-300'" @click="toggleCertified(user)"></BadgeCheckIcon>
             </td>
