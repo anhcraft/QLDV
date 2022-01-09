@@ -27,6 +27,12 @@
     <button @click="editor.chain().focus().setTextAlign('justify').run()" :class="{ 'is-active': editor.isActive({ textAlign: 'justify' }) }">
       <MenuIcon class="w-4 h-4"></MenuIcon>
     </button>
+    <button @click="setLink" :class="{ 'is-active': editor.isActive('link') }">
+      Đặt link
+    </button>
+    <button @click="editor.chain().focus().unsetLink().run()" :disabled="!editor.isActive('link')">
+      Xóa link
+    </button>
   </div>
 
   <editor-content class="editor border-l-2 border-l-slate-300 pl-5 prose m-5 focus:outline-none" :editor="editor" />
@@ -37,6 +43,7 @@ import {Editor, EditorContent, } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import TextAlign from '@tiptap/extension-text-align'
 import {MenuAlt2Icon, MenuAlt3Icon, MenuAlt4Icon, MenuIcon} from "@heroicons/vue/solid";
+import Link from '@tiptap/extension-link'
 
 export default {
   name: "TiptapEditor",
@@ -63,13 +70,42 @@ export default {
         StarterKit,
         TextAlign.configure({
           types: ['heading', 'paragraph'],
-        })
+        }),
+        Link.configure({
+          openOnClick: false,
+        }),
       ],
       onUpdate: ({ editor }) => {
         const html = editor.getHTML()
         this.$emit('onChange', html)
       },
     })
+  },
+
+  methods: {
+    setLink() {
+      const previousUrl = this.editor.getAttributes('link').href
+      const url = window.prompt('URL', previousUrl)
+      if (url === null) {
+        return
+      }
+      if (url === '') {
+        this.editor
+            .chain()
+            .focus()
+            .extendMarkRange('link')
+            .unsetLink()
+            .run()
+
+        return
+      }
+      this.editor
+          .chain()
+          .focus()
+          .extendMarkRange('link')
+          .setLink({ href: url })
+          .run()
+    },
   },
   beforeUnmount() {
     this.editor.destroy()
