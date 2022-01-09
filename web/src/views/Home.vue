@@ -31,7 +31,7 @@
       <div class="grid grid-cols-2 gap-20" v-if="!$root.loadingProfile && !$root.progressionLoading">
         <CardWidget :pink="$root.profile.gender"></CardWidget>
         <div>
-          <section class="mt-5">
+          <section class="mt-5" v-if="$root.profile.rates.length > 0">
             <p class="text-xl">Xếp hạng</p>
             <ul class="list-disc list-inside">
               <li v-for="(value, name) in $root.profile.rates">
@@ -39,7 +39,7 @@
               </li>
             </ul>
           </section>
-          <section class="mt-5">
+          <section class="mt-5" v-if="$root.profile.achievements.length > 0">
             <p class="text-xl">Thành tích</p>
             <ul class="list-disc list-inside">
               <li v-for="value in $root.profile.achievements">
@@ -66,7 +66,7 @@
   <div class="fixed right-10 bottom-10 flex flex-col gap-2" v-if="$root.isLoggedIn">
     <NewspaperIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="managePosts" v-if="$root.profile.admin"></NewspaperIcon>
     <UsersIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="manageUsers" v-if="$root.profile.admin"></UsersIcon>
-    <CogIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2"></CogIcon>
+    <!--<CogIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2"></CogIcon>-->
     <LogoutIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="logOut"></LogoutIcon>
   </div>
 </template>
