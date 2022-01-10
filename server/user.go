@@ -13,6 +13,7 @@ type User struct {
 	Certified bool
 	Class     string
 	Admin     bool
+	Mod       bool
 }
 
 func (u *User) serialize() *gabs.Container {
@@ -27,5 +28,6 @@ func (u *User) serialize() *gabs.Container {
 	_, _ = res.Set(u.Class, "class")
 	_, _ = res.Set(u.StudentId, "sid")
 	_, _ = res.Set(u.Admin, "admin")
+	_, _ = res.Set(u.Mod, "mod")
 	return res
 }

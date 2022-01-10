@@ -5,7 +5,7 @@
   </div>
   <div class="grid grid-cols-7 mt-36 mb-36">
     <div class="col-start-2 col-span-5 flex flex-col gap-5">
-      <div class="w-full h-48 border-slate-400 border-2">
+      <div class="w-full h-48 border-slate-400 border-2" v-if="$root.profile.admin">
         <v-chart class="chart" :option="option" />
       </div>
       <table class="w-full">
@@ -25,7 +25,7 @@
           <tr>
             <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.name"></td>
             <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.email"></td>
-            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.class"></td>
+            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.class" v-if="$root.profile.admin"></td>
             <td></td>
             <td></td>
             <td></td>
@@ -41,10 +41,14 @@
           <tr class="border-b-2 border-b-slate-400">
             <td colspan="6" class="text-sm italic">(Đang hiện {{ this.users.length }} thành viên, trong đó có {{ this.users.filter(u => u.gender).length }} nữ. Tổng cộng có {{ this.users.filter(u => u.certified).length }} đoàn viên)</td>
             <td><button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-2 py-0.5 text-center" @click="search" v-if="!loadingUsers">Tìm & lọc</button></td>
-            <td><button class="bg-sky-300 cursor-pointer px-3 py-1 text-center" @click="saveChanges" :class="{'opacity-20' : countUserChanges === 0}">Lưu ({{ countUserChanges }})</button></td>
+            <td><button class="bg-sky-300 cursor-pointer px-3 py-1 text-center" @click="saveChanges" :class="{'opacity-20' : sumChanges === 0}">Lưu
+              ({{ sumChanges }})</button></td>
           </tr>
           <tr v-for="user in users" class="hover:bg-blue-200" :class="{'bg-red-200' : !user.certified}">
-            <td :class="{'text-red-500' : user.admin}">{{ user.name }}</td>
+            <td class="flex flex-row" :class="user.admin ? 'font-bold text-red-500' : (user['mod'] ? 'text-emerald-500' : '')">
+              {{ user.name }}
+              <StarIcon class="w-6" :class="user.mod ? 'text-emerald-500' : 'text-white'" @click="toggleMod(user)" v-if="$root.profile.admin && !user.admin"></StarIcon>
+            </td>
             <td>{{ user.email }}</td>
             <td>{{ user.class }}</td>
             <td>{{ new Intl.DateTimeFormat("vi-VN" , {dateStyle: "short"}).format(new Date(user.birth)) }}</td>
@@ -73,7 +77,7 @@
 </template>
 
 <script>
-import {BadgeCheckIcon, ChevronDoubleUpIcon, HomeIcon} from '@heroicons/vue/solid'
+import {BadgeCheckIcon, ChevronDoubleUpIcon, HomeIcon, StarIcon} from '@heroicons/vue/solid'
 import server from "../api/server";
 import auth from "../api/auth";
 import { CanvasRenderer } from "echarts/renderers";
@@ -97,7 +101,7 @@ use([
 
 export default {
   name: "UserManage",
-  components: { ChevronDoubleUpIcon, HomeIcon, BadgeCheckIcon, VChart },
+  components: { ChevronDoubleUpIcon, HomeIcon, BadgeCheckIcon, StarIcon, VChart },
   data() {
     return {
       loadingUsers: false,
@@ -105,6 +109,7 @@ export default {
       users: [],
       dataOffset: 0,
       certChanges: {},
+      modChanges: {},
       filter: {
         name: "",
         email: "",
@@ -199,12 +204,21 @@ export default {
         this.certChanges[user.email] = user.certified
       }
     },
+    toggleMod(user) {
+      user.mod = !user['mod']
+      if(this.modChanges.hasOwnProperty(user.email)) {
+        delete this.modChanges[user.email]
+      } else {
+        this.modChanges[user.email] = user['mod']
+      }
+    },
     saveChanges() {
-      if(this.countUserChanges === 0) {
+      if(this.sumChanges === 0) {
         return
       }
       server.saveUserChanges({
-        certified: this.certChanges
+        certified: this.certChanges,
+        mod: this.modChanges
       }, auth.getToken()).then(s => {
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
           window.location.reload();
@@ -230,8 +244,8 @@ export default {
     }
   },
   computed: {
-    countUserChanges() {
-      return Object.keys(this.certChanges).length
+    sumChanges() {
+      return Object.keys(this.certChanges).length + Object.keys(this.modChanges).length
     }
   },
   unmounted () {

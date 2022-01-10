@@ -173,10 +173,24 @@ func getUsers(limit int, offset int, name string, class string, email string, ce
 	return users
 }
 
-func changeUserCert(certified map[string]bool) bool {
+// TODO merge user changes to solve n+1 problem
+
+func changeUserCert(certified map[string]bool, class string) bool {
 	var user User
 	for k, v := range certified {
-		db.Model(&user).Where("email = ?", k).Update("certified", v)
+		a := db.Model(&user).Where("email = ?", k)
+		if class != "" {
+			a = a.Where("class = ?", class)
+		}
+		a.Update("certified", v)
+	}
+	return true
+}
+
+func changeUserMod(mod map[string]bool) bool {
+	var user User
+	for k, v := range mod {
+		db.Model(&user).Where("email = ?", k).Update("mod", v)
 	}
 	return true
 }
@@ -376,7 +390,7 @@ func main() {
 			_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 			return c.SendString(res.String())
 		}
-		if !requester.Admin {
+		if !requester.Admin && !requester.Mod {
 			_, _ = res.Set("ERR_NO_PERMISSION", "error")
 			return c.SendString(res.String())
 		}
@@ -393,6 +407,10 @@ func main() {
 		if err := c.BodyParser(&payload); err != nil {
 			_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
 			return c.SendString(res.String())
+		}
+
+		if requester.Mod {
+			payload.FilterClass = requester.Class
 		}
 
 		if payload.Limit > 50 {
@@ -421,13 +439,14 @@ func main() {
 			_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 			return c.SendString(res.String())
 		}
-		if !requester.Admin {
+		if !requester.Admin && !requester.Mod {
 			_, _ = res.Set("ERR_NO_PERMISSION", "error")
 			return c.SendString(res.String())
 		}
 
 		payload := struct {
 			Certified map[string]bool `json:"certified,omitempty"`
+			Mod       map[string]bool `json:"mod,omitempty"`
 		}{}
 
 		if err := c.BodyParser(&payload); err != nil {
@@ -435,7 +454,17 @@ func main() {
 			return c.SendString(res.String())
 		}
 
-		_, _ = res.Set(changeUserCert(payload.Certified), "success")
+		class := ""
+		if requester.Mod {
+			class = requester.Class
+		}
+
+		_, _ = res.Set(changeUserCert(payload.Certified, class), "success")
+
+		if requester.Admin {
+			_, _ = res.Set(changeUserMod(payload.Mod), "success")
+		}
+
 		return c.SendString(res.String())
 	})
 
