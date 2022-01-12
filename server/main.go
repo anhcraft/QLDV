@@ -73,6 +73,42 @@ func getRates(email string) []Rate {
 	return rates
 }
 
+func saveAchievement(achievements []struct {
+	Title string `json:"title,omitempty"`
+	Year  int    `json:"year,omitempty"`
+}, user string) {
+	var ach Achievement
+	db.Where("email = ?", user).Delete(&ach)
+
+	_achievements := make([]Achievement, 0)
+	for _, v := range achievements {
+		if len(strings.TrimSpace(v.Title)) == 0 {
+			continue
+		}
+		_achievements = append(_achievements, Achievement{
+			Email: user,
+			Title: v.Title,
+			Year:  v.Year,
+		})
+	}
+	db.Clauses(clause.OnConflict{DoNothing: true}).Create(_achievements)
+}
+
+func saveRates(rates map[int]int8, user string) {
+	var rate Rate
+	db.Where("email = ?", user).Delete(&rate)
+
+	_rates := make([]Rate, 0)
+	for k, v := range rates {
+		_rates = append(_rates, Rate{
+			Email: user,
+			Year:  k,
+			Level: v,
+		})
+	}
+	db.Clauses(clause.OnConflict{DoNothing: true}).Create(_rates)
+}
+
 func getPost(id string) *Post {
 	var post Post
 	result := db.Take(&post, "id = ?", id)
@@ -242,14 +278,76 @@ func main() {
 			_, _ = res.Set(txt, "error")
 			return c.SendString(res.String())
 		}
+
+		payload := struct {
+			User string `json:"user,omitempty"`
+		}{}
+
+		if err := c.BodyParser(&payload); err != nil {
+			_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
+			return c.SendString(res.String())
+		}
+
+		if payload.User == "" {
+			payload.User = txt
+		} else if payload.User != txt {
+			user := getProfile(txt)
+			if user == nil {
+				_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+				return c.SendString(res.String())
+			}
+			if !user.Admin && !user.Mod {
+				_, _ = res.Set("ERR_NO_PERMISSION", "error")
+				return c.SendString(res.String())
+			}
+		}
+
 		_, _ = res.Array("rates")
-		for _, rate := range getRates(txt) {
+		for _, rate := range getRates(payload.User) {
 			_ = res.ArrayAppend(rate.serialize(), "rates")
 		}
 		_, _ = res.Array("achievements")
-		for _, rate := range getAchievements(txt) {
+		for _, rate := range getAchievements(payload.User) {
 			_ = res.ArrayAppend(rate.serialize(), "achievements")
 		}
+		return c.SendString(res.String())
+	})
+
+	app.Post("/change-progression", func(c *fiber.Ctx) error {
+		res := gabs.New()
+		token := c.Get("token")
+		success, txt := analyzeTokenToEmail(token, c.UserContext())
+		if !success {
+			_, _ = res.Set(txt, "error")
+			return c.SendString(res.String())
+		}
+		requester := getProfile(txt)
+		if requester == nil {
+			_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+			return c.SendString(res.String())
+		}
+		if !requester.Admin && !requester.Mod {
+			_, _ = res.Set("ERR_NO_PERMISSION", "error")
+			return c.SendString(res.String())
+		}
+
+		payload := struct {
+			User         string       `json:"user,omitempty"`
+			Rates        map[int]int8 `json:"rates,omitempty"`
+			Achievements []struct {
+				Title string `json:"title,omitempty"`
+				Year  int    `json:"year,omitempty"`
+			} `json:"achievements,omitempty"`
+		}{}
+
+		if err := c.BodyParser(&payload); err != nil {
+			_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
+			return c.SendString(res.String())
+		}
+
+		saveRates(payload.Rates, payload.User)
+		saveAchievement(payload.Achievements, payload.User)
+		_, _ = res.Set(true, "success")
 		return c.SendString(res.String())
 	})
 

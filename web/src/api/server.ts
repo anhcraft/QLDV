@@ -33,7 +33,7 @@ const server = {
             }
         }).json();
     },
-    loadProgression: async function (token: string) {
+    loadProgression: async function (token: string, user: string) {
         if(token == null || token.length == 0) {
             return {
                 "error": "CLIENT"
@@ -44,7 +44,10 @@ const server = {
             headers: {
                 'content-type': 'application/json',
                 'token': token
-            }
+            },
+            body: JSON.stringify({
+                'user': user
+            })
         }).json();
     },
     changePost: async function(id: string, title: string, content: string, removeAttachments: string[], token: string) {
@@ -149,6 +152,23 @@ const server = {
             }
         }).json();
     },
+    saveProgressionChanges(data: {}, user: string, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/change-progression`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            },
+            body: JSON.stringify(Object.assign(data, {
+                user: user
+            }))
+        }).json();
+    }
 }
 
 export default server;

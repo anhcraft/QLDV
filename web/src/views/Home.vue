@@ -31,11 +31,11 @@
       <div class="grid grid-cols-2 gap-20" v-if="!$root.loadingProfile && !$root.progressionLoading">
         <CardWidget :pink="$root.profile.gender"></CardWidget>
         <div>
-          <section class="mt-5" v-if="$root.profile.rates.length > 0">
+          <section class="mt-5" v-if="Object.keys($root.profile.rates).length > 0">
             <p class="text-xl">Xếp hạng</p>
             <ul class="list-disc list-inside">
               <li v-for="(value, name) in $root.profile.rates">
-                {{ value ? "Tốt" : "Khá" }} ({{ name }})
+                {{ value === 1 ? "Tốt" : "Khá" }} ({{ name }} - {{ parseInt(name) + 1 }})
               </li>
             </ul>
           </section>

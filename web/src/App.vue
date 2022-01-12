@@ -13,6 +13,7 @@ export default {
       progressionLoading: false,
       progressionLoaded: false,
       profile: {
+        email: "",
         name: "Guest",
         certified: false,
         admin: false,
@@ -43,7 +44,7 @@ export default {
     loadProgression() {
       if(this.isLoggedIn) {
         this.progressionLoading = true
-        server.loadProgression(auth.getToken()).then(s => {
+        server.loadProgression(auth.getToken(), "").then(s => {
           if (s.hasOwnProperty("error")) {
             if(s["error"] === "ERR_TOKEN_VERIFY") {
               auth.destroySession()
@@ -54,7 +55,9 @@ export default {
             this.profile.achievements.push(value["title"] + ` (${value["year"]})`)
           });
           s["rates"].forEach((value) => {
-            this.profile.rates[value["year"]] = value["good"]
+            if(value["level"] > 0) {
+              this.profile.rates[value["year"]] = value["level"]
+            }
           })
           this.progressionLoading = false
           this.progressionLoaded = true
@@ -72,6 +75,7 @@ export default {
           }
           return
         }
+        this.profile.email = s["email"];
         this.profile.name = s["name"];
         this.profile.certified = s["certified"];
         this.profile.admin = s["admin"];

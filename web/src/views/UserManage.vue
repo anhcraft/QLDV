@@ -3,8 +3,8 @@
     <img src="src/assets/das_logo.png" alt="" class="h-10 inline-flex" />
     <span class="text-xl ml-5">Quản lý thành viên</span>
   </div>
-  <div class="grid grid-cols-7 mt-36 mb-36">
-    <div class="col-start-2 col-span-5 flex flex-col gap-5">
+  <div class="flex flex-row mt-36 mb-36">
+    <div class="grow flex flex-col gap-5 p-10">
       <div class="w-full h-48 border-slate-400 border-2" v-if="$root.profile.admin">
         <v-chart class="chart" :option="option" />
       </div>
@@ -44,7 +44,7 @@
             <td><button class="bg-sky-300 cursor-pointer px-3 py-1 text-center" @click="saveChanges" :class="{'opacity-20' : sumChanges === 0}">Lưu
               ({{ sumChanges }})</button></td>
           </tr>
-          <tr v-for="user in users" class="hover:bg-blue-200" :class="{'bg-red-200' : !user.certified}">
+          <tr v-for="user in users" class="hover:bg-blue-200" :class="{'bg-red-200' : !user.certified}" @click="selectUser(user)">
             <td class="flex flex-row" :class="user.admin ? 'font-bold text-red-500' : (user['mod'] ? 'text-emerald-500' : '')">
               {{ user.name }}
               <StarIcon class="w-6" :class="user.mod ? 'text-emerald-500' : 'text-white'" @click="toggleMod(user)" v-if="$root.profile.admin && !user.admin"></StarIcon>
@@ -69,6 +69,46 @@
       </div>
       <div class="mt-10" v-if="!userAvailable">Đã tải hết thành viên.</div>
     </div>
+    <div class="border-l-2 border-l-slate-300 p-10" v-if="loadingUserProgression">
+      <svg class="animate-spin h-16 w-16 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+    <div class="border-l-2 border-l-slate-300 p-10" v-else-if="selectedUser !== undefined">
+      <ChevronDoubleRightIcon class="w-8 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-1" @click="selectUser(undefined)"></ChevronDoubleRightIcon>
+      <p class="my-5 font-bold">{{ selectedUser }}</p>
+      <section class="mt-5">
+        <p class="text-xl">Xếp hạng</p>
+        <ul class="list-disc list-inside">
+          <li v-for="(value, name) in this.userProgression.rates">
+            <select v-model="this.userProgression.rates[name]" class="bg-white">
+              <option v-for="option in this.rateOptions" v-bind:value="option.value">
+                {{ option.text }}
+              </option>
+            </select>
+            ({{ name }} - {{ parseInt(name) + 1 }})
+          </li>
+        </ul>
+      </section>
+      <section class="mt-5" v-if="this.userProgression.achievements.length > 0">
+        <div class="text-xl flex flex-row gap-1">
+          <p>Thành tích</p>
+          <PlusCircleIcon class="w-6 cursor-pointer text-slate-500" @click="addAchievementSlot"></PlusCircleIcon>
+        </div>
+        <ul class="list-disc list-inside">
+          <li v-for="value in this.userProgression.achievements">
+            <input type="text" v-model="value.title"> (
+            <select v-model="value.year" class="bg-white">
+              <option v-for="option in this.achievementOption" v-bind:value="option">
+                {{ option }}
+              </option>
+            </select>)
+          </li>
+        </ul>
+      </section>
+      <button class="bg-emerald-300 cursor-pointer px-3 py-1 text-center mt-5" @click="saveProgressionChanges">Lưu lại</button>
+    </div>
   </div>
   <div class="fixed right-10 bottom-10 flex flex-col gap-2">
     <HomeIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="backToHome"></HomeIcon>
@@ -77,7 +117,14 @@
 </template>
 
 <script>
-import {BadgeCheckIcon, ChevronDoubleUpIcon, HomeIcon, StarIcon} from '@heroicons/vue/solid'
+import {
+  BadgeCheckIcon,
+  ChevronDoubleRightIcon,
+  ChevronDoubleUpIcon,
+  HomeIcon,
+  PlusCircleIcon,
+  StarIcon
+} from '@heroicons/vue/solid'
 import server from "../api/server";
 import auth from "../api/auth";
 import { CanvasRenderer } from "echarts/renderers";
@@ -101,12 +148,15 @@ use([
 
 export default {
   name: "UserManage",
-  components: { ChevronDoubleUpIcon, HomeIcon, BadgeCheckIcon, StarIcon, VChart },
+  components: { ChevronDoubleUpIcon, HomeIcon, BadgeCheckIcon, StarIcon, VChart, ChevronDoubleRightIcon, PlusCircleIcon },
   data() {
     return {
       loadingUsers: false,
+      loadingUserProgression: false,
       userAvailable: true,
       users: [],
+      userProgression: {},
+      selectedUser: undefined,
       dataOffset: 0,
       certChanges: {},
       modChanges: {},
@@ -121,6 +171,12 @@ export default {
           { text: 'Thanh niên', value: 2 }
         ]
       },
+      rateOptions: [
+        {text: '#', value: 0},
+        {text: 'Tốt', value: 1},
+        {text: 'Khá', value: 2}
+      ],
+      achievementOption: [],
       option: {
         title: {
           text: "Thống kê học sinh",
@@ -196,6 +252,41 @@ export default {
         this.loadingUsers = false
       })
     },
+    selectUser(user){
+      this.userProgression = {}
+      this.selectedUser = undefined
+      if(user === undefined || this.loadingUserProgression) return;
+      this.loadingUserProgression = true
+      server.loadProgression(auth.getToken(), user.email).then(s => {
+        this.loadingUserProgression = false
+        if (s.hasOwnProperty("error")) {
+          this.userProgression = {}
+          return
+        }
+        this.achievementOption = [user.entry, user.entry + 1, user.entry + 2]
+        const map = {}
+        map[user.entry] = 0
+        map[user.entry + 1] = 0
+        map[user.entry + 2] = 0
+        this.userProgression = {
+          rates: Object.assign(map, s.rates.reduce(function(map, obj) {
+            map[obj["year"]] = obj["level"];
+            return map;
+          }, {})),
+          achievements: s.achievements.concat({
+            "title": "",
+            "year": user.entry
+          })
+        }
+        this.selectedUser = user.email
+      })
+    },
+    addAchievementSlot() {
+      this.userProgression.achievements = this.userProgression.achievements.concat({
+        "title": "",
+        "year": this.userProgression.achievements[this.userProgression.achievements.length - 1].year
+      })
+    },
     toggleCertified(user) {
       user.certified = !user.certified
       if(this.certChanges.hasOwnProperty(user.email)) {
@@ -227,12 +318,24 @@ export default {
         }
       })
     },
+    saveProgressionChanges() {
+      this.loadingUserProgression = true
+      server.saveProgressionChanges(this.userProgression, this.selectedUser, auth.getToken()).then(s => {
+        this.loadingUserProgression = false
+        if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+          this.selectedUser(undefined)
+        } else {
+          alert(`Lỗi lưu thay đổi: ${s["error"]}`)
+        }
+      })
+    },
     search() {
       this.userAvailable = true
       this.users = []
       this.loadingUsers = false
       this.dataOffset = 0
       this.certChanges = {}
+      this.selectUser(undefined)
       this.loadNextUsers()
     },
     handleScroll() {
