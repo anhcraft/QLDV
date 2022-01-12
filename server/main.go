@@ -91,7 +91,9 @@ func saveAchievement(achievements []struct {
 			Year:  v.Year,
 		})
 	}
-	db.Clauses(clause.OnConflict{DoNothing: true}).Create(_achievements)
+	if len(_achievements) > 0 {
+		db.Clauses(clause.OnConflict{DoNothing: true}).Create(_achievements)
+	}
 }
 
 func saveRates(rates map[int]int8, user string) {
@@ -106,7 +108,9 @@ func saveRates(rates map[int]int8, user string) {
 			Level: v,
 		})
 	}
-	db.Clauses(clause.OnConflict{DoNothing: true}).Create(_rates)
+	if len(_rates) > 0 {
+		db.Clauses(clause.OnConflict{DoNothing: true}).Create(_rates)
+	}
 }
 
 func getPost(id string) *Post {
