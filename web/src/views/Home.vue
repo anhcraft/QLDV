@@ -102,7 +102,7 @@ export default {
       this.$router.push('/um/')
     },
     getBg(a) {
-      return a.length === 0 ? "../assets/blank.jpg" : (conf.server + '/static/' + a[0].id)
+      return a.length === 0 ? "" : (conf.server + '/static/' + a[0].id)
     }
   },
   mounted() {
