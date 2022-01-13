@@ -44,8 +44,8 @@
             <td><button class="bg-sky-300 cursor-pointer px-3 py-1 text-center" @click="saveChanges" :class="{'opacity-20' : sumChanges === 0}">Lưu
               ({{ sumChanges }})</button></td>
           </tr>
-          <tr v-for="user in users" class="hover:bg-blue-200" :class="{'bg-red-200' : !user.certified}" @click="selectUser(user)">
-            <td class="flex flex-row" :class="user.admin ? 'font-bold text-red-500' : (user['mod'] ? 'text-emerald-500' : '')">
+          <tr v-for="user in users" class="hover:bg-blue-200" :class="selectedUser === user.email ? 'border-2 border-gray-400' : (user.certified ? '' : 'bg-red-200')">
+            <td @click="selectUser(user)" class="flex flex-row cursor-pointer hover:underline" :class="user.admin ? 'font-bold text-red-500' : (user['mod'] ? 'text-emerald-500' : '')">
               {{ user.name }}
               <StarIcon class="w-6" :class="user.mod ? 'text-emerald-500' : 'text-white'" @click="toggleMod(user)" v-if="$root.profile.admin && !user.admin"></StarIcon>
             </td>
@@ -56,7 +56,7 @@
             <td>{{ user.phone }}</td>
             <td>{{ user.sid.substring(4) }}</td>
             <td>
-              <BadgeCheckIcon class="w-6 m-auto" :class="user.certified ? 'text-sky-400' : 'text-gray-300'" @click="toggleCertified(user)"></BadgeCheckIcon>
+              <BadgeCheckIcon class="w-6 m-auto" :class="user.certified ? 'text-sky-400' : 'text-gray-400'" @click="toggleCertified(user)"></BadgeCheckIcon>
             </td>
           </tr>
         </tbody>
