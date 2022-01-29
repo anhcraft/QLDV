@@ -55,9 +55,7 @@ export default {
             this.profile.achievements.push(value["title"] + ` (${value["year"]})`)
           });
           s["rates"].forEach((value) => {
-            if(value["level"] > 0) {
-              this.profile.rates[value["year"]] = value["level"]
-            }
+            this.profile.rates[value["year"]] = value["level"]
           })
           this.progressionLoading = false
           this.progressionLoaded = true
