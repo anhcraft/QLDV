@@ -1,6 +1,6 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1024px] m-auto grid grid-cols-3 gap-16">
+  <div class="pb-16 max-w-[1024px] m-auto grid grid-cols-3 gap-16">
     <div class="col-span-1 shadow-lg shadow-slate-400">
       <section>
         <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">THÔNG TIN</div>
