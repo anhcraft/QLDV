@@ -57,12 +57,6 @@ export default {
     }
   },
   methods: {
-    jumpToTop() {
-      window.scrollTo(0, 0);
-    },
-    backToHome() {
-      this.$router.push('/')
-    },
     loadNextPosts(){
       this.loadingPosts = true
       const older = this.posts.length === 0 ? new Date().getTime() : this.posts[this.posts.length - 1].date

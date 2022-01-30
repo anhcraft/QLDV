@@ -81,15 +81,6 @@ export default {
     }
   },
   methods: {
-    jumpToTop() {
-      window.scrollTo(0, 0);
-    },
-    jumpToBottom() {
-      window.scrollTo(0, document.body.scrollHeight);
-    },
-    backToManage() {
-      this.$router.push('/pm/')
-    },
     submitPost() {
       this.submittingPost = true
       server.changePost(this.$route.params.id, this.post.title, this.post.content, this.removeAttachments, auth.getToken()).then(s => {
