@@ -48,6 +48,7 @@ export default {
           if (s.hasOwnProperty("error")) {
             if(s["error"] === "ERR_TOKEN_VERIFY") {
               auth.destroySession()
+              this.$router.push("/")
             }
             return
           }
@@ -70,6 +71,7 @@ export default {
         if (s.hasOwnProperty("error")) {
           if(s["error"] === "ERR_TOKEN_VERIFY") {
             auth.destroySession()
+            this.$router.push("/")
           }
           return
         }

@@ -41,7 +41,6 @@ const auth = {
     },
     destroySession: function () {
         Cookies.remove('qldvtkn');
-        window.location.reload();
     }
 };
 

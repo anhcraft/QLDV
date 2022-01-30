@@ -34,6 +34,7 @@ export default {
   methods: {
     logOut() {
       auth.destroySession()
+      this.$router.push("/")
     }
   }
 }
