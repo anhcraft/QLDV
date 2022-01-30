@@ -4,7 +4,7 @@
     <Breadcrumb text="Tin tức" link="/"></Breadcrumb>
     <div v-if="this.loaded">
       <div class="text-right text-slate-500 mb-3">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</div>
-      <article class="border-y-2 border-y-slate-300 py-10 font-serif">
+      <article class="border-y-2 border-y-slate-300 py-10">
         <header class="text-4xl">{{ post.title }}</header>
         <section id="content" class="mt-5 break-words" v-html="post.content"></section>
       </article>
@@ -77,5 +77,23 @@ export default {
 <style>
 #content a {
   color: rgb(38 143 207);
+}
+#content ol {
+  display: block;
+  list-style-type: decimal;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  padding-inline-start: 40px;
+}
+#content ul {
+  display: block;
+  list-style-type: disc;
+  margin-block-start: 1em;
+  margin-block-end: 1em;
+  margin-inline-start: 0;
+  margin-inline-end: 0;
+  padding-inline-start: 40px;
 }
 </style>
