@@ -1,16 +1,13 @@
 <template>
-  <div class="bg-white shadow-md shadow-slate-300 fixed z-10 left-0 top-0 w-screen p-3">
-    <img src="src/assets/das_logo.png" alt="" class="h-10 inline-flex" />
-    <span class="text-xl ml-5">{{ $route.params.id === undefined ? "Tạo" : "Sửa" }} bài viết</span>
-  </div>
-  <div class="grid grid-cols-5 mt-36 mb-36">
-    <div class="col-start-2 col-span-3 flex flex-col gap-5">
-      <div v-if="postLoaded && !submittingPost">
-        <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model="post.title">
-        <div class="mt-10">
-          <Editor
-              apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
-              :init="{
+  <Header></Header>
+  <div class="max-w-[1024px] m-auto pb-16">
+    <Breadcrumb :text="($route.params.id === undefined ? 'Tạo' : 'Sửa') + ' bài viết'" link="/pm" class="mb-10"></Breadcrumb>
+    <div v-if="postLoaded && !submittingPost">
+      <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model="post.title">
+      <div class="mt-10">
+        <Editor
+            apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
+            :init="{
                   height: 500,
                   plugins: [
                     'advlist autolink link image lists charmap print preview hr anchor pagebreak',
@@ -22,50 +19,47 @@
                     'forecolor backcolor emoticons | help',
                   menubar: false
                 }"
-              v-model="post.content"
-          ></Editor>
-        </div>
-        <div class="mt-10">
-          <p>Ảnh đính kèm:</p>
-          <div class="my-10">
-            <div class="flex flex-row flex-wrap gap-3">
-              <img v-for="att in post.attachments" class="max-w-md" :class="{'border-2 border-slate-500 opacity-50' : removeAttachments.includes(att.id)}" :src="serverBaseURL + '/static/' + att.id" alt="" @click="removeAttachment(att.id)" />
-            </div>
-            <p class="text-red-500 mt-3" v-if="removeAttachments.length > 0">Sẽ xóa {{ removeAttachments.length }} ảnh được chọn.</p>
-          </div>
-          <p>Tải ảnh mới:</p>
-          <input @change="onAttachmentChange" accept="image/*" multiple class="block px-3 py-1.5 text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" type="file">
-          <div class="flex flex-row flex-wrap gap-3 my-10">
-            <img v-for="url in attachmentUploadPreviews" class="max-w-md" :src="url" alt=""/>
-          </div>
-        </div>
-        <button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-3 py-1 w-36 text-center" v-if="!submittingPost" @click="submitPost">{{ $route.params.id === undefined ? "Đăng bài" : "Lưu chỉnh sửa" }}</button>
+            v-model="post.content"
+        ></Editor>
       </div>
-      <div v-else>
-        <svg class="animate-spin h-16 w-16 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
+      <div class="mt-10">
+        <p>Ảnh đính kèm:</p>
+        <div class="my-10">
+          <div class="flex flex-row flex-wrap gap-3">
+            <img v-for="att in post.attachments" class="max-w-md" :class="{'border-2 border-slate-500 opacity-50' : removeAttachments.includes(att.id)}" :src="serverBaseURL + '/static/' + att.id" alt="" @click="removeAttachment(att.id)" />
+          </div>
+          <p class="text-red-500 mt-3" v-if="removeAttachments.length > 0">Sẽ xóa {{ removeAttachments.length }} ảnh được chọn.</p>
+        </div>
+        <p>Tải ảnh mới:</p>
+        <input @change="onAttachmentChange" accept="image/*" multiple class="block px-3 py-1.5 text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" type="file">
+        <div class="flex flex-row flex-wrap gap-3 my-10">
+          <img v-for="url in attachmentUploadPreviews" class="max-w-md" :src="url" alt=""/>
+        </div>
       </div>
+      <button class="bg-pink-400 hover:bg-pink-500 cursor-pointer px-4 py-2 text-white text-center text-sm" v-if="!submittingPost" @click="submitPost">{{ $route.params.id === undefined ? "Đăng bài" : "Lưu chỉnh sửa" }}</button>
+    </div>
+    <div v-else>
+      <svg class="animate-spin h-8 w-8 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
     </div>
   </div>
-  <div class="fixed right-10 bottom-10 flex flex-col gap-2">
-    <ArrowLeftIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="backToManage"></ArrowLeftIcon>
-    <ChevronDoubleUpIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="jumpToTop"></ChevronDoubleUpIcon>
-    <ChevronDoubleDownIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="jumpToBottom"></ChevronDoubleDownIcon>
-  </div>
+  <FloatingMenu></FloatingMenu>
 </template>
 
 <script>
-import {ArrowLeftIcon, ChevronDoubleDownIcon, ChevronDoubleUpIcon} from '@heroicons/vue/solid'
 import server from "../api/server";
 import auth from "../api/auth";
 import conf from "../conf";
 import Editor from '@tinymce/tinymce-vue'
+import Header from "../components/Header.vue";
+import FloatingMenu from "../components/FloatingMenu.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 
 export default {
   "name": "PostEdit",
-  components: {ChevronDoubleUpIcon, ChevronDoubleDownIcon, ArrowLeftIcon, Editor },
+  components: {Header, FloatingMenu, Breadcrumb, Editor },
   data() {
     return {
       post: {
