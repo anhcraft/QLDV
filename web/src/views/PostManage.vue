@@ -1,7 +1,7 @@
 <template>
   <Header></Header>
   <div class="max-w-[1024px] m-auto pb-16">
-    <Breadcrumb text="Quản lý bài viết" link="/u"></Breadcrumb>
+    <Breadcrumb text="Quản lý bài viết" link="/pm"></Breadcrumb>
     <div class="mt-10">
       <button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-3 py-1 text-center text-sm" @click="createPost">Tạo bài viết</button>
     </div>
@@ -24,7 +24,7 @@
       </svg>
     </div>
     <div class="mt-10" v-else-if="postAvailable">
-      <button class="bg-white hover:bg-blue-300 cursor-pointer border-2 border-blue-300 px-3 py-1 text-center text-sm" @click="loadNextPosts">Xem thêm...</button>
+      <button class="rounded-md bg-blue-500 hover:bg-blue-600 cursor-pointer px-3 py-2 text-white text-center text-xs m-auto block" @click="loadNextPosts">Xem thêm...</button>
     </div>
     <div class="mt-10" v-else>Đã tải hết bài viết.</div>
   </div>
