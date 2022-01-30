@@ -1,81 +1,76 @@
 <template>
-  <div class="bg-white shadow-md shadow-slate-300 fixed z-10 left-0 top-0 w-screen p-3">
-    <img src="src/assets/das_logo.png" alt="" class="h-10 inline-flex" />
-    <span class="text-xl ml-5">Quản lý thành viên</span>
-  </div>
-  <div class="flex flex-row mt-36 mb-36">
-    <div class="grow flex flex-col gap-5 p-10">
-      <div class="w-full h-48 border-slate-400 border-2" v-if="$root.profile.admin">
-        <v-chart class="chart" :option="option" />
-      </div>
-      <table class="w-full">
-        <thead>
-          <tr>
-            <th>Tên</th>
-            <th>Email</th>
-            <th class="w-32">Lớp</th>
-            <th>N.Sinh</th>
-            <th>Giới</th>
-            <th>SĐT</th>
-            <th>Mã</th>
-            <th>ĐV</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.name"></td>
-            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.email"></td>
-            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.class" v-if="$root.profile.admin"></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td>
-              <select v-model="filter.certified" class="bg-white">
-                <option v-for="option in filter.certified_options" v-bind:value="option.value">
-                  {{ option.text }}
-                </option>
-              </select>
-            </td>
-          </tr>
-          <tr class="border-b-2 border-b-slate-400">
-            <td colspan="6" class="text-sm italic">(Đang hiện {{ this.users.length }} thành viên, trong đó có {{ this.users.filter(u => u.gender).length }} nữ. Tổng cộng có {{ this.users.filter(u => u.certified).length }} đoàn viên)</td>
-            <td><button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-2 py-0.5 text-center" @click="search" v-if="!loadingUsers">Tìm & lọc</button></td>
-            <td><button class="bg-sky-300 cursor-pointer px-3 py-1 text-center" @click="saveChanges" :class="{'opacity-20' : sumChanges === 0}">Lưu
-              ({{ sumChanges }})</button></td>
-          </tr>
-          <tr v-for="user in users" class="hover:bg-blue-200" :class="selectedUser === user.email ? 'border-2 border-gray-400' : (user.certified ? '' : 'bg-red-200')">
-            <td @click="selectUser(user)" class="flex flex-row cursor-pointer hover:underline" :class="user.admin ? 'font-bold text-red-500' : (user['mod'] ? 'text-emerald-500' : '')">
-              {{ user.name }}
-              <StarIcon class="w-6" :class="user.mod ? 'text-emerald-500' : 'text-white'" @click="toggleMod(user)" v-if="$root.profile.admin && !user.admin"></StarIcon>
-            </td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.class }}</td>
-            <td>{{ new Intl.DateTimeFormat("vi-VN" , {dateStyle: "short"}).format(new Date(user.birth)) }}</td>
-            <td>{{ user.gender ? "Nữ" : "Nam" }}</td>
-            <td>{{ user.phone }}</td>
-            <td>{{ user.sid.substring(4) }}</td>
-            <td>
-              <BadgeCheckIcon class="w-6 m-auto" :class="user.certified ? 'text-sky-400' : 'text-gray-400'" @click="toggleCertified(user)"></BadgeCheckIcon>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div v-if="loadingUsers">
-        <svg class="animate-spin h-16 w-16 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-      </div>
-      <div class="mt-10" v-if="!userAvailable">Đã tải hết thành viên.</div>
+  <Header></Header>
+  <div class="pb-16 max-w-[1024px] m-auto">
+    <Breadcrumb text="Quản lý thành viên" link="/um"></Breadcrumb>
+    <div class="w-full h-48 my-10 border-slate-400 border-2" v-if="$root.profile.admin">
+      <v-chart class="chart" :option="option" />
     </div>
-    <div class="border-l-2 border-l-slate-300 p-10" v-if="loadingUserProgression">
-      <svg class="animate-spin h-16 w-16 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <table class="w-full">
+      <thead>
+      <tr>
+        <th>Tên</th>
+        <th>Email</th>
+        <th class="w-32">Lớp</th>
+        <th>N.Sinh</th>
+        <th>Giới</th>
+        <th>ĐV</th>
+        <th>BT</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr>
+        <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.name"></td>
+        <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.email"></td>
+        <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.class" v-if="$root.profile.admin"></td>
+        <td></td>
+        <td></td>
+        <td>
+          <select v-model="filter.certified" class="bg-white">
+            <option v-for="option in filter.certified_options" v-bind:value="option.value">
+              {{ option.text }}
+            </option>
+          </select>
+        </td>
+        <td></td>
+      </tr>
+      <tr class="border-b-2 border-b-slate-400">
+        <td colspan="5" class="text-sm italic">Đang hiện {{ this.users.length }} thành viên, trong đó có {{ this.users.filter(u => u.gender).length }} nữ. Tổng cộng có {{ this.users.filter(u => u.certified).length }} đoàn viên.</td>
+        <td><button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-2 py-0.5 text-center text-sm" @click="search" v-if="!loadingUsers">Tìm & lọc</button></td>
+        <td><button class="bg-sky-300 cursor-pointer px-3 py-1 text-center text-sm" @click="saveChanges" :class="{'opacity-20' : sumChanges === 0}">Lưu ({{ sumChanges }})</button></td>
+      </tr>
+      <tr v-for="user in users" class="text-sm hover:bg-blue-200" :class="selectedUser === user.email ? 'border-2 border-gray-400' : (user.certified ? '' : 'bg-red-200')">
+        <td @click="selectUser(user)" class="flex flex-row cursor-pointer text-base hover:underline" :class="user.admin ? 'font-bold text-red-500' : (user['mod'] ? 'text-emerald-500' : '')">{{ user.name }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.class }}</td>
+        <td>{{ new Intl.DateTimeFormat("vi-VN" , {dateStyle: "short"}).format(new Date(user.birth)) }}</td>
+        <td class="text-center">{{ user.gender ? "Nữ" : "Nam" }}</td>
+        <td>
+          <BadgeCheckIcon class="w-6 m-auto" :class="user.certified ? 'text-sky-400' : 'text-gray-400'" @click="toggleCertified(user)"></BadgeCheckIcon>
+        </td>
+        <td>
+          <StarIcon class="w-6 cursor-pointer" :class="user.mod ? 'text-emerald-500' : 'text-white'" @click="toggleMod(user)" v-if="$root.profile.admin && !user.admin"></StarIcon>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    <div v-if="loadingUsers">
+      <svg class="animate-spin h-8 w-8 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
     </div>
-    <div class="border-l-2 border-l-slate-300 p-10" v-else-if="selectedUser !== undefined">
+    <div class="mt-5" v-if="!userAvailable">Đã tải hết thành viên.</div>
+  </div>
+
+  <div class="bg-black opacity-75 fixed top-0 left-0 w-screen h-screen" v-if="selectedUser !== undefined || loadingUserProgression" @click="selectUser(undefined)"></div>
+  <div class="fixed right-0 top-0 z-10 bg-white h-screen overflow-auto border-l-2 border-l-slate-300 p-10" v-if="selectedUser !== undefined || loadingUserProgression">
+    <div v-if="loadingUserProgression">
+      <svg class="animate-spin h-8 w-8 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+    </div>
+    <div v-else>
       <ChevronDoubleRightIcon class="w-8 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-1" @click="selectUser(undefined)"></ChevronDoubleRightIcon>
       <p class="my-5 font-bold">{{ selectedUser }}</p>
       <section class="mt-5">
@@ -107,21 +102,17 @@
           </li>
         </ul>
       </section>
-      <button class="bg-emerald-300 cursor-pointer px-3 py-1 text-center mt-5" @click="saveProgressionChanges">Lưu lại</button>
+      <button class="bg-emerald-300 hover:bg-emerald-400 cursor-pointer px-3 py-1 text-center mt-5" @click="saveProgressionChanges">Lưu lại</button>
     </div>
   </div>
-  <div class="fixed right-10 bottom-10 flex flex-col gap-2">
-    <HomeIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="backToHome"></HomeIcon>
-    <ChevronDoubleUpIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="jumpToTop"></ChevronDoubleUpIcon>
-  </div>
+
+  <FloatingMenu></FloatingMenu>
 </template>
 
 <script>
 import {
   BadgeCheckIcon,
   ChevronDoubleRightIcon,
-  ChevronDoubleUpIcon,
-  HomeIcon,
   PlusCircleIcon,
   StarIcon
 } from '@heroicons/vue/solid'
@@ -135,8 +126,10 @@ import {
   LegendComponent
 } from "echarts/components";
 import {use} from "echarts/core";
-
 import VChart from "vue-echarts";
+import Header from "../components/Header.vue";
+import FloatingMenu from "../components/FloatingMenu.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 
 use([
   CanvasRenderer,
@@ -148,7 +141,10 @@ use([
 
 export default {
   name: "UserManage",
-  components: { ChevronDoubleUpIcon, HomeIcon, BadgeCheckIcon, StarIcon, VChart, ChevronDoubleRightIcon, PlusCircleIcon },
+  components: {
+    Header, FloatingMenu, Breadcrumb,
+    BadgeCheckIcon, StarIcon, VChart, ChevronDoubleRightIcon, PlusCircleIcon
+  },
   data() {
     return {
       loadingUsers: false,
@@ -234,12 +230,6 @@ export default {
     }
   },
   methods: {
-    jumpToTop() {
-      window.scrollTo(0, 0);
-    },
-    backToHome() {
-      this.$router.push('/')
-    },
     loadNextUsers(){
       this.loadingUsers = true
       server.loadUsers(50, this.dataOffset, this.filter, auth.getToken()).then(s => {
