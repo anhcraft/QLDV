@@ -70,7 +70,7 @@
           <div class="grid grid-cols-7 gap-y-3 my-3">
             <div v-for="i in 35">
               <div class="m-auto w-7 h-7 rounded-full flex items-center justify-center" :class="{'bg-pink-400 text-white': isToday(i)}">
-                <span v-if="i <= this.getDaysInMonth">{{ i }}</span>
+                <span v-if="i <= this.getDaysInMonth" class="text-sm">{{ i }}</span>
               </div>
             </div>
           </div>
