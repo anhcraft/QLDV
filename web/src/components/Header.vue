@@ -28,6 +28,9 @@ export default {
     logIn() {
       auth.createSession()
     },
+    viewProfile() {
+      this.$router.push("/u/")
+    }
   }
 }
 </script>

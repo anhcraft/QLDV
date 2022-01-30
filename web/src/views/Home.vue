@@ -182,9 +182,6 @@ export default {
     const date = new Date()
     this.eventCalendar.currentYear = date.getFullYear()
     this.eventCalendar.currentMonth = date.getMonth()
-    if(!this.$root.progressionLoaded) {
-      this.$root.loadProgression()
-    }
     this.dateOffset = date.getTime()
     this.loadNextPosts()
     window.addEventListener('scroll', this.handleScroll)
