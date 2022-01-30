@@ -67,18 +67,12 @@
       </div>
     </div>
   </div>
-  <div class="fixed right-10 bottom-10 flex flex-col gap-2" v-if="$root.isLoggedIn">
-    <NewspaperIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="managePosts" v-if="$root.profile.admin"></NewspaperIcon>
-    <UsersIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="manageUsers" v-if="$root.profile.admin || $root.profile['mod']"></UsersIcon>
-    <!--<CogIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2"></CogIcon>-->
-    <LogoutIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="logOut"></LogoutIcon>
-  </div>
+  <FloatingMenu></FloatingMenu>
 </template>
 
 <script>
 import PostWidget from "../components/PostWidget.vue";
-import auth from "../api/auth";
-import {CalendarIcon, CogIcon, LogoutIcon, NewspaperIcon, UsersIcon} from "@heroicons/vue/solid";
+import {CalendarIcon, NewspaperIcon} from "@heroicons/vue/solid";
 import server from "../api/server";
 import conf from "../conf";
 import treePlanting from "../assets/tree-planting.jpg"
@@ -88,12 +82,13 @@ import springWallpaper from "../assets/spring-wallpaper.jpg"
 import studyTogether from "../assets/study-together.jpg"
 import {ChevronLeftIcon, ChevronRightIcon} from "@heroicons/vue/outline";
 import Header from "../components/Header.vue";
+import FloatingMenu from "../components/FloatingMenu.vue";
 
 export default {
   name: "Home",
   components: {
-    Header,
-    PostWidget, LogoutIcon, CogIcon, NewspaperIcon, UsersIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon
+    Header, PostWidget, FloatingMenu,
+    NewspaperIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon
   },
   data() {
     return {
@@ -142,15 +137,6 @@ export default {
     }
   },
   methods: {
-    logOut() {
-      auth.destroySession()
-    },
-    managePosts() {
-      this.$router.push('/pm/')
-    },
-    manageUsers() {
-      this.$router.push('/um/')
-    },
     getBg(a) {
       return a.length === 0 ? "" : (conf.server + '/static/' + a[0].id)
     },

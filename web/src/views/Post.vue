@@ -24,11 +24,7 @@
       </svg>
     </div>
   </div>
-  <div class="fixed right-10 bottom-10 flex flex-col gap-2">
-    <HomeIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="backToHome"></HomeIcon>
-    <ChevronDoubleUpIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="jumpToTop"></ChevronDoubleUpIcon>
-    <ChevronDoubleDownIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2" @click="jumpToBottom"></ChevronDoubleDownIcon>
-  </div>
+  <FloatingMenu></FloatingMenu>
   <div v-if="previewImageId !== undefined">
     <div class="bg-black opacity-75 fixed top-0 left-0 w-screen h-screen" @click="previewImage(undefined)"></div>
     <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 select-none w-4/5">
@@ -42,15 +38,19 @@
 </template>
 
 <script>
-import { ChevronDoubleUpIcon, ChevronDoubleDownIcon, HomeIcon } from '@heroicons/vue/solid'
+import { HomeIcon } from '@heroicons/vue/solid'
 import server from "../api/server";
 import conf from "../conf";
 import Header from "../components/Header.vue";
 import {ChevronRightIcon, ZoomInIcon, ZoomOutIcon} from "@heroicons/vue/outline";
+import FloatingMenu from "../components/FloatingMenu.vue";
 
 export default {
   name: "Post",
-  components: {Header, ChevronRightIcon, ChevronDoubleUpIcon, ChevronDoubleDownIcon, HomeIcon, ZoomInIcon, ZoomOutIcon },
+  components: {
+    Header, FloatingMenu,
+    ChevronRightIcon, HomeIcon, ZoomInIcon, ZoomOutIcon
+  },
   data() {
     return {
       post: {},
@@ -65,12 +65,6 @@ export default {
     }
   },
   methods: {
-    jumpToTop() {
-      window.scrollTo(0, 0);
-    },
-    jumpToBottom() {
-      window.scrollTo(0, document.body.scrollHeight);
-    },
     backToHome() {
       this.$router.push('/')
     },
