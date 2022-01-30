@@ -1,12 +1,7 @@
 <template>
   <Header></Header>
   <div class="max-w-[1024px] m-auto pb-16">
-    <div class="flex flex-row gap-1 place-items-center">
-      <HomeIcon class="w-4 cursor-pointer" @click="backToHome"></HomeIcon>
-      <ChevronRightIcon class="w-4"></ChevronRightIcon>
-      <div class="cursor-pointer" @click="backToHome">Tin tức</div>
-      <ChevronRightIcon class="w-4"></ChevronRightIcon>
-    </div>
+    <Breadcrumb text="Tin tức" link="/"></Breadcrumb>
     <div v-if="this.loaded">
       <div class="text-right text-slate-500 mb-3">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</div>
       <article class="border-y-2 border-y-slate-300 py-10 font-serif">
@@ -38,18 +33,18 @@
 </template>
 
 <script>
-import { HomeIcon } from '@heroicons/vue/solid'
 import server from "../api/server";
 import conf from "../conf";
 import Header from "../components/Header.vue";
-import {ChevronRightIcon, ZoomInIcon, ZoomOutIcon} from "@heroicons/vue/outline";
+import {ZoomInIcon, ZoomOutIcon} from "@heroicons/vue/outline";
 import FloatingMenu from "../components/FloatingMenu.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 
 export default {
   name: "Post",
   components: {
-    Header, FloatingMenu,
-    ChevronRightIcon, HomeIcon, ZoomInIcon, ZoomOutIcon
+    Header, FloatingMenu, Breadcrumb,
+    ZoomInIcon, ZoomOutIcon
   },
   data() {
     return {
@@ -65,9 +60,6 @@ export default {
     }
   },
   methods: {
-    backToHome() {
-      this.$router.push('/')
-    },
     previewImage(id) {
       this.previewImageId = id
       this.previewImageSize = 50

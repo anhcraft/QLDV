@@ -1,7 +1,10 @@
 <template>
   <Header></Header>
   <div class="max-w-[1024px] m-auto pb-16">
-    <button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-3 py-1 text-center text-sm" @click="createPost">Tạo bài viết</button>
+    <Breadcrumb text="Quản lý bài viết" link="/u"></Breadcrumb>
+    <div class="mt-10">
+      <button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-3 py-1 text-center text-sm" @click="createPost">Tạo bài viết</button>
+    </div>
     <table class="w-full mt-10">
       <tbody>
         <tr v-for="post in posts">
@@ -36,11 +39,12 @@ import Prompt from "../components/Prompt.vue";
 import auth from "../api/auth";
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 
 export default {
   name: "PostManage",
   components: {
-    Header, FloatingMenu,
+    Header, FloatingMenu, Breadcrumb,
     PencilIcon, TrashIcon, Prompt
   },
   data() {
