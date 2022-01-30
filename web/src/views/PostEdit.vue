@@ -8,7 +8,22 @@
       <div v-if="postLoaded && !submittingPost">
         <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model="post.title">
         <div class="mt-10">
-          <TiptapEditor :content="post.content" @onChange="this.onContentChange"></TiptapEditor>
+          <Editor
+              apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
+              :init="{
+                  height: 500,
+                  plugins: [
+                    'advlist autolink link image lists charmap print preview hr anchor pagebreak',
+                    'searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking',
+                    'table emoticons template paste help'
+                  ],
+                  toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | ' +
+                    'bullist numlist outdent indent | link media | ' +
+                    'forecolor backcolor emoticons | help',
+                  menubar: false
+                }"
+              v-model="post.content"
+          ></Editor>
         </div>
         <div class="mt-10">
           <p>Ảnh đính kèm:</p>
@@ -43,14 +58,14 @@
 
 <script>
 import {ArrowLeftIcon, ChevronDoubleDownIcon, ChevronDoubleUpIcon} from '@heroicons/vue/solid'
-import TiptapEditor from "../components/TiptapEditor.vue";
 import server from "../api/server";
 import auth from "../api/auth";
 import conf from "../conf";
+import Editor from '@tinymce/tinymce-vue'
 
 export default {
   "name": "PostEdit",
-  components: {TiptapEditor, ChevronDoubleUpIcon, ChevronDoubleDownIcon, ArrowLeftIcon },
+  components: {ChevronDoubleUpIcon, ChevronDoubleDownIcon, ArrowLeftIcon, Editor },
   data() {
     return {
       post: {
@@ -108,9 +123,6 @@ export default {
           alert(`Lỗi lưu bài viết: ${s["error"]}`)
         }
       })
-    },
-    onContentChange(content) {
-      this.post.content = content
     },
     onAttachmentChange(e) {
       const data = [];
