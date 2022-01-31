@@ -1,6 +1,7 @@
 import conf from "../conf";
 import auth from "./auth";
 import ky from 'ky';
+import {RouteParamValue} from "vue-router";
 
 const server = {
     loadProfile: async function (token: string) {
@@ -168,7 +169,58 @@ const server = {
                 user: user
             }))
         }).json();
-    }
+    },
+    loadEvents: function (limit: number, olderThan: number, fromDate: number, toDate: number) {
+        return ky.get(`${conf.server}/events?limit=${limit}&older=${olderThan}&from-date=${fromDate}&to-date=${toDate}`, {
+            method: 'get',
+            headers: {
+                'content-type': 'application/json'
+            }
+        }).json();
+    },
+    removeEvent: async function(id: string, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/remove-event`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token,
+                'id': id === undefined ? '' : id
+            }
+        }).json();
+    },
+    changeEvent: async function (id: string, event: { endDate: Date, title: string, startDate: Date }, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/change-event`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            },
+            body: JSON.stringify({
+                'id': id === undefined ? '' : id,
+                'title': event.title,
+                'start_date': event.startDate.getTime(),
+                'end_date': event.endDate.getTime()
+            })
+        }).json();
+    },
+    loadEvent: function (id: string) {
+        return ky.get(`${conf.server}/event?id=${id}`, {
+            method: 'get',
+            headers: {
+                'content-type': 'application/json'
+            }
+        }).json();
+    },
 }
 
 export default server;

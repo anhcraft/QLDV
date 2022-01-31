@@ -8,6 +8,9 @@ const routes = [
     { path: '/pm/', component: () => import("./views/PostManage.vue") },
     { path: '/um/', component: () => import("./views/UserManage.vue") },
     { path: '/u/', component: () => import("./views/Profile.vue") },
+    { path: '/em/', component: () => import("./views/EventManage.vue") },
+    { path: '/ee/', component: () => import("./views/EventEdit.vue") },
+    { path: '/ee/:id', component: () => import("./views/EventEdit.vue") },
 ]
 
 const router = createRouter({

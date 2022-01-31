@@ -58,11 +58,20 @@
             </div>
           </div>
         </div>
-        <div class="flex flex-col gap-3">
-          <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2">
-            <div class="text-lg">Event</div>
-            <div class="text-sm text-gray-500">00/00 - 00/00</div>
+        <div class="flex flex-col gap-3" v-if="!eventCalendar.loading">
+          <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2" v-for="event in eventCalendar.events">
+            <div class="text-lg">{{ event.title }}</div>
+            <div class="text-sm text-gray-500">
+              {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.startDate)) }} -
+              {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.endDate)) }}
+            </div>
           </div>
+        </div>
+        <div v-else>
+          <svg class="animate-spin h-8 w-8 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
         </div>
       </div>
     </div>
@@ -123,6 +132,7 @@ export default {
       eventCalendar: {
         currentYear: 0,
         currentMonth: 0,
+        loading: false,
         events: []
       },
       loadingPosts: false,
@@ -169,6 +179,16 @@ export default {
         this.eventCalendar.currentYear = this.eventCalendar.currentYear - 1
       }
       this.eventCalendar.currentMonth = d
+
+      this.eventCalendar.loading = true
+      this.eventCalendar.events = []
+      const a = new Date(this.eventCalendar.currentYear, this.eventCalendar.currentMonth, 1, 0, 0, 0)
+      const b = new Date(this.eventCalendar.currentYear, this.eventCalendar.currentMonth + 1, 1, 0, 0, 0)
+      server.loadEvents(10, new Date().getTime(), a.getTime(), b.getTime() - 1000).then(s => {
+        this.eventCalendar.events = s.events
+        this.eventCalendar.loading = false
+        console.log(this.eventCalendar.loading)
+      })
     },
     isToday(day) {
       const date = new Date()
@@ -182,6 +202,7 @@ export default {
     const date = new Date()
     this.eventCalendar.currentYear = date.getFullYear()
     this.eventCalendar.currentMonth = date.getMonth()
+    this.nextMonth(0)
     this.dateOffset = date.getTime()
     this.loadNextPosts()
     window.addEventListener('scroll', this.handleScroll)

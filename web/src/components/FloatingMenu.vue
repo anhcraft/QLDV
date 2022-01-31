@@ -1,5 +1,8 @@
 <template>
   <div class="fixed right-10 bottom-10 flex flex-col gap-2" v-if="!$root.loadingProfile">
+    <router-link to="/em" v-if="$root.isLoggedIn && $root.profile.admin">
+      <CalendarIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2"></CalendarIcon>
+    </router-link>
     <router-link to="/pm" v-if="$root.isLoggedIn && $root.profile.admin">
       <NewspaperIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2"></NewspaperIcon>
     </router-link>
@@ -13,6 +16,7 @@
 
 <script>
 import {
+  CalendarIcon,
   CogIcon,
   LogoutIcon,
   NewspaperIcon,
@@ -26,7 +30,8 @@ export default {
     LogoutIcon,
     CogIcon,
     NewspaperIcon,
-    UsersIcon
+    UsersIcon,
+    CalendarIcon
   },
   props: {
     pageNavigation: Boolean
