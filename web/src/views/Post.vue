@@ -20,14 +20,12 @@
     </div>
   </div>
   <FloatingMenu></FloatingMenu>
-  <div v-if="previewImageId !== undefined">
-    <div class="bg-black opacity-75 fixed top-0 left-0 w-screen h-screen" @click="previewImage(undefined)"></div>
-    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 select-none w-4/5">
-      <img :style="`width: ${this.previewImageSize}%`" class="m-auto transition-all	duration-300" :src="serverBaseURL + '/static/' + previewImageId" alt="" />
-      <div class="flex flex-row justify-center mt-1">
-        <ZoomInIcon class="w-7 cursor-pointer p-1 bg-gray-300 hover:bg-gray-400" @click="this.previewImageSize = Math.min(this.previewImageSize + 10, 80)"></ZoomInIcon>
-        <ZoomOutIcon class="w-7 cursor-pointer p-1 bg-gray-300 hover:bg-gray-400" @click="this.previewImageSize = Math.max(this.previewImageSize - 10, 50)"></ZoomOutIcon>
-      </div>
+  <div class="select-none" v-if="previewImageId !== undefined">
+    <div class="bg-black opacity-75 fixed top-0 left-0 w-screen h-screen" v-on:mouseenter="zoomControlShow = false" @click="previewImage(undefined)"></div>
+    <img :style="`width: ${this.previewImageSize}%`" v-on:mouseenter="zoomControlShow = true" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 m-auto transition-all	duration-300" :src="serverBaseURL + '/static/' + previewImageId" alt="" />
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-row justify-center mt-1" v-if="zoomControlShow">
+      <ZoomInIcon class="w-7 cursor-pointer p-1 bg-gray-300 hover:bg-gray-400" @click="this.previewImageSize = Math.min(this.previewImageSize + 10, 80)"></ZoomInIcon>
+      <ZoomOutIcon class="w-7 cursor-pointer p-1 bg-gray-300 hover:bg-gray-400" @click="this.previewImageSize = Math.max(this.previewImageSize - 10, 50)"></ZoomOutIcon>
     </div>
   </div>
 </template>
@@ -51,7 +49,8 @@ export default {
       post: {},
       loaded: false,
       previewImageId: undefined,
-      previewImageSize: 0
+      previewImageSize: 0,
+      zoomControlShow: false
     }
   },
   computed: {
@@ -63,6 +62,7 @@ export default {
     previewImage(id) {
       this.previewImageId = id
       this.previewImageSize = 50
+      this.zoomControlShow = false
     }
   },
   mounted() {
