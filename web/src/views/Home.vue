@@ -4,10 +4,10 @@
     <div>
       <div v-for="(q, index) in quotes" :class="{'hidden': currentQuote !== index}">
         <img :src="q.img" alt="" class="h-[400px] m-auto transition-all duration-300 hover:opacity-80 cursor-pointer" @click="currentQuote = (currentQuote === quotes.length - 1) ? 0 : currentQuote + 1">
-        <p class="max-w-[800px] h-[80px] m-auto mt-10 text-center">
+        <div class="max-w-[800px] h-[120px] m-auto mt-7 text-center">
           <q class="font-yomogi text-2xl">{{ q.text }}</q>
-          <span class="font-serif text-gray-500 ml-5">― {{ q.author }}</span>
-        </p>
+          <p class="font-serif text-gray-500 italic mt-1">― {{ q.author }}</p>
+        </div>
       </div>
     </div>
     <div class="flex flex-row place-content-center gap-3">
@@ -25,7 +25,7 @@
           <NewspaperIcon class="w-8 text-gray-600"></NewspaperIcon>
           <span class="font-light text-xl">TIN TỨC</span>
         </div>
-        <div class="w-full mt-5 flex flex-col gap-4 mt-10" v-if="posts.length > 0">
+        <div class="w-full flex flex-col gap-4 mt-5" v-if="posts.length > 0">
           <PostWidget v-for="value in posts" :id="value.id" :title="value.title" :bg="getBg(value.attachments)"></PostWidget>
         </div>
         <div class="mt-10" v-if="loadingPosts">
