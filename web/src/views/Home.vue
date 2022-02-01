@@ -59,7 +59,7 @@
           </div>
         </div>
         <div class="flex flex-col gap-3" v-if="!eventCalendar.loading">
-          <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2" v-for="event in eventCalendar.events">
+          <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2" v-for="event in eventCalendar.events[eventCalendar.currentMonth+'.'+eventCalendar.currentYear]">
             <div class="text-lg">{{ event.title }}</div>
             <div class="text-sm text-gray-500">
               {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.startDate)) }} -
@@ -133,7 +133,7 @@ export default {
         currentYear: 0,
         currentMonth: 0,
         loading: false,
-        events: []
+        events: {}
       },
       loadingPosts: false,
       postAvailable: true,
@@ -180,14 +180,16 @@ export default {
       }
       this.eventCalendar.currentMonth = d
 
+      const key = this.eventCalendar.currentMonth + "." + this.eventCalendar.currentYear;
+      if(this.eventCalendar.events.hasOwnProperty(key)) return
       this.eventCalendar.loading = true
-      this.eventCalendar.events = []
       const a = new Date(this.eventCalendar.currentYear, this.eventCalendar.currentMonth, 1, 0, 0, 0)
       const b = new Date(this.eventCalendar.currentYear, this.eventCalendar.currentMonth + 1, 1, 0, 0, 0)
       server.loadEvents(10, new Date().getTime(), a.getTime(), b.getTime() - 1000).then(s => {
-        this.eventCalendar.events = s.events
+        const v = this.eventCalendar.events
+        v[key] = s.events
+        this.eventCalendar.events = v
         this.eventCalendar.loading = false
-        console.log(this.eventCalendar.loading)
       })
     },
     isToday(day) {
