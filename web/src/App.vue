@@ -79,10 +79,8 @@ export default {
       this.loadingProfile = true
       server.loadProfile('', tkn).then(s => {
         if (s.hasOwnProperty("error")) {
-          if(s["error"] === "ERR_TOKEN_VERIFY") {
-            auth.destroySession()
-            this.$router.push("/")
-          }
+          auth.destroySession()
+          this.$router.push("/")
           return
         }
         this.profile.email = s["email"];

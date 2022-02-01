@@ -142,6 +142,10 @@ func profileGetRouteHandler(c *fiber.Ctx) error {
 			payload.User = email
 		}
 	}
+	if payload.User == "" {
+		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+		return c.SendString(res.String())
+	}
 
 	user := getProfile(payload.User)
 	if user == nil {
