@@ -5,6 +5,8 @@
 <script>
 import auth from "./api/auth";
 import server from "./api/server";
+import profileCoverDefaultImg from "./assets/profile-cover.jpg"
+import conf from "./conf";
 
 export default {
   data() {
@@ -24,7 +26,8 @@ export default {
         endDate: 2022,
         studentId: "0000000000000000",
         achievements: [],
-        rates: {}
+        rates: {},
+        profileCover: undefined
       }
     }
   },
@@ -85,6 +88,11 @@ export default {
         this.profile.endDate = this.profile.entryDate + 3;
         this.profile.class = s["class"];
         this.profile.studentId = s["sid"];
+        if (s["profileCover"].length > 0) {
+          this.profile.profileCover = conf.server + "/static/" + s["profileCover"];
+        } else {
+          this.profile.profileCover = profileCoverDefaultImg
+        }
         this.loadingProfile = false
       })
     }

@@ -1,11 +1,14 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"os"
 	"strings"
 )
 
@@ -340,4 +343,46 @@ func userStatGetRouteHandler(c *fiber.Ctx) error {
 	_, _ = res.Set(result.d, "class11")
 	_, _ = res.Set(result.e, "class12")
 	return c.SendString(res.String())
+}
+
+func profileCoverSetRouteHandler(c *fiber.Ctx) error {
+	res := gabs.New()
+	token := c.Get("token")
+	success, email := getEmailFromToken(token, c.UserContext())
+	if !success {
+		_, _ = res.Set(email, "error")
+		return c.SendString(res.String())
+	}
+	user := getProfile(email)
+	if user == nil {
+		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+		return c.SendString(res.String())
+	}
+
+	t := c.Get("content-type")
+
+	if t == "image/png" {
+		_, _ = res.Set(setProfileCover(email, c.Body(), ".png"), "success")
+	} else if t == "image/jpeg" {
+		_, _ = res.Set(setProfileCover(email, c.Body(), ".jpeg"), "success")
+	} else {
+		_, _ = res.Set("ERR_ILLEGAL_PROFILE_COVER", "error")
+		return c.SendString(res.String())
+	}
+
+	return c.SendString(res.String())
+}
+
+func setProfileCover(email string, data []byte, ext string) bool {
+	_ = os.Mkdir("public", os.ModePerm)
+	hash := sha256.New()
+	hash.Write([]byte(email))
+	md := hash.Sum(nil)
+	id := "cover-" + hex.EncodeToString(md)
+	err := os.WriteFile("./public/"+id+ext, data, os.ModePerm)
+	if err != nil {
+		return false
+	}
+	db.Model(&User{}).Where("email = ?", email).Update("profile_cover", id+ext)
+	return true
 }

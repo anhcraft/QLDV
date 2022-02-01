@@ -30,8 +30,15 @@
         </section>
       </div>
       <div class="col-span-2">
-        <section>
-          <img src="../assets/profile-cover.jpg" />
+        <section v-if="profileCoverUploading || $root.profile.profileCover === undefined" class="border-4 border-dashed border-black py-10">
+          <svg class="animate-spin h-8 w-8 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </section>
+        <section v-else class="w-full inline-block relative overflow-hidden hover:opacity-80 border-4 border-dashed border-white hover:border-black">
+          <div :style="{ 'background-image': 'url(' + $root.profile.profileCover + ')' }" class="w-full h-64 bg-contain bg-center bg-no-repeat" />
+          <input type="file" class="absolute left-0 top-0 opacity-0 h-64 w-full cursor-pointer" @change="onProfileCoverChange" accept="image/*" />
         </section>
       </div>
     </div>
@@ -43,10 +50,32 @@
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
+import server from "../api/server";
+import auth from "../api/auth";
 
 export default {
   name: "Profile",
   components: {Breadcrumb, Header, FloatingMenu},
+  data() {
+    return {
+      profileCoverUploading: false
+    }
+  },
+  methods: {
+    onProfileCoverChange(e) {
+      if (e.target.files.length > 0) {
+        this.profileCoverUploading = true
+        server.setProfileCover(e.target.files[0], auth.getToken()).then(s => {
+          if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+            this.profileCoverUploading = false
+            window.location.reload()
+          } else {
+            alert(`Lỗi lưu ảnh bìa: ${s["error"]}`)
+          }
+        })
+      }
+    },
+  },
   mounted() {
     if(!this.$root.progressionLoaded) {
       this.$root.loadProgression()

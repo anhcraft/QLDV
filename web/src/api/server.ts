@@ -241,6 +241,21 @@ const server = {
             }
         }).json();
     },
+    setProfileCover: async function(file: Blob, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/set-profile-cover`, {
+            method: 'post',
+            headers: {
+                'content-type': undefined,
+                'token': token
+            },
+            body: file
+        }).json();
+    },
 }
 
 export default server;
