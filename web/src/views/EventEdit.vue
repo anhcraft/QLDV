@@ -81,11 +81,15 @@ export default {
       this.$router.push(`/`)
     }
     if(this.$route.params.id !== undefined) {
-      server.loadEvent(this.$route.params.id).then(s => {
-        this.event = s;
-        this.event.startDate = new Date(s.startDate);
-        this.event.endDate = new Date(s.endDate);
-        this.eventLoaded = true;
+      server.loadEvent(this.$route.params.id, auth.getToken()).then(s => {
+        if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+          this.event = s;
+          this.event.startDate = new Date(s.startDate);
+          this.event.endDate = new Date(s.endDate);
+          this.eventLoaded = true;
+        } else {
+          alert(`Lỗi tải sự kiện: ${s["error"]}`)
+        }
       });
     } else {
       this.eventLoaded = true;

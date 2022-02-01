@@ -1,7 +1,5 @@
 import conf from "../conf";
-import auth from "./auth";
 import ky from 'ky';
-import {RouteParamValue} from "vue-router";
 
 const server = {
     loadProfile: async function (token: string) {
@@ -233,11 +231,12 @@ const server = {
             })
         }).json();
     },
-    loadEvent: function (id: string) {
+    loadEvent: function (id: string, token: string) {
         return ky.get(`${conf.server}/event?id=${id}`, {
             method: 'get',
             headers: {
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                'token': token
             }
         }).json();
     },

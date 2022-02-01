@@ -75,6 +75,26 @@ func eventGetRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_UNKNOWN_POST", "error")
 		return c.SendString(res.String())
 	}
+
+	token := c.Get("token")
+	success, email := getEmailFromToken(token, c.UserContext())
+	var user *User = nil
+	if success {
+		user = getProfile(email)
+	}
+	if (event.Privacy&1) == 1 && user == nil {
+		_, _ = res.Set("ERR_NO_PERMISSION", "error")
+		return c.SendString(res.String())
+	}
+	if (event.Privacy&2) == 2 && (user == nil || !(user.Mod || user.Admin)) {
+		_, _ = res.Set("ERR_NO_PERMISSION", "error")
+		return c.SendString(res.String())
+	}
+	if (event.Privacy&4) == 4 && (user == nil || !user.Admin) {
+		_, _ = res.Set("ERR_NO_PERMISSION", "error")
+		return c.SendString(res.String())
+	}
+
 	res = event.serialize()
 	return c.SendString(res.String())
 }
@@ -86,9 +106,6 @@ func eventListRouteHandler(c *fiber.Ctx) error {
 	if success {
 		user = getProfile(email)
 	}
-	userOnly := uint8(1)
-	modOnly := uint8(2)
-	adminOnly := uint8(4)
 
 	res := gabs.New()
 	limit, err1 := strconv.Atoi(c.Query("limit", ""))
@@ -109,13 +126,13 @@ func eventListRouteHandler(c *fiber.Ctx) error {
 	}
 	_, _ = res.Array("events")
 	for _, ev := range getEvents(limit, older, fromDate, toDate) {
-		if ev.Privacy&userOnly == userOnly && user == nil {
+		if (ev.Privacy&1) == 1 && user == nil {
 			continue
 		}
-		if ev.Privacy&modOnly == modOnly && (user == nil || !(user.Mod || user.Admin)) {
+		if (ev.Privacy&2) == 2 && (user == nil || !(user.Mod || user.Admin)) {
 			continue
 		}
-		if ev.Privacy&adminOnly == adminOnly && (user == nil || !user.Admin) {
+		if (ev.Privacy&4) == 4 && (user == nil || !user.Admin) {
 			continue
 		}
 		_ = res.ArrayAppend(ev.serialize(), "events")
