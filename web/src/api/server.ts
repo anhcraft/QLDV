@@ -212,7 +212,7 @@ const server = {
             }
         }).json();
     },
-    changeEvent: async function (id: string, event: { endDate: Date, title: string, startDate: Date, state: number }, token: string) {
+    changeEvent: async function (id: string, event: { endDate: Date, title: string, startDate: Date, privacy: number }, token: string) {
         if(token == null || token.length == 0) {
             return {
                 "error": "CLIENT"
@@ -229,7 +229,7 @@ const server = {
                 'title': event.title,
                 'start_date': event.startDate.getTime(),
                 'end_date': event.endDate.getTime(),
-                'state': event.state
+                'privacy': event.privacy
             })
         }).json();
     },

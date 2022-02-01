@@ -15,15 +15,15 @@
         </div>
         <div class="flex flex-row gap-5 place-items-center">
           <p>Chỉ cho thành viên xem</p>
-          <input type="checkbox" class="w-4 h-4" v-bind:checked="(event.state & 1) === 1" @input="event.state = $event.target.value ? (event.state ^ 1) : (event.state | 1)">
+          <input type="checkbox" class="w-4 h-4" v-bind:checked="(event.privacy & 1) === 1" @input="event.privacy = $event.target.value ? (event.privacy ^ 1) : (event.privacy | 1)">
         </div>
         <div class="flex flex-row gap-5 place-items-center">
           <p>Chỉ cho bí thư xem</p>
-          <input type="checkbox" class="w-4 h-4" v-bind:checked="(event.state & 2) === 2" @input="event.state = $event.target.value ? (event.state ^ 2) : (event.state | 2)">
+          <input type="checkbox" class="w-4 h-4" v-bind:checked="(event.privacy & 2) === 2" @input="event.privacy = $event.target.value ? (event.privacy ^ 2) : (event.privacy | 2)">
         </div>
         <div class="flex flex-row gap-5 place-items-center">
           <p>Chỉ cho quản trị viên xem</p>
-          <input type="checkbox" class="w-4 h-4" v-bind:checked="(event.state & 4) === 4" @input="event.state = $event.target.value ? (event.state ^ 4) : (event.state | 4)">
+          <input type="checkbox" class="w-4 h-4" v-bind:checked="(event.privacy & 4) === 4" @input="event.privacy = $event.target.value ? (event.privacy ^ 4) : (event.privacy | 4)">
         </div>
       </div>
       <button class="bg-pink-400 hover:bg-pink-500 cursor-pointer px-4 py-2 text-white text-center text-sm" v-if="!submittingEvent" @click="submit()">{{ $route.params.id === undefined ? "Thêm sự kiện" : "Lưu chỉnh sửa" }}</button>
@@ -57,7 +57,7 @@ export default {
         startDate: null,
         endDate: null,
         date: null,
-        state: 0
+        privacy: 0
       },
       eventLoaded: false,
       submittingEvent: false

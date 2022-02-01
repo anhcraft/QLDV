@@ -41,7 +41,7 @@ func getEvent(id string) *Event {
 	}
 }
 
-func editOrCreateEvent(id string, title string, startDate int64, endDate int64, state uint8) *Event {
+func editOrCreateEvent(id string, title string, startDate int64, endDate int64, privacy uint8) *Event {
 	if id == "" {
 		hash := sha256.New()
 		hash.Write([]byte(id + title + time.Now().String()))
@@ -54,11 +54,11 @@ func editOrCreateEvent(id string, title string, startDate int64, endDate int64, 
 		StartDate: startDate,
 		EndDate:   endDate,
 		Date:      time.Now().UnixMilli(),
-		State:     state,
+		Privacy:   privacy,
 	}
 	_ = db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"title", "start_date", "end_date", "state"}),
+		DoUpdates: clause.AssignmentColumns([]string{"title", "start_date", "end_date", "privacy"}),
 	}).Create(&event)
 	return &event
 }
@@ -109,13 +109,13 @@ func eventListRouteHandler(c *fiber.Ctx) error {
 	}
 	_, _ = res.Array("events")
 	for _, ev := range getEvents(limit, older, fromDate, toDate) {
-		if ev.State&userOnly == userOnly && user == nil {
+		if ev.Privacy&userOnly == userOnly && user == nil {
 			continue
 		}
-		if ev.State&modOnly == modOnly && (user == nil || !(user.Mod || user.Admin)) {
+		if ev.Privacy&modOnly == modOnly && (user == nil || !(user.Mod || user.Admin)) {
 			continue
 		}
-		if ev.State&adminOnly == adminOnly && (user == nil || !user.Admin) {
+		if ev.Privacy&adminOnly == adminOnly && (user == nil || !user.Admin) {
 			continue
 		}
 		_ = res.ArrayAppend(ev.serialize(), "events")
@@ -169,7 +169,7 @@ func eventChangeRouteHandler(c *fiber.Ctx) error {
 		Title     string `json:"title,omitempty"`
 		StartDate int64  `json:"start_date,omitempty"`
 		EndDate   int64  `json:"end_date,omitempty"`
-		State     uint8  `json:"state,omitempty"`
+		Privacy   uint8  `json:"privacy,omitempty"`
 	}{}
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -190,7 +190,7 @@ func eventChangeRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	p := editOrCreateEvent(payload.Id, payload.Title, payload.StartDate, payload.EndDate, payload.State)
+	p := editOrCreateEvent(payload.Id, payload.Title, payload.StartDate, payload.EndDate, payload.Privacy)
 	_, _ = res.Set(true, "success")
 	_, _ = res.Set(p.ID, "id")
 	return c.SendString(res.String())

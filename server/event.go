@@ -8,7 +8,7 @@ type Event struct {
 	StartDate int64
 	EndDate   int64
 	Date      int64
-	State     uint8
+	Privacy   uint8
 }
 
 func (e *Event) serialize() *gabs.Container {
@@ -18,6 +18,6 @@ func (e *Event) serialize() *gabs.Container {
 	_, _ = res.Set(e.StartDate, "startDate")
 	_, _ = res.Set(e.EndDate, "endDate")
 	_, _ = res.Set(e.Date, "date")
-	_, _ = res.Set(e.State, "state")
+	_, _ = res.Set(e.Privacy, "privacy")
 	return res
 }
