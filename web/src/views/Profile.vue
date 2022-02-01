@@ -61,7 +61,7 @@
           </svg>
         </section>
         <section v-else class="w-full inline-block relative overflow-hidden border-4 border-dashed border-white" :class="{'hover:opacity-80 hover:border-black' : isPersonalProfile}">
-          <div :style="{ 'background-image': 'url(' + profile.profileCover + ')' }" class="w-full h-64 bg-contain bg-center bg-no-repeat" />
+          <div :style="{ 'background-image': 'url(' + profile.profileCover + ')' }" class="w-full h-64 bg-cover bg-center bg-no-repeat" />
           <input type="file" class="absolute left-0 top-0 opacity-0 h-64 w-full cursor-pointer" @change="onProfileCoverChange" accept="image/*" v-if="isPersonalProfile" />
         </section>
         <section v-if="submittingBoard" class="border-4 border-dashed border-black py-10">
