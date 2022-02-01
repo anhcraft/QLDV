@@ -73,36 +73,39 @@
     <div v-else>
       <ChevronDoubleRightIcon class="w-8 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-1" @click="selectUser(undefined)"></ChevronDoubleRightIcon>
       <p class="my-5 font-bold">{{ selectedUser }}</p>
-      <section class="mt-5">
-        <p class="text-xl">Xếp hạng</p>
-        <ul class="list-disc list-inside">
-          <li v-for="(value, name) in this.userProgression.rates">
-            <select v-model="this.userProgression.rates[name]" class="bg-white">
-              <option v-for="option in this.rateOptions" v-bind:value="option.value">
-                {{ option.text }}
-              </option>
-            </select>
-            ({{ name }} - {{ parseInt(name) + 1 }})
-          </li>
-        </ul>
-      </section>
-      <section class="mt-5" v-if="this.userProgression.achievements.length > 0">
-        <div class="text-xl flex flex-row gap-1">
-          <p>Thành tích</p>
-          <PlusCircleIcon class="w-6 cursor-pointer text-slate-500" @click="addAchievementSlot"></PlusCircleIcon>
-        </div>
-        <ul class="list-disc list-inside">
-          <li v-for="value in this.userProgression.achievements">
-            <input type="text" v-model="value.title"> (
-            <select v-model="value.year" class="bg-white">
-              <option v-for="option in this.achievementOption" v-bind:value="option">
-                {{ option }}
-              </option>
-            </select>)
-          </li>
-        </ul>
-      </section>
-      <button class="bg-emerald-300 hover:bg-emerald-400 cursor-pointer px-3 py-1 text-center mt-5" @click="saveProgressionChanges">Lưu lại</button>
+      <router-link class="bg-sky-500 hover:bg-sky-600 px-4 py-2 text-white text-sm" target="_blank" :to="'/u/' + selectedUser.substring(0, selectedUser.search('@'))">Xem trang cá nhân</router-link>
+      <div class="border-t-2 border-t-slate-300 mt-10">
+        <section class="mt-5">
+          <p class="text-xl">Xếp hạng</p>
+          <ul class="list-disc list-inside">
+            <li v-for="(value, name) in this.userProgression.rates">
+              <select v-model="this.userProgression.rates[name]" class="bg-white">
+                <option v-for="option in this.rateOptions" v-bind:value="option.value">
+                  {{ option.text }}
+                </option>
+              </select>
+              ({{ name }} - {{ parseInt(name) + 1 }})
+            </li>
+          </ul>
+        </section>
+        <section class="mt-5" v-if="this.userProgression.achievements.length > 0">
+          <div class="text-xl flex flex-row gap-1">
+            <p>Thành tích</p>
+            <PlusCircleIcon class="w-6 cursor-pointer text-slate-500" @click="addAchievementSlot"></PlusCircleIcon>
+          </div>
+          <ul class="list-disc list-inside">
+            <li v-for="value in this.userProgression.achievements">
+              <input type="text" v-model="value.title"> (
+              <select v-model="value.year" class="bg-white">
+                <option v-for="option in this.achievementOption" v-bind:value="option">
+                  {{ option }}
+                </option>
+              </select>)
+            </li>
+          </ul>
+        </section>
+        <button class="bg-emerald-300 hover:bg-emerald-400 cursor-pointer px-3 py-1 text-center mt-5" @click="saveProgressionChanges">Lưu lại</button>
+      </div>
     </div>
   </div>
 
