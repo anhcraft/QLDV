@@ -27,7 +27,8 @@ export default {
         studentId: "0000000000000000",
         achievements: [],
         rates: {},
-        profileCover: undefined
+        profileCover: undefined,
+        profileBoard: ""
       }
     }
   },
@@ -93,6 +94,7 @@ export default {
         } else {
           this.profile.profileCover = profileCoverDefaultImg
         }
+        this.profile.profileBoard = s["profileBoard"]
         this.loadingProfile = false
       })
     }

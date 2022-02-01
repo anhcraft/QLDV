@@ -386,3 +386,43 @@ func setProfileCover(email string, data []byte, ext string) bool {
 	db.Model(&User{}).Where("email = ?", email).Update("profile_cover", id+ext)
 	return true
 }
+
+func profileBoardSetRouteHandler(c *fiber.Ctx) error {
+	res := gabs.New()
+	token := c.Get("token")
+	success, email := getEmailFromToken(token, c.UserContext())
+	if !success {
+		_, _ = res.Set(email, "error")
+		return c.SendString(res.String())
+	}
+	user := getProfile(email)
+	if user == nil {
+		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+		return c.SendString(res.String())
+	}
+
+	payload := struct {
+		Board string `json:"board,omitempty"`
+	}{}
+
+	if err := c.BodyParser(&payload); err != nil {
+		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
+		return c.SendString(res.String())
+	}
+
+	if len(payload.Board) < 10 {
+		_, _ = res.Set("ERR_PROFILE_BOARD_CONTENT_MIN", "error")
+		return c.SendString(res.String())
+	} else if len(payload.Board) > 100000 {
+		_, _ = res.Set("ERR_PROFILE_BOARD_CONTENT_MAX", "error")
+		return c.SendString(res.String())
+	}
+
+	_, _ = res.Set(setProfileBoard(email, payload.Board), "success")
+	return c.SendString(res.String())
+}
+
+func setProfileBoard(email string, text string) bool {
+	db.Model(&User{}).Where("email = ?", email).Update("profile_board", text)
+	return true
+}

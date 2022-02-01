@@ -73,6 +73,7 @@ func main() {
 	app.Post("/change-users", userChangeRouteHandler)
 	app.Post("/get-user-stats", userStatGetRouteHandler)
 	app.Post("/set-profile-cover", profileCoverSetRouteHandler)
+	app.Post("/set-profile-board", profileBoardSetRouteHandler)
 
 	app.Get("/posts", postListRouteHandler)
 	app.Get("/post", postGetRouteHandler)

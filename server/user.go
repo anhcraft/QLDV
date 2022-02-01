@@ -15,6 +15,7 @@ type User struct {
 	Admin        bool
 	Mod          bool
 	ProfileCover string
+	ProfileBoard string
 }
 
 func (u *User) serialize() *gabs.Container {
@@ -31,5 +32,6 @@ func (u *User) serialize() *gabs.Container {
 	_, _ = res.Set(u.Admin, "admin")
 	_, _ = res.Set(u.Mod, "mod")
 	_, _ = res.Set(u.ProfileCover, "profileCover")
+	_, _ = res.Set(u.ProfileBoard, "profileBoard")
 	return res
 }

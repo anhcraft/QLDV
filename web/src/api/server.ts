@@ -256,6 +256,23 @@ const server = {
             body: file
         }).json();
     },
+    setProfileBoard: async function(board: string, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/set-profile-board`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            },
+            body: JSON.stringify({
+                "board": board
+            })
+        }).json();
+    },
 }
 
 export default server;
