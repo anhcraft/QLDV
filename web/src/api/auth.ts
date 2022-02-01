@@ -13,7 +13,7 @@ const auth = {
                 if(credential != null){
                     if(result.user.email?.endsWith("@dian.sgdbinhduong.edu.vn")) {
                         auth.currentUser?.getIdToken().then(token => {
-                            server.loadProfile(token).then((s: any) => {
+                            server.loadProfile('', token).then((s: any) => {
                                 if(s.hasOwnProperty("error")) {
                                     if(s["error"] == "ERR_UNKNOWN_USER") {
                                         alert("Invalid user.")

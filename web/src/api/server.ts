@@ -2,18 +2,16 @@ import conf from "../conf";
 import ky from 'ky';
 
 const server = {
-    loadProfile: async function (token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
+    loadProfile: async function (user: string, token: string) {
         return ky.post(`${conf.server}/profile`, {
             method: 'post',
             headers: {
                 'content-type': 'application/json',
                 'token': token
-            }
+            },
+            body: JSON.stringify({
+                'user': user
+            })
         }).json();
     },
     loadPosts: function (limit: number, olderThan: number, token: string) {
@@ -35,11 +33,6 @@ const server = {
         }).json();
     },
     loadProgression: async function (token: string, user: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/progression`, {
             method: 'post',
             headers: {

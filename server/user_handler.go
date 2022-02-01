@@ -123,28 +123,6 @@ func setUserModStatus(mod map[string]bool) bool {
 
 func profileGetRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
-	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
-	if !success {
-		_, _ = res.Set(email, "error")
-		return c.SendString(res.String())
-	}
-	user := getProfile(email)
-	if user == nil {
-		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
-		return c.SendString(res.String())
-	}
-	return c.SendString(user.serialize().String())
-}
-
-func progressionGetRouteHandler(c *fiber.Ctx) error {
-	res := gabs.New()
-	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
-	if !success {
-		_, _ = res.Set(email, "error")
-		return c.SendString(res.String())
-	}
 
 	payload := struct {
 		User string `json:"user,omitempty"`
@@ -155,9 +133,41 @@ func progressionGetRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	if payload.User == "" {
+	token := c.Get("token")
+	success, email := getEmailFromToken(token, c.UserContext())
+	var requester *User = nil
+	if success {
+		requester = getProfile(email)
+		if payload.User == "" {
+			payload.User = email
+		}
+	}
+
+	user := getProfile(payload.User)
+	if user == nil {
+		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+		return c.SendString(res.String())
+	}
+	return c.SendString(user.serialize(success && requester != nil && (payload.User == email || requester.Mod || requester.Admin)).String())
+}
+
+func progressionGetRouteHandler(c *fiber.Ctx) error {
+	res := gabs.New()
+	token := c.Get("token")
+	success, email := getEmailFromToken(token, c.UserContext())
+
+	payload := struct {
+		User string `json:"user,omitempty"`
+	}{}
+
+	if err := c.BodyParser(&payload); err != nil {
+		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
+		return c.SendString(res.String())
+	}
+
+	if success && payload.User == "" {
 		payload.User = email
-	} else if payload.User != email {
+	} /*else if payload.User != email {
 		user := getProfile(email)
 		if user == nil {
 			_, _ = res.Set("ERR_UNKNOWN_USER", "error")
@@ -167,7 +177,7 @@ func progressionGetRouteHandler(c *fiber.Ctx) error {
 			_, _ = res.Set("ERR_NO_PERMISSION", "error")
 			return c.SendString(res.String())
 		}
-	}
+	}*/
 
 	_, _ = res.Array("rates")
 	for _, rate := range getRates(payload.User) {
@@ -262,7 +272,7 @@ func userListRouteHandler(c *fiber.Ctx) error {
 	}
 	_, _ = res.Array("users")
 	for _, post := range getUsers(payload.Limit, payload.Offset, payload.FilterName, payload.FilterClass, payload.FilterEmail, payload.FilterCertified) {
-		_ = res.ArrayAppend(post.serialize(), "users")
+		_ = res.ArrayAppend(post.serialize(true), "users")
 	}
 	return c.SendString(res.String())
 }

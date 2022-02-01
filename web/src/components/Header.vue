@@ -24,7 +24,7 @@ export default {
       auth.createSession()
     },
     viewProfile() {
-      this.$router.push("/u/")
+      this.$router.push("/u/" + this.$root.profile.email.substring(0, this.$root.profile.email.search("@")))
     }
   }
 }

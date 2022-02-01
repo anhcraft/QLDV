@@ -16,12 +16,12 @@ export default {
       progressionLoaded: false,
       profile: {
         email: "",
-        name: "Guest",
+        name: "",
         certified: false,
         admin: false,
         mod: false,
         gender: false,
-        class: "XX",
+        class: "",
         entryDate: 2022,
         endDate: 2022,
         studentId: "0000000000000000",
@@ -70,8 +70,14 @@ export default {
   },
   mounted() {
     if(this.isLoggedIn) {
+      const tkn = auth.getToken()
+      if(tkn === undefined || tkn === "") {
+        auth.destroySession()
+        this.$router.push("/")
+        return
+      }
       this.loadingProfile = true
-      server.loadProfile(auth.getToken()).then(s => {
+      server.loadProfile('', tkn).then(s => {
         if (s.hasOwnProperty("error")) {
           if(s["error"] === "ERR_TOKEN_VERIFY") {
             auth.destroySession()
