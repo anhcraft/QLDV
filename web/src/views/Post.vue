@@ -10,7 +10,7 @@
           <p>{{ post.views }}</p>
         </div>
         <div class="flex flex-row gap-1 border-2 border-pink-500 rounded-md px-2 py-1 cursor-pointer text-xs transition-all duration-300" :class="{'bg-pink-500 text-white hover:bg-pink-300': post.liked}" @click="likePost()">
-          <HeartIcon class="w-4"></HeartIcon>
+          <HeartIcon class="w-4" :class="post.liked ? 'text-white' : 'text-pink-500'"></HeartIcon>
           <p>{{ post.likes }}</p>
         </div>
       </div>
@@ -127,5 +127,9 @@ export default {
   margin-inline-start: 0;
   margin-inline-end: 0;
   padding-inline-start: 40px;
+}
+#content img, svg, video, canvas, audio, iframe, embed, object {
+  display: inline;
+  vertical-align: middle;
 }
 </style>
