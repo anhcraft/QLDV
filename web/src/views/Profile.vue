@@ -81,9 +81,9 @@
                     'searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking',
                     'table emoticons template paste help'
                   ],
-                  toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | ' +
-                    'bullist numlist outdent indent | link media | ' +
-                    'forecolor backcolor emoticons | help',
+                  toolbar: 'undo redo | styleselect | bold italic | forecolor backcolor emoticons link | ' +
+                    'bullist numlist outdent indent | media | ' +
+                    'alignleft aligncenter alignright alignjustify | help',
                   menubar: false
                 }"
                 v-model="profile.profileBoard"
