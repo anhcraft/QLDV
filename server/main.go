@@ -44,7 +44,7 @@ func setupDB() {
 	if err != nil {
 		log.Fatalf("error connecting database: %v\n", err)
 	}
-	err = db_.AutoMigrate(&User{}, &Rate{}, &Achievement{}, &Post{}, &Attachment{}, &Event{})
+	err = db_.AutoMigrate(&User{}, &Rate{}, &Achievement{}, &Post{}, &Attachment{}, &Event{}, &PostStat{})
 	if err != nil {
 		log.Fatalf("error migrating: %v\n", err)
 	}
@@ -147,6 +147,25 @@ func removePost(id string) bool {
 	var post Post
 	db.Where("id = ?", id).Delete(&post)
 	return true
+}
+
+func setPostStat(postId string, userId string, action string) bool {
+	a := db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "post_id"}, {Name: "user_id"}, {Name: "action"}},
+		DoNothing: true,
+	}).Create(PostStat{
+		PostId: postId,
+		UserId: userId,
+		Action: action,
+		Date:   time.Now().UnixMilli(),
+	}).RowsAffected
+	if action == "like" && a == 0 {
+		var postStat PostStat
+		db.Where("post_id = ? and user_id = ? and action = ?", postId, userId, action).Delete(&postStat)
+		return true
+	} else {
+		return a == 1
+	}
 }
 
 func uploadAttachment(postId string, data []byte, ext string) bool {
@@ -423,12 +442,26 @@ func main() {
 			for _, att := range getAttachments(post.ID) {
 				_ = p.ArrayAppend(att.serialize(), "attachments")
 			}
+
+			result := struct {
+				like int64
+				view int64
+			}{}
+			x := db.Raw("select count(if(post_id = ? and action = 'like', 1, null)) as 'like', count(if(post_id = ? and action = 'view', 1, null)) as view from post_stats", post.ID)
+			_ = x.Row().Scan(&result.like, &result.view)
+			_, _ = p.Set(result.like, "likes")
+			_, _ = p.Set(result.view, "views")
 			_ = res.ArrayAppend(p, "posts")
 		}
 		return c.SendString(res.String())
 	})
 
 	app.Get("/post", func(c *fiber.Ctx) error {
+		token := c.Get("token")
+		success, email := analyzeTokenToEmail(token, c.UserContext())
+		if !success {
+			email = "***"
+		}
 		res := gabs.New()
 		id := c.Query("id", "")
 		if id == "" {
@@ -446,6 +479,19 @@ func main() {
 		for _, att := range getAttachments(id) {
 			_ = res.ArrayAppend(att.serialize(), "attachments")
 		}
+
+		result := struct {
+			like      int64
+			likeCheck int64
+			view      int64
+		}{}
+
+		x := db.Raw("select count(if(post_id = ? and action = 'like', 1, null)) as 'like', count(if(post_id = ? and action = 'like' and user_id = ?, 1, null)) as likeCheck, count(if(post_id = ? and action = 'view', 1, null)) as view from post_stats", id, id, email, id)
+		_ = x.Row().Scan(&result.like, &result.likeCheck, &result.view)
+		_, _ = res.Set(result.like, "likes")
+		_, _ = res.Set(result.view, "views")
+		_, _ = res.Set(result.likeCheck > 0, "liked")
+
 		return c.SendString(res.String())
 	})
 
@@ -527,6 +573,33 @@ func main() {
 
 		id := c.Get("id")
 		_, _ = res.Set(removePost(id), "success")
+		return c.SendString(res.String())
+	})
+
+	app.Post("/update-post-stat", func(c *fiber.Ctx) error {
+		res := gabs.New()
+		token := c.Get("token")
+		success, txt := analyzeTokenToEmail(token, c.UserContext())
+		if !success {
+			_, _ = res.Set(txt, "error")
+			return c.SendString(res.String())
+		}
+		user := getProfile(txt)
+		if user == nil {
+			_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+			return c.SendString(res.String())
+		}
+		id := c.Get("id")
+		if getPost(id) == nil {
+			_, _ = res.Set("ERR_UNKNOWN_POST", "error")
+			return c.SendString(res.String())
+		}
+		action := c.Get("action")
+		if !(action == "like" || action == "view") {
+			_, _ = res.Set("ERR_UNKNOWN_POST_ACTION", "error")
+			return c.SendString(res.String())
+		}
+		_, _ = res.Set(setPostStat(id, txt, action), "success")
 		return c.SendString(res.String())
 	})
 

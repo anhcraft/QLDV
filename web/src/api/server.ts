@@ -18,19 +18,21 @@ const server = {
             }
         }).json();
     },
-    loadPosts: function (limit: number, olderThan: number) {
+    loadPosts: function (limit: number, olderThan: number, token: string) {
         return ky.get(`${conf.server}/posts?limit=${limit}&older=${olderThan}`, {
             method: 'get',
             headers: {
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                'token': token
             }
         }).json();
     },
-    loadPost: function (id: string) {
+    loadPost: function (id: string, token: string) {
         return ky.get(`${conf.server}/post?id=${id}`, {
             method: 'get',
             headers: {
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                'token': token
             }
         }).json();
     },
@@ -83,6 +85,22 @@ const server = {
                 'content-type': 'application/json',
                 'token': token,
                 'id': id === undefined ? '' : id
+            }
+        }).json();
+    },
+    updatePostStat: async function(id: string, action: string, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/update-post-stat`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token,
+                'id': id === undefined ? '' : id,
+                'action': action
             }
         }).json();
     },

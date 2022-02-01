@@ -160,7 +160,7 @@ export default {
     },
     loadNextPosts(){
       this.loadingPosts = true
-      server.loadPosts(10, this.dateOffset).then(s => {
+      server.loadPosts(10, this.dateOffset, auth.getToken()).then(s => {
         if(s.posts.length === 0) {
           this.postAvailable = false
         } else {

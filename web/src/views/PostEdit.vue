@@ -130,7 +130,7 @@ export default {
       this.$router.push(`/`)
     }
     if(this.$route.params.id !== undefined) {
-      server.loadPost(this.$route.params.id).then(s => {
+      server.loadPost(this.$route.params.id, auth.getToken()).then(s => {
         this.post = s;
         this.postLoaded = true;
       });
