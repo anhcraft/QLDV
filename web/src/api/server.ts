@@ -51,7 +51,7 @@ const server = {
             })
         }).json();
     },
-    changePost: async function(id: string, title: string, content: string, removeAttachments: string[], token: string) {
+    changePost: async function(id: string, title: string, content: string, privacy: number, removeAttachments: string[], token: string) {
         if(token == null || token.length == 0) {
             return {
                 "error": "CLIENT"
@@ -67,6 +67,7 @@ const server = {
                 'id': id === undefined ? '' : id,
                 'title': title,
                 'content': content,
+                'privacy': privacy,
                 'remove_attachments': removeAttachments
             })
         }).json();

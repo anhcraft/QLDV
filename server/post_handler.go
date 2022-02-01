@@ -22,7 +22,7 @@ func getPost(id string) *Post {
 	}
 }
 
-func editOrCreatePost(id string, title string, content string) *Post {
+func editOrCreatePost(id string, title string, content string, privacy uint8) *Post {
 	if id == "" {
 		hash := sha256.New()
 		hash.Write([]byte(id + title + time.Now().String()))
@@ -34,10 +34,11 @@ func editOrCreatePost(id string, title string, content string) *Post {
 		Title:   title,
 		Content: content,
 		Date:    time.Now().UnixMilli(),
+		Privacy: privacy,
 	}
 	_ = db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"title", "content"}),
+		DoUpdates: clause.AssignmentColumns([]string{"title", "content", "privacy"}),
 	}).Create(&post)
 	return &post
 }
@@ -95,6 +96,7 @@ func postChangeRouteHandler(c *fiber.Ctx) error {
 		Id                string   `json:"id,omitempty"`
 		Title             string   `json:"title,omitempty"`
 		Content           string   `json:"content,omitempty"`
+		Privacy           uint8    `json:"privacy,omitempty"`
 		RemoveAttachments []string `json:"remove_attachments,omitempty"`
 	}{}
 
@@ -125,7 +127,7 @@ func postChangeRouteHandler(c *fiber.Ctx) error {
 			return c.SendString(res.String())
 		}
 	}
-	p := editOrCreatePost(payload.Id, payload.Title, payload.Content)
+	p := editOrCreatePost(payload.Id, payload.Title, payload.Content, payload.Privacy)
 	_, _ = res.Set(true, "success")
 	_, _ = res.Set(p.ID, "id")
 	return c.SendString(res.String())
@@ -145,10 +147,20 @@ func postStatUpdateRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 	id := c.Get("id")
-	if getPost(id) == nil {
+	post := getPost(id)
+	if post == nil {
 		_, _ = res.Set("ERR_UNKNOWN_POST", "error")
 		return c.SendString(res.String())
 	}
+	if (post.Privacy&2) == 2 && !(user.Mod || user.Admin) {
+		_, _ = res.Set("ERR_NO_PERMISSION", "error")
+		return c.SendString(res.String())
+	}
+	if (post.Privacy&4) == 4 && !user.Admin {
+		_, _ = res.Set("ERR_NO_PERMISSION", "error")
+		return c.SendString(res.String())
+	}
+
 	action := c.Get("action")
 	if !(action == "like" || action == "view") {
 		_, _ = res.Set("ERR_UNKNOWN_POST_ACTION", "error")
@@ -159,6 +171,12 @@ func postStatUpdateRouteHandler(c *fiber.Ctx) error {
 }
 
 func postListRouteHandler(c *fiber.Ctx) error {
+	token := c.Get("token")
+	success, email := getEmailFromToken(token, c.UserContext())
+	var user *User = nil
+	if success {
+		user = getProfile(email)
+	}
 	res := gabs.New()
 	limit, err1 := strconv.Atoi(c.Query("limit", ""))
 	if err1 != nil || limit > 50 {
@@ -170,6 +188,16 @@ func postListRouteHandler(c *fiber.Ctx) error {
 	}
 	_, _ = res.Array("posts")
 	for _, post := range getPosts(limit, older) {
+		if (post.Privacy&1) == 1 && user == nil {
+			continue
+		}
+		if (post.Privacy&2) == 2 && (user == nil || !(user.Mod || user.Admin)) {
+			continue
+		}
+		if (post.Privacy&4) == 4 && (user == nil || !user.Admin) {
+			continue
+		}
+
 		p := post.serialize()
 		_, _ = p.Array("attachments")
 		for _, att := range getAttachments(post.ID) {
@@ -229,6 +257,24 @@ func postGetRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_UNKNOWN_POST", "error")
 		return c.SendString(res.String())
 	}
+
+	var user *User = nil
+	if success {
+		user = getProfile(email)
+	}
+	if (post.Privacy&1) == 1 && user == nil {
+		_, _ = res.Set("ERR_NO_PERMISSION", "error")
+		return c.SendString(res.String())
+	}
+	if (post.Privacy&2) == 2 && (user == nil || !(user.Mod || user.Admin)) {
+		_, _ = res.Set("ERR_NO_PERMISSION", "error")
+		return c.SendString(res.String())
+	}
+	if (post.Privacy&4) == 4 && (user == nil || !user.Admin) {
+		_, _ = res.Set("ERR_NO_PERMISSION", "error")
+		return c.SendString(res.String())
+	}
+
 	res = post.serialize()
 	_, _ = res.Set(post.Content, "content")
 	_, _ = res.Array("attachments")

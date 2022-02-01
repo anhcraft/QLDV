@@ -128,7 +128,7 @@ export default {
   margin-inline-end: 0;
   padding-inline-start: 40px;
 }
-#content img, svg, video, canvas, audio, iframe, embed, object {
+#content img, #content svg, #content video, #content canvas, #content audio, #content iframe, #content embed, #content object {
   display: inline;
   vertical-align: middle;
 }

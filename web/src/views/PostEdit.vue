@@ -21,6 +21,20 @@
                 }"
             v-model="post.content"
         ></Editor>
+        <div class="border border-gray-300 py-2 px-5 my-10">
+          <div class="flex flex-row gap-5 place-items-center">
+            <p>Chỉ cho thành viên xem</p>
+            <input type="checkbox" class="w-4 h-4" v-bind:checked="(post.privacy & 1) === 1" @input="post.privacy = $event.target.value ? (post.privacy ^ 1) : (post.privacy | 1)">
+          </div>
+          <div class="flex flex-row gap-5 place-items-center">
+            <p>Chỉ cho bí thư xem</p>
+            <input type="checkbox" class="w-4 h-4" v-bind:checked="(post.privacy & 2) === 2" @input="post.privacy = $event.target.value ? (post.privacy ^ 2) : (post.privacy | 2)">
+          </div>
+          <div class="flex flex-row gap-5 place-items-center">
+            <p>Chỉ cho quản trị viên xem</p>
+            <input type="checkbox" class="w-4 h-4" v-bind:checked="(post.privacy & 4) === 4" @input="post.privacy = $event.target.value ? (post.privacy ^ 4) : (post.privacy | 4)">
+          </div>
+        </div>
       </div>
       <div class="mt-10">
         <p>Ảnh đính kèm:</p>
@@ -65,7 +79,8 @@ export default {
       post: {
         title: "",
         content: "",
-        attachments: []
+        attachments: [],
+        privacy: 0
       },
       postLoaded: false,
       submittingPost: false,
@@ -83,7 +98,7 @@ export default {
   methods: {
     submitPost() {
       this.submittingPost = true
-      server.changePost(this.$route.params.id, this.post.title, this.post.content, this.removeAttachments, auth.getToken()).then(s => {
+      server.changePost(this.$route.params.id, this.post.title, this.post.content, this.post.privacy, this.removeAttachments, auth.getToken()).then(s => {
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
           this.attachmentUploadQueue = this.attachmentUpload.length
           if(this.attachmentUploadQueue === 0) {
