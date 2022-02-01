@@ -36,11 +36,11 @@ export default {
       }
       return chunks.join(" ");
     },
-    isLoggedIn() {
-      return auth.getToken() != null
-    }
   },
   methods: {
+    isLoggedIn() {
+      return auth.getToken() != null
+    },
     loadProgression() {
       if(this.isLoggedIn) {
         this.progressionLoading = true
