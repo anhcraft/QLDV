@@ -120,14 +120,14 @@ export default {
     }
   },
   computed: {
-    getUserId() {
-      return this.$route.params.id + "@dian.sgdbinhduong.edu.vn";
-    },
     isPersonalProfile() {
       return this.$root.profile.email === this.getUserId
     }
   },
   methods: {
+    getUserId() {
+      return this.$route.params.id + "@dian.sgdbinhduong.edu.vn";
+    },
     onProfileCoverChange(e) {
       if (e.target.files.length > 0) {
         this.profileCoverUploading = true
@@ -154,7 +154,7 @@ export default {
   },
   mounted() {
     this.loadingProfile = true
-    server.loadProfile(this.getUserId, auth.getToken()).then(s => {
+    server.loadProfile(this.getUserId(), auth.getToken()).then(s => {
       if (s.hasOwnProperty("error")) {
         this.$router.push("/")
         return
@@ -170,7 +170,7 @@ export default {
       this.loadingProfile = false
     })
     this.loadingProgression = true
-    server.loadProgression(auth.getToken(), this.getUserId).then(s => {
+    server.loadProgression(auth.getToken(), this.getUserId()).then(s => {
       if (s.hasOwnProperty("error")) {
         this.$router.push("/")
         return
