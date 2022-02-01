@@ -278,7 +278,7 @@ func getEvent(id string) *Event {
 	}
 }
 
-func editOrCreateEvent(id string, title string, startDate int64, endDate int64) *Event {
+func editOrCreateEvent(id string, title string, startDate int64, endDate int64, state uint8) *Event {
 	if id == "" {
 		hash := sha256.New()
 		hash.Write([]byte(id + title + time.Now().String()))
@@ -291,10 +291,11 @@ func editOrCreateEvent(id string, title string, startDate int64, endDate int64) 
 		StartDate: startDate,
 		EndDate:   endDate,
 		Date:      time.Now().UnixMilli(),
+		State:     state,
 	}
 	_ = db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"title", "start_date", "end_date"}),
+		DoUpdates: clause.AssignmentColumns([]string{"title", "start_date", "end_date", "state"}),
 	}).Create(&event)
 	return &event
 }
@@ -696,6 +697,16 @@ func main() {
 	})
 
 	app.Get("/events", func(c *fiber.Ctx) error {
+		token := c.Get("token")
+		success, email := analyzeTokenToEmail(token, c.UserContext())
+		var user *User = nil
+		if success {
+			user = getProfile(email)
+		}
+		userOnly := uint8(1)
+		modOnly := uint8(2)
+		adminOnly := uint8(4)
+
 		res := gabs.New()
 		limit, err1 := strconv.Atoi(c.Query("limit", ""))
 		if err1 != nil || limit > 50 {
@@ -715,6 +726,15 @@ func main() {
 		}
 		_, _ = res.Array("events")
 		for _, ev := range getEvents(limit, older, fromDate, toDate) {
+			if ev.State&userOnly == userOnly && user == nil {
+				continue
+			}
+			if ev.State&modOnly == modOnly && (user == nil || !(user.Mod || user.Admin)) {
+				continue
+			}
+			if ev.State&adminOnly == adminOnly && (user == nil || !user.Admin) {
+				continue
+			}
 			_ = res.ArrayAppend(ev.serialize(), "events")
 		}
 		return c.SendString(res.String())
@@ -782,6 +802,7 @@ func main() {
 			Title     string `json:"title,omitempty"`
 			StartDate int64  `json:"start_date,omitempty"`
 			EndDate   int64  `json:"end_date,omitempty"`
+			State     uint8  `json:"state,omitempty"`
 		}{}
 
 		if err := c.BodyParser(&payload); err != nil {
@@ -802,7 +823,7 @@ func main() {
 			return c.SendString(res.String())
 		}
 
-		p := editOrCreateEvent(payload.Id, payload.Title, payload.StartDate, payload.EndDate)
+		p := editOrCreateEvent(payload.Id, payload.Title, payload.StartDate, payload.EndDate, payload.State)
 		_, _ = res.Set(true, "success")
 		_, _ = res.Set(p.ID, "id")
 		return c.SendString(res.String())

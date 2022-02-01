@@ -170,11 +170,12 @@ const server = {
             }))
         }).json();
     },
-    loadEvents: function (limit: number, olderThan: number, fromDate: number, toDate: number) {
+    loadEvents: function (limit: number, olderThan: number, fromDate: number, toDate: number, token: string) {
         return ky.get(`${conf.server}/events?limit=${limit}&older=${olderThan}&from-date=${fromDate}&to-date=${toDate}`, {
             method: 'get',
             headers: {
-                'content-type': 'application/json'
+                'content-type': 'application/json',
+                'token': token
             }
         }).json();
     },
@@ -193,7 +194,7 @@ const server = {
             }
         }).json();
     },
-    changeEvent: async function (id: string, event: { endDate: Date, title: string, startDate: Date }, token: string) {
+    changeEvent: async function (id: string, event: { endDate: Date, title: string, startDate: Date, state: number }, token: string) {
         if(token == null || token.length == 0) {
             return {
                 "error": "CLIENT"
@@ -209,7 +210,8 @@ const server = {
                 'id': id === undefined ? '' : id,
                 'title': event.title,
                 'start_date': event.startDate.getTime(),
-                'end_date': event.endDate.getTime()
+                'end_date': event.endDate.getTime(),
+                'state': event.state
             })
         }).json();
     },

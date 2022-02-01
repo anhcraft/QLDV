@@ -92,6 +92,7 @@ import studyTogether from "../assets/study-together.jpg"
 import {ChevronLeftIcon, ChevronRightIcon} from "@heroicons/vue/outline";
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
+import auth from "../api/auth";
 
 export default {
   name: "Home",
@@ -185,7 +186,7 @@ export default {
       this.eventCalendar.loading = true
       const a = new Date(this.eventCalendar.currentYear, this.eventCalendar.currentMonth, 1, 0, 0, 0)
       const b = new Date(this.eventCalendar.currentYear, this.eventCalendar.currentMonth + 1, 1, 0, 0, 0)
-      server.loadEvents(10, new Date().getTime(), a.getTime(), b.getTime() - 1000).then(s => {
+      server.loadEvents(10, new Date().getTime(), a.getTime(), b.getTime() - 1000, auth.getToken()).then(s => {
         const v = this.eventCalendar.events
         v[key] = s.events
         this.eventCalendar.events = v

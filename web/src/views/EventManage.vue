@@ -64,7 +64,7 @@ export default {
     loadNextEvents(){
       this.loadingEvents = true
       const older = this.events.length === 0 ? new Date().getTime() : this.events[this.events.length - 1].date
-      server.loadEvents(20, older, 0, 0).then(s => {
+      server.loadEvents(20, older, 0, 0, auth.getToken()).then(s => {
         if(s.events.length === 0) {
           this.eventAvailable = false
         }

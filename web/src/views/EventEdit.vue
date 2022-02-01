@@ -13,6 +13,18 @@
           <p>Ngày kết thúc</p>
           <Datepicker v-model="event.endDate" locale="vi-VN" format="dd/MM/yyyy HH:mm"></Datepicker>
         </div>
+        <div class="flex flex-row gap-5 place-items-center">
+          <p>Chỉ cho thành viên xem</p>
+          <input type="checkbox" class="w-4 h-4" v-bind:checked="(event.state & 1) === 1" @input="event.state = $event.target.value ? (event.state ^ 1) : (event.state | 1)">
+        </div>
+        <div class="flex flex-row gap-5 place-items-center">
+          <p>Chỉ cho bí thư xem</p>
+          <input type="checkbox" class="w-4 h-4" v-bind:checked="(event.state & 2) === 2" @input="event.state = $event.target.value ? (event.state ^ 2) : (event.state | 2)">
+        </div>
+        <div class="flex flex-row gap-5 place-items-center">
+          <p>Chỉ cho quản trị viên xem</p>
+          <input type="checkbox" class="w-4 h-4" v-bind:checked="(event.state & 4) === 4" @input="event.state = $event.target.value ? (event.state ^ 4) : (event.state | 4)">
+        </div>
       </div>
       <button class="bg-pink-400 hover:bg-pink-500 cursor-pointer px-4 py-2 text-white text-center text-sm" v-if="!submittingEvent" @click="submit()">{{ $route.params.id === undefined ? "Thêm sự kiện" : "Lưu chỉnh sửa" }}</button>
     </div>
@@ -44,7 +56,8 @@ export default {
         title: "",
         startDate: null,
         endDate: null,
-        date: null
+        date: null,
+        state: 0
       },
       eventLoaded: false,
       submittingEvent: false
