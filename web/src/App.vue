@@ -46,7 +46,7 @@ export default {
       return auth.getToken() != null
     },
     loadProgression() {
-      if(this.isLoggedIn) {
+      if(this.isLoggedIn()) {
         this.progressionLoading = true
         server.loadProgression(auth.getToken(), "").then(s => {
           if (s.hasOwnProperty("error")) {
@@ -69,7 +69,7 @@ export default {
     }
   },
   mounted() {
-    if(this.isLoggedIn) {
+    if(this.isLoggedIn()) {
       const tkn = auth.getToken()
       if(tkn === undefined || tkn === "") {
         auth.destroySession()

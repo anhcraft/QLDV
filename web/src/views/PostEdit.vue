@@ -141,8 +141,9 @@ export default {
     }
   },
   mounted() {
-    if(!this.$root.isLoggedIn) {
+    if(!this.$root.isLoggedIn()) {
       this.$router.push(`/`)
+      return
     }
     if(this.$route.params.id !== undefined) {
       server.loadPost(this.$route.params.id, auth.getToken()).then(s => {

@@ -348,8 +348,9 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
-    if(!this.$root.isLoggedIn) {
+    if(!this.$root.isLoggedIn()) {
       this.$router.push(`/`)
+      return
     }
     this.loadNextUsers()
     window.addEventListener('scroll', this.handleScroll)
