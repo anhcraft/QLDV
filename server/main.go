@@ -7,14 +7,17 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/microcosm-cc/bluemonday"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"log"
 	"os"
+	"regexp"
 )
 
 var client *auth.Client
 var db *gorm.DB
+var ugcPolicy *bluemonday.Policy
 
 func setupFirebase() {
 	ctx := context.Background()
@@ -58,6 +61,17 @@ func getEmailFromToken(token string, c context.Context) (bool, string) {
 }
 
 func main() {
+	ugcPolicy = bluemonday.UGCPolicy()
+	ugcPolicy.AllowStyles("color", "background-color", "text-align", "width", "height", "font-size", "font-weight", "padding-left").Globally()
+	ugcPolicy.AddTargetBlankToFullyQualifiedLinks(true)
+	ugcPolicy.AllowElements("iframe")
+	ugcPolicy.AllowAttrs("width").Matching(bluemonday.Number).OnElements("iframe")
+	ugcPolicy.AllowAttrs("height").Matching(bluemonday.Number).OnElements("iframe")
+	ugcPolicy.AllowAttrs("src").OnElements("iframe")
+	ugcPolicy.AllowAttrs("frameborder").Matching(bluemonday.Number).OnElements("iframe")
+	ugcPolicy.AllowAttrs("allow").Matching(regexp.MustCompile(`[a-z; -]*`)).OnElements("iframe")
+	ugcPolicy.AllowAttrs("allowfullscreen").OnElements("iframe")
+
 	setupFirebase()
 	setupDB()
 

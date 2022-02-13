@@ -127,6 +127,9 @@ func postChangeRouteHandler(c *fiber.Ctx) error {
 			return c.SendString(res.String())
 		}
 	}
+
+	payload.Content = ugcPolicy.Sanitize(payload.Content)
+
 	p := editOrCreatePost(payload.Id, payload.Title, payload.Content, payload.Privacy)
 	_, _ = res.Set(true, "success")
 	_, _ = res.Set(p.ID, "id")

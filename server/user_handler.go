@@ -432,6 +432,8 @@ func profileBoardSetRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
+	payload.Board = ugcPolicy.Sanitize(payload.Board)
+
 	_, _ = res.Set(setProfileBoard(email, payload.Board), "success")
 	return c.SendString(res.String())
 }
