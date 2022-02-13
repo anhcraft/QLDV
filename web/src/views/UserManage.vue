@@ -35,7 +35,7 @@
       </tr>
       <tr class="border-b-2 border-b-slate-400">
         <td colspan="5" class="text-sm italic">Đang hiện {{ this.users.length }} thành viên, trong đó có {{ this.users.filter(u => u.gender).length }} nữ. Tổng cộng có {{ this.users.filter(u => u.certified).length }} đoàn viên.</td>
-        <td><button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-2 py-0.5 text-center text-sm" @click="search" v-if="!loadingUsers">Tìm & lọc</button></td>
+        <td><button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-2 py-0.5 text-center text-sm" @click="search">Tìm & lọc</button></td>
         <td><button class="bg-sky-300 cursor-pointer px-3 py-1 text-center text-sm" @click="saveChanges" :class="{'opacity-20' : sumChanges === 0}">Lưu ({{ sumChanges }})</button></td>
       </tr>
       <tr v-for="user in users" class="text-sm hover:bg-blue-200" :class="selectedUser === user.email ? 'border-2 border-gray-400' : (user.certified ? '' : 'bg-red-200')">
@@ -53,61 +53,53 @@
       </tr>
       </tbody>
     </table>
-    <div v-if="loadingUsers">
-      <svg class="animate-spin h-8 w-8 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
-    <div class="mt-5" v-if="!userAvailable">Đã tải hết thành viên.</div>
+    <LoadingState ref="loadingStateForUserList">
+      <div class="mt-5" v-if="!userAvailable">Đã tải hết thành viên.</div>
+    </LoadingState>
   </div>
 
-  <div class="bg-black opacity-75 fixed top-0 left-0 w-screen h-screen" v-if="selectedUser !== undefined || loadingUserProgression" @click="selectUser(undefined)"></div>
-  <div class="fixed right-0 top-0 z-10 bg-white h-screen overflow-auto border-l-2 border-l-slate-300 p-10" v-if="selectedUser !== undefined || loadingUserProgression">
-    <div v-if="loadingUserProgression">
-      <svg class="animate-spin h-8 w-8 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
-    <div v-else>
-      <ChevronDoubleRightIcon class="w-8 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-1" @click="selectUser(undefined)"></ChevronDoubleRightIcon>
-      <p class="my-5 font-bold">{{ selectedUser }}</p>
-      <router-link class="bg-sky-500 hover:bg-sky-600 px-4 py-2 text-white text-sm" target="_blank" :to="'/u/' + selectedUser.substring(0, selectedUser.search('@'))">Xem trang cá nhân</router-link>
-      <div class="border-t-2 border-t-slate-300 mt-10">
-        <section class="mt-5">
-          <p class="text-xl">Xếp hạng</p>
-          <ul class="list-disc list-inside">
-            <li v-for="(value, name) in this.userProgression.rates">
-              <select v-model="this.userProgression.rates[name]" class="bg-white">
-                <option v-for="option in this.rateOptions" v-bind:value="option.value">
-                  {{ option.text }}
-                </option>
-              </select>
-              ({{ name }} - {{ parseInt(name) + 1 }})
-            </li>
-          </ul>
-        </section>
-        <section class="mt-5" v-if="this.userProgression.achievements.length > 0">
-          <div class="text-xl flex flex-row gap-1">
-            <p>Thành tích</p>
-            <PlusCircleIcon class="w-6 cursor-pointer text-slate-500" @click="addAchievementSlot"></PlusCircleIcon>
-          </div>
-          <ul class="list-disc list-inside">
-            <li v-for="value in this.userProgression.achievements">
-              <input type="text" v-model="value.title"> (
-              <select v-model="value.year" class="bg-white">
-                <option v-for="option in this.achievementOption" v-bind:value="option">
-                  {{ option }}
-                </option>
-              </select>)
-            </li>
-          </ul>
-        </section>
-        <button class="bg-emerald-300 hover:bg-emerald-400 cursor-pointer px-3 py-1 text-center mt-5" @click="saveProgressionChanges">Lưu lại</button>
+  <LoadingState ref="loadingStateForUserProgression" hidden>
+    <div v-if="selectedUser !== undefined">
+      <div class="bg-black opacity-75 fixed top-0 left-0 w-screen h-screen" @click="selectUser(undefined)"></div>
+      <div class="fixed right-0 top-0 z-10 bg-white h-screen overflow-auto border-l-2 border-l-slate-300 p-10">
+        <ChevronDoubleRightIcon class="w-8 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-1" @click="selectUser(undefined)"></ChevronDoubleRightIcon>
+        <p class="my-5 font-bold">{{ selectedUser }}</p>
+        <router-link class="bg-sky-500 hover:bg-sky-600 px-4 py-2 text-white text-sm" target="_blank" :to="'/u/' + selectedUser.substring(0, selectedUser.search('@'))">Xem trang cá nhân</router-link>
+        <div class="border-t-2 border-t-slate-300 mt-10">
+          <section class="mt-5">
+            <p class="text-xl">Xếp hạng</p>
+            <ul class="list-disc list-inside">
+              <li v-for="(value, name) in this.userProgression.rates">
+                <select v-model="this.userProgression.rates[name]" class="bg-white">
+                  <option v-for="option in this.rateOptions" v-bind:value="option.value">
+                    {{ option.text }}
+                  </option>
+                </select>
+                ({{ name }} - {{ parseInt(name) + 1 }})
+              </li>
+            </ul>
+          </section>
+          <section class="mt-5" v-if="this.userProgression.achievements.length > 0">
+            <div class="text-xl flex flex-row gap-1">
+              <p>Thành tích</p>
+              <PlusCircleIcon class="w-6 cursor-pointer text-slate-500" @click="addAchievementSlot"></PlusCircleIcon>
+            </div>
+            <ul class="list-disc list-inside">
+              <li v-for="value in this.userProgression.achievements">
+                <input type="text" v-model="value.title"> (
+                <select v-model="value.year" class="bg-white">
+                  <option v-for="option in this.achievementOption" v-bind:value="option">
+                    {{ option }}
+                  </option>
+                </select>)
+              </li>
+            </ul>
+          </section>
+          <button class="bg-emerald-300 hover:bg-emerald-400 cursor-pointer px-3 py-1 text-center mt-5" @click="saveProgressionChanges">Lưu lại</button>
+        </div>
       </div>
     </div>
-  </div>
+  </LoadingState>
 
   <FloatingMenu></FloatingMenu>
 </template>
@@ -133,6 +125,7 @@ import VChart from "vue-echarts";
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
+import LoadingState from "../components/LoadingState.vue";
 
 use([
   CanvasRenderer,
@@ -145,13 +138,11 @@ use([
 export default {
   name: "UserManage",
   components: {
-    Header, FloatingMenu, Breadcrumb,
+    LoadingState, Header, FloatingMenu, Breadcrumb,
     BadgeCheckIcon, StarIcon, VChart, ChevronDoubleRightIcon, PlusCircleIcon
   },
   data() {
     return {
-      loadingUsers: false,
-      loadingUserProgression: false,
       userAvailable: true,
       users: [],
       userProgression: {},
@@ -234,7 +225,8 @@ export default {
   },
   methods: {
     loadNextUsers(){
-      this.loadingUsers = true
+      this.$refs.loadingStateForUserProgression.deactivate()
+      this.$refs.loadingStateForUserList.activate()
       server.loadUsers(50, this.dataOffset, this.filter, auth.getToken()).then(s => {
         if(s.users.length === 0) {
           this.userAvailable = false
@@ -242,16 +234,15 @@ export default {
           this.dataOffset += s.users.length
         }
         this.users = this.users.concat(s.users)
-        this.loadingUsers = false
+        this.$refs.loadingStateForUserList.deactivate()
       })
     },
     selectUser(user){
       this.userProgression = {}
       this.selectedUser = undefined
-      if(user === undefined || this.loadingUserProgression) return;
-      this.loadingUserProgression = true
+      if(user === undefined || this.$refs.loadingStateForUserProgression.loading) return;
+      this.$refs.loadingStateForUserProgression.activate()
       server.loadProgression(auth.getToken(), user.email).then(s => {
-        this.loadingUserProgression = false
         if (s.hasOwnProperty("error")) {
           this.userProgression = {}
           return
@@ -272,6 +263,7 @@ export default {
           })
         }
         this.selectedUser = user.email
+        this.$refs.loadingStateForUserProgression.deactivate()
       })
     },
     addAchievementSlot() {
@@ -312,9 +304,9 @@ export default {
       })
     },
     saveProgressionChanges() {
-      this.loadingUserProgression = true
+      this.$refs.loadingStateForUserProgression.activate()
       server.saveProgressionChanges(this.userProgression, this.selectedUser, auth.getToken()).then(s => {
-        this.loadingUserProgression = false
+        this.$refs.loadingStateForUserProgression.deactivate()
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
           this.selectedUser(undefined)
         } else {
@@ -325,7 +317,7 @@ export default {
     search() {
       this.userAvailable = true
       this.users = []
-      this.loadingUsers = false
+      this.$refs.loadingStateForUserList.deactivate()
       this.dataOffset = 0
       this.certChanges = {}
       this.selectUser(undefined)
@@ -333,7 +325,7 @@ export default {
     },
     handleScroll() {
       if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-        if(!this.loadingUsers && this.userAvailable) {
+        if(!this.$refs.loadingStateForUserList.loading && this.userAvailable) {
           this.loadNextUsers()
         }
       }

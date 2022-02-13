@@ -21,16 +21,14 @@
         </tr>
       </tbody>
     </table>
-    <div v-if="loadingEvents">
-      <svg class="animate-spin h-6 w-6 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
+    <div class="mt-10">
+      <LoadingState ref="loadingState">
+        <div v-if="eventAvailable">
+          <button class="rounded-md bg-blue-500 hover:bg-blue-600 cursor-pointer px-3 py-2 text-white text-center text-xs m-auto block" @click="loadNextEvents()">Xem thêm...</button>
+        </div>
+        <div v-else>Đã tải hết sự kiện.</div>
+      </LoadingState>
     </div>
-    <div class="mt-10" v-else-if="eventAvailable">
-      <button class="rounded-md bg-blue-500 hover:bg-blue-600 cursor-pointer px-3 py-2 text-white text-center text-xs m-auto block" @click="loadNextEvents">Xem thêm...</button>
-    </div>
-    <div class="mt-10" v-else>Đã tải hết sự kiện.</div>
   </div>
   <FloatingMenu></FloatingMenu>
   <Prompt :content="'<p class=font-bold>Bạn có muốn xóa sự kiện này?</p><br>' + eventRemoveTitle" @callback="removeEventCallback" ref="removePrompt"></Prompt>
@@ -44,16 +42,16 @@ import auth from "../api/auth";
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
+import LoadingState from "../components/LoadingState.vue";
 
 export default {
   name: "EventManage",
   components: {
-    Header, FloatingMenu, Breadcrumb,
+    LoadingState, Header, FloatingMenu, Breadcrumb,
     PencilIcon, TrashIcon, Prompt
   },
   data() {
     return {
-      loadingEvents: false,
       eventAvailable: true,
       events: [],
       eventRemoveId: '',
@@ -62,14 +60,14 @@ export default {
   },
   methods: {
     loadNextEvents(){
-      this.loadingEvents = true
+      this.$refs.loadingState.activate()
       const older = this.events.length === 0 ? new Date().getTime() : this.events[this.events.length - 1].date
       server.loadEvents(20, older, 0, 0, auth.getToken()).then(s => {
         if(s.events.length === 0) {
           this.eventAvailable = false
         }
         this.events = this.events.concat(s.events)
-        this.loadingEvents = false
+        this.$refs.loadingState.deactivate()
       })
     },
     edit(id) {

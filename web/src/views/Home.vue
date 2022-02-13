@@ -28,11 +28,8 @@
         <div class="w-full flex flex-col gap-4 mt-5" v-if="posts.length > 0">
           <PostWidget v-for="value in posts" :id="value.id" :title="value.title" :bg="getBg(value.attachments)"></PostWidget>
         </div>
-        <div class="mt-10" v-if="loadingPosts">
-          <svg class="animate-spin h-8 w-8 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
+        <div class="mt-10">
+          <LoadingState ref="postLoadingState"></LoadingState>
         </div>
       </div>
       <div class="col-span-2">
@@ -58,21 +55,17 @@
             </div>
           </div>
         </div>
-        <div class="flex flex-col gap-3" v-if="!eventCalendar.loading">
-          <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2" v-for="event in eventCalendar.events[eventCalendar.currentMonth+'.'+eventCalendar.currentYear]">
-            <div class="text-lg">{{ event.title }}</div>
-            <div class="text-sm text-gray-500">
-              {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.startDate)) }} -
-              {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.endDate)) }}
+        <LoadingState ref="eventCalendarLoadingState">
+          <div class="flex flex-col gap-3">
+            <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2" v-for="event in eventCalendar.events[eventCalendar.currentMonth+'.'+eventCalendar.currentYear]">
+              <div class="text-lg">{{ event.title }}</div>
+              <div class="text-sm text-gray-500">
+                {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.startDate)) }} -
+                {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.endDate)) }}
+              </div>
             </div>
           </div>
-        </div>
-        <div v-else>
-          <svg class="animate-spin h-8 w-8 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </div>
+        </LoadingState>
       </div>
     </div>
   </div>
@@ -93,10 +86,12 @@ import {ChevronLeftIcon, ChevronRightIcon} from "@heroicons/vue/outline";
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import auth from "../api/auth";
+import LoadingState from "../components/LoadingState.vue";
 
 export default {
   name: "Home",
   components: {
+    LoadingState,
     Header, PostWidget, FloatingMenu,
     NewspaperIcon, CalendarIcon, ChevronLeftIcon, ChevronRightIcon
   },
@@ -133,10 +128,8 @@ export default {
       eventCalendar: {
         currentYear: 0,
         currentMonth: 0,
-        loading: false,
         events: {}
       },
-      loadingPosts: false,
       postAvailable: true,
       dateOffset: 0,
       posts: []
@@ -153,13 +146,13 @@ export default {
     },
     handleScroll() {
       if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-        if(!this.loadingPosts && this.postAvailable) {
+        if(!this.$refs.postLoadingState.loading && this.postAvailable) {
           this.loadNextPosts()
         }
       }
     },
     loadNextPosts(){
-      this.loadingPosts = true
+      this.$refs.postLoadingState.activate()
       server.loadPosts(10, this.dateOffset, auth.getToken()).then(s => {
         if(s.posts.length === 0) {
           this.postAvailable = false
@@ -167,7 +160,7 @@ export default {
           this.dateOffset = s.posts[s.posts.length - 1].date
         }
         this.posts = this.posts.concat(s.posts)
-        this.loadingPosts = false
+        this.$refs.postLoadingState.deactivate()
       })
     },
     nextMonth(delta){
@@ -183,14 +176,14 @@ export default {
 
       const key = this.eventCalendar.currentMonth + "." + this.eventCalendar.currentYear;
       if(this.eventCalendar.events.hasOwnProperty(key)) return
-      this.eventCalendar.loading = true
+      this.$refs.eventCalendarLoadingState.activate()
       const a = new Date(this.eventCalendar.currentYear, this.eventCalendar.currentMonth, 1, 0, 0, 0)
       const b = new Date(this.eventCalendar.currentYear, this.eventCalendar.currentMonth + 1, 1, 0, 0, 0)
       server.loadEvents(10, new Date().getTime(), a.getTime(), b.getTime() - 1000, auth.getToken()).then(s => {
         const v = this.eventCalendar.events
         v[key] = s.events
         this.eventCalendar.events = v
-        this.eventCalendar.loading = false
+        this.$refs.eventCalendarLoadingState.deactivate()
       })
     },
     isToday(day) {

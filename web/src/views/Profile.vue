@@ -4,54 +4,38 @@
     <Breadcrumb text="Trang cá nhân" :link="`/u/${this.$route.params.id}`"></Breadcrumb>
     <div class="grid grid-cols-3 gap-16 mt-5">
       <div class="col-span-1 shadow-lg shadow-slate-400 self-start">
-        <section>
-          <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">THÔNG TIN</div>
-          <div class="px-5 py-3">
-            <div v-if="loadingProfile">
-              <svg class="animate-spin h-4 w-4 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </div>
-            <div v-else>
+        <LoadingState ref="profileLoadingState" hidden>
+          <section>
+            <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">THÔNG TIN</div>
+            <div class="px-5 py-3">
               <p>Tên: {{ profile.name }}</p>
               <p>Lớp: {{ profile.class }}</p>
               <p>Giới tính: {{ profile.gender ? "Nữ" : "Nam" }}</p>
               <p>Đoàn viên: {{ profile.certified ? "Đã kết nạp" : "Không" }}</p>
               <p>Niên khóa: {{ profile.entryDate }} - {{ profile.endDate }}</p>
             </div>
-          </div>
-        </section>
-        <section>
-          <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">THÀNH TÍCH</div>
-          <div class="px-5 py-3">
-            <div v-if="loadingProgression">
-              <svg class="animate-spin h-4 w-4 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+          </section>
+        </LoadingState>
+        <LoadingState ref="progressionLoadingState" hidden>
+          <section>
+            <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">THÀNH TÍCH</div>
+            <div class="px-5 py-3">
+              <ul class="list-disc list-inside">
+                <li v-for="a in achievements">{{ a }}</li>
+              </ul>
             </div>
-            <ul v-else class="list-disc list-inside">
-              <li v-for="a in achievements">{{ a }}</li>
-            </ul>
-          </div>
-        </section>
-        <section>
-          <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">XẾP LOẠI</div>
-          <div class="px-5 py-3">
-            <div v-if="loadingProgression">
-              <svg class="animate-spin h-4 w-4 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+          </section>
+          <section>
+            <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">XẾP LOẠI</div>
+            <div class="px-5 py-3">
+              <ul class="list-disc list-inside">
+                <li v-for="(value, name) in rates">
+                  {{ value === 1 ? "Tốt" : (value === 2 ? "Khá" : "-") }} ({{ name }} - {{ parseInt(name) + 1 }})
+                </li>
+              </ul>
             </div>
-            <ul v-else class="list-disc list-inside">
-              <li v-for="(value, name) in rates">
-                {{ value === 1 ? "Tốt" : (value === 2 ? "Khá" : "-") }} ({{ name }} - {{ parseInt(name) + 1 }})
-              </li>
-            </ul>
-          </div>
-        </section>
+          </section>
+        </LoadingState>
       </div>
       <div class="col-span-2">
         <section v-if="profileCoverUploading || profile.profileCover === undefined" class="border-4 border-dashed border-black py-10">
@@ -107,14 +91,13 @@ import auth from "../api/auth";
 import Editor from '@tinymce/tinymce-vue'
 import conf from "../conf";
 import profileCoverDefaultImg from "../assets/profile-cover.jpg";
+import LoadingState from "../components/LoadingState.vue";
 
 export default {
   name: "Profile",
-  components: {Breadcrumb, Header, FloatingMenu, Editor},
+  components: {LoadingState, Breadcrumb, Header, FloatingMenu, Editor},
   data() {
     return {
-      loadingProfile: false,
-      loadingProgression: false,
       profileCoverUploading: false,
       submittingBoard: false,
       profile:  {
@@ -137,7 +120,7 @@ export default {
   },
   computed: {
     isPersonalProfile() {
-      return !this.loadingProfile && this.$root.profile.email === this.getUserId()
+      return this.$root.profile.email === this.getUserId()
     }
   },
   methods: {
@@ -169,7 +152,6 @@ export default {
     }
   },
   mounted() {
-    this.loadingProfile = true
     server.loadProfile(this.getUserId(), auth.getToken()).then(s => {
       if (s.hasOwnProperty("error")) {
         this.$router.push("/")
@@ -183,9 +165,8 @@ export default {
       } else {
         this.profile.profileCover = profileCoverDefaultImg
       }
-      this.loadingProfile = false
+      this.$refs.profileLoadingState.deactivate()
     })
-    this.loadingProgression = true
     server.loadProgression(auth.getToken(), this.getUserId()).then(s => {
       if (s.hasOwnProperty("error")) {
         this.$router.push("/")
@@ -197,7 +178,7 @@ export default {
       s["rates"].forEach((value) => {
         this.rates[value["year"]] = value["level"]
       })
-      this.loadingProgression = false
+      this.$refs.progressionLoadingState.deactivate()
     })
   }
 }

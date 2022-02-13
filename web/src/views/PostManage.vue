@@ -17,16 +17,14 @@
         </tr>
       </tbody>
     </table>
-    <div v-if="loadingPosts">
-      <svg class="animate-spin h-6 w-6 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
+    <div class="mt-10">
+      <LoadingState ref="loadingState">
+        <div v-if="postAvailable">
+          <button class="rounded-md bg-blue-500 hover:bg-blue-600 cursor-pointer px-3 py-2 text-white text-center text-xs m-auto block" @click="loadNextPosts()">Xem thêm...</button>
+        </div>
+        <div v-else>Đã tải hết bài viết.</div>
+      </LoadingState>
     </div>
-    <div class="mt-10" v-else-if="postAvailable">
-      <button class="rounded-md bg-blue-500 hover:bg-blue-600 cursor-pointer px-3 py-2 text-white text-center text-xs m-auto block" @click="loadNextPosts">Xem thêm...</button>
-    </div>
-    <div class="mt-10" v-else>Đã tải hết bài viết.</div>
   </div>
   <FloatingMenu></FloatingMenu>
   <Prompt :content="'<p class=font-bold>Bạn có muốn xóa bài viết này?</p><br>' + postRemoveTitle" @callback="removePostCallback" ref="removePrompt"></Prompt>
@@ -40,16 +38,16 @@ import auth from "../api/auth";
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
+import LoadingState from "../components/LoadingState.vue";
 
 export default {
   name: "PostManage",
   components: {
-    Header, FloatingMenu, Breadcrumb,
+    LoadingState, Header, FloatingMenu, Breadcrumb,
     PencilIcon, TrashIcon, Prompt
   },
   data() {
     return {
-      loadingPosts: false,
       postAvailable: true,
       posts: [],
       postRemoveId: '',
@@ -58,14 +56,14 @@ export default {
   },
   methods: {
     loadNextPosts(){
-      this.loadingPosts = true
+      this.$refs.loadingState.activate()
       const older = this.posts.length === 0 ? new Date().getTime() : this.posts[this.posts.length - 1].date
       server.loadPosts(20, older, auth.getToken()).then(s => {
         if(s.posts.length === 0) {
           this.postAvailable = false
         }
         this.posts = this.posts.concat(s.posts)
-        this.loadingPosts = false
+        this.$refs.loadingState.deactivate()
       })
     },
     createPost() {
