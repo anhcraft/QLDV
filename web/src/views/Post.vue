@@ -103,6 +103,7 @@ export default {
 <style>
 #content a {
   color: rgb(38 143 207);
+  text-decoration: underline;
 }
 #content ol {
   display: block;
@@ -125,5 +126,6 @@ export default {
 #content img, #content svg, #content video, #content canvas, #content audio, #content iframe, #content embed, #content object {
   display: inline;
   vertical-align: middle;
+  width: 100%;
 }
 </style>
