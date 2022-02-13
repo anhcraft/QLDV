@@ -27,7 +27,9 @@
     </div>
   </div>
   <FloatingMenu></FloatingMenu>
-  <Prompt :content="'<p class=font-bold>Bạn có muốn xóa bài viết này?</p><br>' + postRemoveTitle" @callback="removePostCallback" ref="removePrompt"></Prompt>
+  <Prompt @callback="removePostCallback" ref="removePrompt">
+    <p class=font-bold>Bạn có muốn xóa bài viết này?</p><br> {{ postRemoveTitle }}
+  </Prompt>
 </template>
 
 <script>
