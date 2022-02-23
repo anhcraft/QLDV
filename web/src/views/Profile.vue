@@ -2,7 +2,7 @@
   <Header></Header>
   <div class="pb-16 max-w-[1024px] m-auto">
     <Breadcrumb text="Trang cá nhân" :link="`/u/${this.$route.params.id}`"></Breadcrumb>
-    <div class="grid grid-cols-3 gap-16 mt-5">
+    <div class="grid grid-cols-3 gap-16 mt-10">
       <div class="col-span-1 shadow-lg shadow-slate-400 self-start">
         <LoadingState ref="profileLoadingState" hidden>
           <section>
@@ -17,7 +17,7 @@
           </section>
         </LoadingState>
         <LoadingState ref="progressionLoadingState" hidden>
-          <section>
+          <section v-if="achievements.length > 0">
             <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">THÀNH TÍCH</div>
             <div class="px-5 py-3">
               <ul class="list-disc list-inside">
@@ -25,7 +25,7 @@
               </ul>
             </div>
           </section>
-          <section>
+          <section v-if="Object.keys(rates).length > 0">
             <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">XẾP LOẠI</div>
             <div class="px-5 py-3">
               <ul class="list-disc list-inside">
@@ -38,27 +38,18 @@
         </LoadingState>
       </div>
       <div class="col-span-2">
-        <section v-if="profileCoverUploading || profile.profileCover === undefined" class="border-4 border-dashed border-black py-10">
-          <svg class="animate-spin h-8 w-8 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </section>
-        <section v-else class="w-full inline-block relative overflow-hidden border-4 border-dashed border-white" :class="{'hover:opacity-80 hover:border-black' : isPersonalProfile}">
-          <div :style="{ 'background-image': 'url(' + profile.profileCover + ')' }" class="w-full h-64 bg-cover bg-center bg-no-repeat" />
-          <input type="file" class="absolute left-0 top-0 opacity-0 h-64 w-full cursor-pointer" @change="onProfileCoverChange" accept="image/*" v-if="isPersonalProfile" />
-        </section>
-        <section v-if="submittingBoard" class="border-4 border-dashed border-black py-10">
-          <svg class="animate-spin h-8 w-8 text-sky-400 m-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </section>
-        <section v-else class="mt-10">
-          <div v-if="isPersonalProfile">
-            <Editor
-                apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
-                :init="{
+        <LoadingState ref="profileCoverLoadingState">
+          <section class="w-full inline-block relative overflow-hidden border-4 border-dashed border-white" :class="{'hover:opacity-80 hover:border-black' : isPersonalProfile}">
+            <div :style="{ 'background-image': 'url(' + profile.profileCover + ')' }" class="w-full h-64 bg-cover bg-center bg-no-repeat" />
+            <input type="file" class="absolute left-0 top-0 opacity-0 h-64 w-full cursor-pointer" @change="onProfileCoverChange" accept="image/*" v-if="isPersonalProfile" />
+          </section>
+        </LoadingState>
+        <LoadingState hidden ref="profileBoardLoadingState">
+          <section class="mt-10">
+            <div v-if="isPersonalProfile">
+              <Editor
+                  apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
+                  :init="{
                   height: 500,
                   plugins: [
                     'advlist autolink link image lists charmap print preview hr anchor pagebreak',
@@ -70,12 +61,13 @@
                     'alignleft aligncenter alignright alignjustify | help',
                   menubar: false
                 }"
-                v-model="profile.profileBoard"
-            ></Editor>
-            <button class="bg-pink-400 hover:bg-pink-500 cursor-pointer px-4 py-2 text-white text-center text-sm mt-5" @click="saveBoard">Sửa tường nhà</button>
-          </div>
-          <div v-else id="content" class="break-words" v-html="profile.profileBoard"></div>
-        </section>
+                  v-model="profile.profileBoard"
+              ></Editor>
+              <button class="float-right bg-pink-400 hover:bg-pink-500 cursor-pointer px-3 py-1 text-white text-center text-sm mt-5" @click="saveBoard">Lưu lại</button>
+            </div>
+            <div v-else id="content" class="break-words" v-html="profile.profileBoard"></div>
+          </section>
+        </LoadingState>
       </div>
     </div>
   </div>
@@ -98,8 +90,6 @@ export default {
   components: {LoadingState, Breadcrumb, Header, FloatingMenu, Editor},
   data() {
     return {
-      profileCoverUploading: false,
-      submittingBoard: false,
       profile:  {
         email: "",
         name: "",
@@ -129,10 +119,10 @@ export default {
     },
     onProfileCoverChange(e) {
       if (e.target.files.length > 0) {
-        this.profileCoverUploading = true
+        this.$refs.profileCoverLoadingState.activate()
         server.setProfileCover(e.target.files[0], auth.getToken()).then(s => {
           if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-            this.profileCoverUploading = false
+            this.$refs.profileCoverLoadingState.deactivate()
             window.location.reload()
           } else {
             alert(`Lỗi lưu ảnh bìa: ${s["error"]}`)
@@ -141,10 +131,10 @@ export default {
       }
     },
     saveBoard(){
-      this.submittingBoard = true
+      this.$refs.profileBoardLoadingState.activate()
       server.setProfileBoard(this.profile.profileBoard, auth.getToken()).then(s => {
         if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-          this.submittingBoard = false
+          this.$refs.profileBoardLoadingState.deactivate()
         } else {
           alert(`Lỗi lưu tường nhà: ${s["error"]}`)
         }
@@ -166,6 +156,8 @@ export default {
         this.profile.profileCover = profileCoverDefaultImg
       }
       this.$refs.profileLoadingState.deactivate()
+      this.$refs.profileCoverLoadingState.deactivate()
+      this.$refs.profileBoardLoadingState.deactivate()
     })
     server.loadProgression(auth.getToken(), this.getUserId()).then(s => {
       if (s.hasOwnProperty("error")) {
