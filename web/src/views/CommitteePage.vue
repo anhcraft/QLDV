@@ -1,14 +1,22 @@
 <template>
   <Header></Header>
-  <div class="py-16 max-w-[1024px] m-auto">
-    <div class="flex flex-col gap-5">
-      <div v-for="i in committees">
-        <div class="float-left w-32 h-32 bg-cover bg-center mr-5" :style="`background-image: url(${i.avatar})`"></div>
-        <div>
-          <div><span class="font-bold">Họ và tên:</span> <router-link :to="'/u/' + i.user">{{ i.name }}</router-link></div>
-          <div><span class="font-bold">Chức vụ:</span> {{ i.role }}</div>
-          <div><span class="font-bold">Email:</span> {{ i.user }}@dian.sgdbinhduong.edu.vn</div>
+  <div class="py-16">
+    <div class="max-w-[1024px] m-auto grid grid-cols-6 gap-24">
+      <div class="col-span-4">
+        <div class="border-l-4 border-l-emerald-400 font-light text-xl px-4">BAN CHẤP HÀNH ĐOÀN</div>
+        <div class="flex flex-col gap-5 mt-5">
+          <div v-for="i in committees">
+            <div class="float-left w-32 h-32 bg-cover bg-center mr-5" :style="`background-image: url(${i.avatar})`"></div>
+            <div>
+              <div><span class="font-bold">Họ và tên:</span> <router-link :to="'/u/' + i.user">{{ i.name }}</router-link></div>
+              <div><span class="font-bold">Chức vụ:</span> {{ i.role }}</div>
+              <div><span class="font-bold">Email:</span> {{ i.user }}@dian.sgdbinhduong.edu.vn</div>
+            </div>
+          </div>
         </div>
+      </div>
+      <div class="col-span-2">
+        <Sidebar></Sidebar>
       </div>
     </div>
   </div>
@@ -18,11 +26,12 @@
 <script>
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
+import Sidebar from "../components/Sidebar.vue";
 
 export default {
   name: "CommitteePage",
   components: {
-    Header, FloatingMenu
+    Header, FloatingMenu, Sidebar
   },
   data() {
     return {
