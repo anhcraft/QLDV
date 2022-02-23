@@ -66,6 +66,11 @@
             </div>
           </div>
         </LoadingState>
+        <div class="my-10 flex flex-col gap-3">
+          <router-link to="/bch/" class="text-white text-xl px-10 py-5 shadow-lg shadow-slate-400" style="background: radial-gradient(circle, rgba(34,120,195,1) 0%, rgba(162,45,253,1) 100%);">BCH Công Đoàn</router-link>
+          <router-link to="/" class="text-white text-xl px-10 py-5 shadow-lg shadow-slate-400" style="background: radial-gradient(circle, rgba(238,174,202,1) 0%, rgba(148,187,233,1) 100%);">Hội thi ATGT</router-link>
+          <router-link to="/" class="text-white text-xl px-10 py-5 shadow-lg shadow-slate-400" style="background: linear-gradient(21deg, rgba(58,137,180,1) 0%, rgba(13,191,35,1) 100%);">Thư viện ảnh</router-link>
+        </div>
       </div>
     </div>
   </div>

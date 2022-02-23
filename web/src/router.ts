@@ -11,6 +11,7 @@ const routes = [
     { path: '/em/', component: () => import("./views/EventManage.vue") },
     { path: '/ee/', component: () => import("./views/EventEdit.vue") },
     { path: '/ee/:id', component: () => import("./views/EventEdit.vue") },
+    { path: '/bch/', component: () => import("./views/CommitteePage.vue") },
 ]
 
 const router = createRouter({
