@@ -12,6 +12,7 @@ const routes = [
     { path: '/ee/', component: () => import("./views/EventEdit.vue") },
     { path: '/ee/:id', component: () => import("./views/EventEdit.vue") },
     { path: '/bch/', component: () => import("./views/CommitteePage.vue") },
+    { path: '/mc/:id', component: () => import("./views/ContestManage.vue") },
 ]
 
 const router = createRouter({

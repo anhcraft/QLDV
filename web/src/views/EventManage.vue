@@ -16,6 +16,7 @@
           <td class="flex flex-row gap-3">
             <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="edit(event.id)"></PencilIcon>
             <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="remove(event.id, event.title)"></TrashIcon>
+            <PuzzleIcon class="w-6 cursor-pointer text-gray-500" @click="manageContest(event.id)"></PuzzleIcon>
             <p class="text-gray-500">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.date)) }}</p>
           </td>
         </tr>
@@ -37,7 +38,7 @@
 </template>
 
 <script>
-import {PencilIcon, TrashIcon} from '@heroicons/vue/solid'
+import {PencilIcon, PuzzleIcon, TrashIcon} from '@heroicons/vue/solid'
 import server from "../api/server";
 import Prompt from "../components/Prompt.vue";
 import auth from "../api/auth";
@@ -50,7 +51,7 @@ export default {
   name: "EventManage",
   components: {
     LoadingState, Header, FloatingMenu, Breadcrumb,
-    PencilIcon, TrashIcon, Prompt
+    PencilIcon, TrashIcon, PuzzleIcon, Prompt
   },
   data() {
     return {
@@ -74,6 +75,9 @@ export default {
     },
     edit(id) {
       this.$router.push(`/ee/` + (id === undefined ? '' : id))
+    },
+    manageContest(id) {
+      this.$router.push(`/mc/` + (id === undefined ? '' : id))
     },
     remove(id, name) {
       this.eventRemoveId = id
