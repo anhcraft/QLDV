@@ -8,17 +8,18 @@ import (
 	"gorm.io/gorm/clause"
 )
 
-func editOrCreateContest(eventId string, answers bool, questions uint16, time uint32, sheet string) interface{} {
+func editOrCreateContest(eventId string, answers bool, questions uint16, time uint32, sheet string, info string) interface{} {
 	contest := &Contest{
 		AcceptingAnswers: answers,
 		LimitQuestions:   questions,
 		LimitTime:        time,
 		DataSheet:        sheet,
 		EventID:          eventId,
+		Info:             info,
 	}
 	_ = db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "event_id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"accepting_answers", "limit_questions", "limit_time", "data_sheet"}),
+		DoUpdates: clause.AssignmentColumns([]string{"accepting_answers", "limit_questions", "limit_time", "data_sheet", "info"}),
 	}).Create(&contest)
 	return &contest
 }
@@ -63,6 +64,7 @@ func contestChangeRouteHandler(c *fiber.Ctx) error {
 		LimitQuestions   uint16 `json:"limit_questions,omitempty"`
 		LimitTime        uint32 `json:"limit_time,omitempty"`
 		DataSheet        string `json:"data_sheet,omitempty"`
+		Info             string `json:"info,omitempty"`
 	}{}
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -75,7 +77,8 @@ func contestChangeRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	_ = editOrCreateContest(payload.Id, payload.AcceptingAnswers, payload.LimitQuestions, payload.LimitTime, payload.DataSheet)
+	payload.Info = ugcPolicy.Sanitize(payload.Info)
+	_ = editOrCreateContest(payload.Id, payload.AcceptingAnswers, payload.LimitQuestions, payload.LimitTime, payload.DataSheet, payload.Info)
 	_, _ = res.Set(true, "success")
 	return c.SendString(res.String())
 }

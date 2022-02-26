@@ -266,7 +266,7 @@ const server = {
             })
         }).json();
     },
-    changeContest(id: string, contest: { limitTime: number; limitQuestions: number; dataSheet: []; acceptingAnswers: boolean }, token: string) {
+    changeContest(id: string, contest: { limitTime: number; limitQuestions: number; dataSheet: []; acceptingAnswers: boolean, info: string }, token: string) {
         if(token == null || token.length == 0) {
             return {
                 "error": "CLIENT"
@@ -283,7 +283,8 @@ const server = {
                 accepting_answers: contest.acceptingAnswers,
                 limit_questions: contest.limitQuestions,
                 limit_time: contest.limitTime,
-                data_sheet: JSON.stringify(contest.dataSheet)
+                data_sheet: JSON.stringify(contest.dataSheet),
+                info: contest.info
             })
         }).json();
     },

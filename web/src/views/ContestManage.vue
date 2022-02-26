@@ -22,6 +22,25 @@
           <input type="number" min="0" max="1440" class="border border-slate-300 px-1" v-model.number="event.contest.limitTime"> phút
         </div>
         <p class="italic">(Điền 0 để quy định không giới hạn về thời gian)</p>
+        <div class="mt-5">
+          <p class="font-bold">Thông tin cuộc thi</p>
+          <Editor
+            apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
+            :init="{
+                  height: 300,
+                  plugins: [
+                    'advlist autolink link image lists charmap print preview hr anchor pagebreak',
+                    'searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking',
+                    'table emoticons template paste help'
+                  ],
+                  toolbar: 'undo redo | styleselect | bold italic | forecolor backcolor emoticons link | ' +
+                    'bullist numlist outdent indent | media | ' +
+                    'alignleft aligncenter alignright alignjustify | help',
+                  menubar: false
+                }"
+            v-model="event.contest.info"
+          ></Editor>
+        </div>
       </div>
       <div class="mt-5 text-sm border-2 border-dashed border-slate-500 p-5">
         <p class="font-bold">Tải file excel chứa câu hỏi và đáp án:</p>
@@ -73,10 +92,11 @@ import 'vue3-date-time-picker/dist/main.css'
 import LoadingState from "../components/LoadingState.vue";
 import * as XLSX from "xlsx";
 import Prompt from "../components/Prompt.vue";
+import Editor from '@tinymce/tinymce-vue'
 
 export default {
   "name": "ContestManage",
-  components: {LoadingState, Header, FloatingMenu, Breadcrumb, Datepicker, Prompt},
+  components: {LoadingState, Header, FloatingMenu, Breadcrumb, Datepicker, Prompt, Editor},
   data() {
     return {
       event: {}
@@ -147,7 +167,8 @@ export default {
               acceptingAnswers: false,
               limitQuestions: 10,
               limitTime: 30,
-              dataSheet: []
+              dataSheet: [],
+              info: ""
             }
           }
           this.event = s;
