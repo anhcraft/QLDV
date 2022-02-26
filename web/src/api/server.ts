@@ -266,6 +266,42 @@ const server = {
             })
         }).json();
     },
+    changeContest(id: string, contest: { limitTime: number; limitQuestions: number; dataSheet: []; acceptingAnswers: boolean }, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/change-contest`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            },
+            body: JSON.stringify({
+                id: id,
+                accepting_answers: contest.acceptingAnswers,
+                limit_questions: contest.limitQuestions,
+                limit_time: contest.limitTime,
+                data_sheet: JSON.stringify(contest.dataSheet)
+            })
+        }).json();
+    },
+    removeContest(id: string, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/remove-contest`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token,
+                'id': id === undefined ? '' : id
+            }
+        }).json();
+    }
 }
 
 export default server;

@@ -3,26 +3,27 @@
   <div class="max-w-[1024px] m-auto pb-16">
     <Breadcrumb text="Quản lý cuộc thi" link="/em" class="mb-10"></Breadcrumb>
     <LoadingState ref="loadingState">
-      <header class="border-b-2 border-b-slate-300 pb-3 text-xl flex flex-row">
-        <div class="grow">{{ event }}</div>
-        <button class="bg-emerald-500 hover:bg-emerald-600 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="saveChanges">Xem kết quả</button>
+      <header class="border-b-2 border-b-slate-300 pb-3 text-xl flex flex-row gap-2">
+        <div class="grow">{{ event.title }}</div>
+        <button class="bg-emerald-600 hover:bg-emerald-700 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="saveChanges">Xem kết quả</button>
+        <button class="bg-rose-400 hover:bg-rose-500 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="this.$refs.removePrompt.toggle()">Xóa cuộc thi</button>
       </header>
       <div class="mt-5 border-b-2 border-b-slate-300 pb-3">
         <div class="flex flex-row gap-5 place-items-center">
           <p class="font-bold">Chấp nhận câu trả lời</p>
-          <input type="checkbox" class="w-4 h-4" v-bind:checked="true" @input="">
+          <input type="checkbox" class="w-4 h-4" v-model="event.contest.acceptingAnswers">
         </div>
         <div class="flex flex-row gap-5 place-items-center">
           <p class="font-bold">Giới hạn số câu hỏi</p>
-          <input type="number" min="3" max="100" class="border border-slate-300 px-1">
+          <input type="number" min="3" max="100" class="border border-slate-300 px-1" v-model.number="event.contest.limitQuestions">
         </div>
         <div class="flex flex-row gap-5 place-items-center">
           <p class="font-bold">Giới hạn thời gian làm</p>
-          <input type="number" min="0" max="1440" class="border border-slate-300 px-1"> phút
+          <input type="number" min="0" max="1440" class="border border-slate-300 px-1" v-model.number="event.contest.limitTime"> phút
         </div>
         <p class="italic">(Điền 0 để quy định không giới hạn về thời gian)</p>
       </div>
-      <div class="mt-5">
+      <div class="mt-5 text-sm border-2 border-dashed border-slate-500 p-5">
         <p class="font-bold">Tải file excel chứa câu hỏi và đáp án:</p>
         <p class="italic">- Cột đầu tiên: câu hỏi</p>
         <p class="italic">- Cột thứ hai: đáp án (a, b, c, d hoặc 1, 2, 3, 4)</p>
@@ -30,9 +31,8 @@
         <p>Người tham gia thi sẽ nhận được các câu hỏi ngẫu nhiên trong bộ câu hỏi trên.</p>
         <input @change="onUploadDataFile" class="block mt-5 px-3 py-1 text-gray-700 text-sm bg-white border border-solid border-gray-300 rounded focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" type="file">
       </div>
-      <div class="mt-5" v-if="preview.length > 0">
-        <p class="font-bold">Xem trước</p>
-        <p>Kiểm tra lại các câu hỏi và nhấn nút bên dưới để đồng ý lưu lại thay đổi.</p>
+      <div class="mt-5" v-if="event.contest.dataSheet.length > 0">
+        <p class="font-bold">Bộ câu hỏi</p>
         <table class="table-fixed border-collapse border border-slate-300 w-full mt-5">
           <thead>
             <tr>
@@ -44,19 +44,22 @@
             </tr>
           </thead>
           <tbody class="text-sm">
-            <tr v-for="item in preview">
+            <tr v-for="item in event.contest.dataSheet">
               <td class="border border-slate-300 overflow-auto p-2">{{ item.question }}</td>
               <td v-for="(choice, i) in item.choices" class="border border-slate-300 p-2 overflow-auto" :class="{'bg-yellow-400' : i === item.answer}">{{ choice }}</td>
             </tr>
           </tbody>
         </table>
-        <div class="mt-5">
-          <button class="bg-pink-400 hover:bg-pink-500 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="saveChanges">Lưu thay đổi</button>
-        </div>
+      </div>
+      <div class="mt-5">
+        <button class="bg-pink-400 hover:bg-pink-500 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="saveChanges">Lưu thay đổi</button>
       </div>
    </LoadingState>
   </div>
   <FloatingMenu></FloatingMenu>
+  <Prompt @callback="removeContestCallback" ref="removePrompt">
+    <p class=font-bold>Bạn có muốn xóa cuộc thi này?</p><br> {{ event.title }}
+  </Prompt>
 </template>
 
 <script>
@@ -69,14 +72,14 @@ import Datepicker from 'vue3-date-time-picker';
 import 'vue3-date-time-picker/dist/main.css'
 import LoadingState from "../components/LoadingState.vue";
 import * as XLSX from "xlsx";
+import Prompt from "../components/Prompt.vue";
 
 export default {
   "name": "ContestManage",
-  components: {LoadingState, Header, FloatingMenu, Breadcrumb, Datepicker},
+  components: {LoadingState, Header, FloatingMenu, Breadcrumb, Datepicker, Prompt},
   data() {
     return {
-      event: "",
-      preview: []
+      event: {}
     }
   },
   methods: {
@@ -103,8 +106,30 @@ export default {
             choices: [row[2], row[3], row[4], row[5]]
           });
         }
-        this.preview = preview;
+        this.event.contest.dataSheet = preview;
       }
+    },
+    removeContestCallback() {
+      this.$refs.loadingState.activate()
+      server.removeContest(this.$route.params.id, auth.getToken()).then(s => {
+        if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+          this.$refs.loadingState.deactivate()
+          this.$router.push('/em/')
+        } else {
+          alert(`Lỗi xóa cuộc thi: ${s["error"]}`)
+        }
+      })
+    },
+    saveChanges(){
+      this.$refs.loadingState.activate()
+      server.changeContest(this.$route.params.id, this.event.contest, auth.getToken()).then(s => {
+        if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+          this.$refs.loadingState.deactivate()
+          this.$router.push('/em/')
+        } else {
+          alert(`Lỗi lưu cuộc thi: ${s["error"]}`)
+        }
+      })
     }
   },
   mounted() {
@@ -115,7 +140,17 @@ export default {
     if(this.$route.params.id !== undefined) {
       server.loadEvent(this.$route.params.id, auth.getToken()).then(s => {
         if(!s.hasOwnProperty("error")) {
-          this.event = s.title;
+          if (s.hasOwnProperty("contest")) {
+            s.contest.dataSheet = JSON.parse(s.contest.dataSheet)
+          } else {
+            s["contest"] = {
+              acceptingAnswers: false,
+              limitQuestions: 10,
+              limitTime: 30,
+              dataSheet: []
+            }
+          }
+          this.event = s;
           this.$refs.loadingState.deactivate()
         } else {
           alert(`Lỗi tải sự kiện: ${s["error"]}`)
