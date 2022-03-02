@@ -23,7 +23,7 @@
   </div>
   <LoadingState ref="eventCalendarLoadingState">
     <div class="flex flex-col gap-3">
-      <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2" v-for="event in eventCalendar.events[eventCalendar.currentMonth+'.'+eventCalendar.currentYear]" :class="{'hover:border-gray-800 cursor-pointer' : event.hasOwnProperty('contest')}" @click="openEvent(event)">
+      <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2" v-for="event in eventCalendar.events[eventCalendar.currentMonth+'.'+eventCalendar.currentYear]" :class="{'hover:border-gray-800 cursor-pointer' : (event.hasOwnProperty('contest') && $root.isLoggedIn())}" @click="openEvent(event)">
         <div class="text-lg">{{ event.title }}</div>
         <div class="text-sm text-gray-500">
           {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.startDate)) }} -
@@ -67,7 +67,7 @@ export default {
   },
   methods: {
     openEvent(event){
-      if(event.hasOwnProperty("contest")) {
+      if(event.hasOwnProperty("contest") && this.$root.isLoggedIn()) {
         this.$router.push("/c/" + event.contest.id)
       }
     },
