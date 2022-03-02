@@ -3,10 +3,10 @@ package main
 import "github.com/Jeffail/gabs/v2"
 
 type ContestSession struct {
-	ContestID               string `gorm:"primaryKey"`
-	Contest                 Contest
-	UserID                  string `gorm:"primaryKey"`
-	User                    User
+	ContestID               string  `gorm:"primaryKey"`
+	Contest                 Contest `gorm:"constraint:OnDelete:CASCADE;"`
+	UserID                  string  `gorm:"primaryKey"`
+	User                    User    `gorm:"constraint:OnDelete:CASCADE;"`
 	StartTime               int64
 	EndTime                 int64
 	QuestionSheet           string

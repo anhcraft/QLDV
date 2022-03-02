@@ -9,7 +9,7 @@ type Contest struct {
 	DataSheet        string
 	Info             string
 	EventID          string `gorm:"primaryKey"`
-	Event            Event
+	Event            Event  `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 func (a *Contest) serialize(showData bool) *gabs.Container {
