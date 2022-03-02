@@ -77,7 +77,7 @@ func submitContestSession(user string, contest string, answerSheet string, saveO
 		LastAnswerSubmittedTime: t,
 		Finished:                !saveOnly,
 	}
-	tx := db.Model(c).Where("user_id = ? and contest_id = ? and finished = ? and start_time <= ? and end_time >= ?", user, contest, false, t, t).Select("answer_sheet", "last_answer_submitted_time", "finished").Updates(c)
+	tx := db.Model(c).Where("user_id = ? and contest_id = ? and finished = ? and start_time <= ? and end_time + 20000 >= ?", user, contest, false, t, t).Select("answer_sheet", "last_answer_submitted_time", "finished").Updates(c)
 	return tx.RowsAffected > 0
 }
 

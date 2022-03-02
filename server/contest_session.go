@@ -24,8 +24,10 @@ func (a *ContestSession) serialize() *gabs.Container {
 	_, _ = res.Set(a.EndTime, "endTime")
 	_, _ = res.Set(a.QuestionSheet, "questionSheet")
 	_, _ = res.Set(a.AnswerSheet, "answerSheet")
-	//_, _ = res.Set(a.ExpectedAnswerSheet, "expectedAnswerSheet")
 	_, _ = res.Set(a.LastAnswerSubmittedTime, "lastAnswerSubmittedTime")
 	_, _ = res.Set(a.Finished, "finished")
+	if a.Finished {
+		_, _ = res.Set(a.ExpectedAnswerSheet, "expectedAnswerSheet")
+	}
 	return res
 }
