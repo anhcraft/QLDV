@@ -45,6 +45,7 @@
               <UsersIcon class="w-4"></UsersIcon>
               <p>Số lượt làm: 0</p>
             </div>
+            <div class="mt-10" v-html="event.contest.info"></div>
           </div>
         </div>
       </div>
@@ -69,7 +70,7 @@
   </div>
   <FloatingMenu></FloatingMenu>
   <div v-if="!endingContest">
-    <Prompt @callback="forceSubmitContest" ref="submitPrompt">
+    <Prompt @callback="submitContestPromptCallback" ref="submitPrompt">
       <p class=font-bold>Bài làm chưa hoàn thành, bạn có chắc chắn muốn nộp?</p>
     </Prompt>
   </div>
@@ -146,6 +147,9 @@ export default {
       } else {
         this.$refs.submitPrompt.toggle()
       }
+    },
+    submitContestPromptCallback(b) {
+      if(b) this.forceSubmitContest()
     },
     forceSubmitContest() {
       if(this.endingContest) return

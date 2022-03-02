@@ -129,7 +129,8 @@ export default {
         this.event.contest.dataSheet = preview;
       }
     },
-    removeContestCallback() {
+    removeContestCallback(b) {
+      if(!b) return
       this.$refs.loadingState.activate()
       server.removeContest(this.$route.params.id, auth.getToken()).then(s => {
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
