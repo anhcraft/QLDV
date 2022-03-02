@@ -282,7 +282,7 @@ const server = {
                 id: id,
                 accepting_answers: contest.acceptingAnswers,
                 limit_questions: contest.limitQuestions,
-                limit_time: contest.limitTime * 1000,
+                limit_time: contest.limitTime * 60000,
                 data_sheet: JSON.stringify(contest.dataSheet),
                 info: contest.info
             })

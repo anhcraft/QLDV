@@ -162,11 +162,12 @@ export default {
         if(!s.hasOwnProperty("error")) {
           if (s.hasOwnProperty("contest")) {
             s.contest.dataSheet = JSON.parse(s.contest.dataSheet)
+            s.contest.limitTime /= 60000
           } else {
             s["contest"] = {
               acceptingAnswers: false,
               limitQuestions: 10,
-              limitTime: 30,
+              limitTime: 900000,
               dataSheet: [],
               info: ""
             }
