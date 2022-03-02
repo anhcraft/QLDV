@@ -97,8 +97,8 @@ func eventGetRouteHandler(c *fiber.Ctx) error {
 
 	res = event.serialize()
 	contest := getContest(id)
-	if contest != nil && (user.Admin || contest.AcceptingAnswers) {
-		_, _ = res.Set(contest.serialize(user.Admin), "contest")
+	if contest != nil && ((user != nil && user.Admin) || contest.AcceptingAnswers) {
+		_, _ = res.Set(contest.serialize(user != nil && user.Admin), "contest")
 	}
 	return c.SendString(res.String())
 }
@@ -141,8 +141,8 @@ func eventListRouteHandler(c *fiber.Ctx) error {
 		}
 		cont := ev.serialize()
 		contest := getContest(ev.ID)
-		if contest != nil && (user.Admin || contest.AcceptingAnswers) {
-			_, _ = cont.Set(contest.serialize(user.Admin), "contest")
+		if contest != nil && ((user != nil && user.Admin) || contest.AcceptingAnswers) {
+			_, _ = cont.Set(contest.serialize(user != nil && user.Admin), "contest")
 		}
 		_ = res.ArrayAppend(cont, "events")
 	}
