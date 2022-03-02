@@ -168,7 +168,7 @@ export default {
             s["contest"] = {
               acceptingAnswers: false,
               limitQuestions: 10,
-              limitTime: 900000,
+              limitTime: 15,
               dataSheet: [],
               info: ""
             }
