@@ -5,7 +5,7 @@
     <LoadingState ref="loadingState">
       <header class="border-b-2 border-b-slate-300 pb-3 text-xl flex flex-row gap-2">
         <div class="grow">{{ event.title }}</div>
-        <button class="bg-sky-500 hover:bg-sky-600 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="joinContest" v-if="contestSession === undefined">VÀO THI</button>
+        <button class="bg-sky-500 hover:bg-sky-600 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="joinContest" v-if="contestSession === undefined && event.contest.acceptingAnswers">VÀO THI</button>
       </header>
       <div class="grid grid-cols-3">
         <div class="pt-5 pr-5 break-all" :class="contestSession === undefined || contestSession.finished ? 'col-span-2' : 'col-span-3'">
