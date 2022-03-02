@@ -28,7 +28,6 @@
       </div>
       <div v-else>
         <div class="pt-5" ref="questionContainer">
-          {{ contestSession.answerSheet }}
           <div class="mb-10" v-for="(q, i) in contestSession.questionSheet">
             <div class="text-lg">{{ q.question }}</div>
             <div class="grid grid-cols-2">
@@ -161,7 +160,7 @@ export default {
                       this.savingContest = false
                     }
                   })
-                }, 5000);
+                }, 10000);
               }
             })
           } else {
