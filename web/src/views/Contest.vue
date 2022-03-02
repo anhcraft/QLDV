@@ -45,7 +45,6 @@
               <UsersIcon class="w-4"></UsersIcon>
               <p>Số lượt làm: 0</p>
             </div>
-            <div class="mt-10" v-html="event.contest.info"></div>
           </div>
         </div>
       </div>
@@ -135,8 +134,7 @@ export default {
         if(s.hasOwnProperty("error")) {
           alert(`Lỗi tải cuộc thi: ${s["error"]}`)
         } else {
-          this.contestSession = s
-          this.$refs.loadingState.deactivate()
+          window.location.reload()
         }
       })
     },
