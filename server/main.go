@@ -39,7 +39,7 @@ func setupDB() {
 	if err != nil {
 		log.Fatalf("error connecting database: %v\n", err)
 	}
-	err = db_.AutoMigrate(&User{}, &Rate{}, &Achievement{}, &Post{}, &Attachment{}, &Event{}, &PostStat{}, &Contest{})
+	err = db_.AutoMigrate(&User{}, &Rate{}, &Achievement{}, &Post{}, &Attachment{}, &Event{}, &PostStat{}, &Contest{}, &ContestSession{})
 	if err != nil {
 		log.Fatalf("error migrating: %v\n", err)
 	}
@@ -103,6 +103,9 @@ func main() {
 	//app.Post("/contest", contestGetRouteHandler)
 	app.Post("/change-contest", contestChangeRouteHandler)
 	app.Post("/remove-contest", contestRemoveRouteHandler)
+	app.Get("/contest-session", contestSessionGetRouteHandler)
+	app.Post("/submit-contest-session", contestSessionSubmitRouteHandler)
+	app.Post("/join-contest-session", contestSessionJoinRouteHandler)
 
 	app.Static("/static/", "./public")
 

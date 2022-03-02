@@ -282,7 +282,7 @@ const server = {
                 id: id,
                 accepting_answers: contest.acceptingAnswers,
                 limit_questions: contest.limitQuestions,
-                limit_time: contest.limitTime,
+                limit_time: contest.limitTime * 1000,
                 data_sheet: JSON.stringify(contest.dataSheet),
                 info: contest.info
             })
@@ -302,7 +302,52 @@ const server = {
                 'id': id === undefined ? '' : id
             }
         }).json();
-    }
+    },
+    loadContestSession: function (id: string, token: string) {
+        return ky.get(`${conf.server}/contest-session?id=${id}`, {
+            method: 'get',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            }
+        }).json();
+    },
+    submitContestSession(id: string, answerSheet: string, saveOnly: boolean, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/submit-contest-session`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            },
+            body: JSON.stringify({
+                id: id,
+                'answer_sheet': JSON.stringify(answerSheet),
+                'save_only': saveOnly
+            })
+        }).json();
+    },
+    joinContestSession(id: string, token: string) {
+        if(token == null || token.length == 0) {
+            return {
+                "error": "CLIENT"
+            };
+        }
+        return ky.post(`${conf.server}/join-contest-session`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            },
+            body: JSON.stringify({
+                id: id
+            })
+        }).json();
+    },
 }
 
 export default server;

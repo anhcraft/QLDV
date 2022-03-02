@@ -6,9 +6,12 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"log"
+	"math/rand"
+	"time"
 )
 
-func editOrCreateContest(eventId string, answers bool, questions uint16, time uint32, sheet string, info string) interface{} {
+func editOrCreateContest(eventId string, answers bool, questions uint8, time uint32, sheet string, info string) interface{} {
 	contest := &Contest{
 		AcceptingAnswers: answers,
 		LimitQuestions:   questions,
@@ -40,6 +43,44 @@ func getContest(id string) *Contest {
 	}
 }
 
+func getContestSession(user string, contest string) *ContestSession {
+	var contestSession ContestSession
+	result := db.Take(&contestSession, "user_id = ? and contest_id = ?", user, contest)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil
+	} else {
+		return &contestSession
+	}
+}
+
+func createContestSession(user string, contest string, limitTime uint32, questionSheet string, answerSheet string, expectedAnswerSheet string) *ContestSession {
+	t := time.Now().UnixMilli()
+	c := &ContestSession{
+		ContestID:               contest,
+		UserID:                  user,
+		StartTime:               t,
+		EndTime:                 t + int64(limitTime),
+		QuestionSheet:           questionSheet,
+		AnswerSheet:             answerSheet,
+		ExpectedAnswerSheet:     expectedAnswerSheet,
+		LastAnswerSubmittedTime: 0,
+		Finished:                false,
+	}
+	_ = db.Clauses(clause.OnConflict{DoNothing: true}).Create(&c)
+	return c
+}
+
+func submitContestSession(user string, contest string, answerSheet string, saveOnly bool) bool {
+	t := time.Now().UnixMilli()
+	c := &ContestSession{
+		AnswerSheet:             answerSheet,
+		LastAnswerSubmittedTime: t,
+		Finished:                !saveOnly,
+	}
+	tx := db.Model(c).Where("user_id = ? and contest_id = ? and finished = ? and start_time <= ? and end_time >= ?", user, contest, false, t, t).Select("answer_sheet", "last_answer_submitted_time", "finished").Updates(c)
+	return tx.RowsAffected > 0
+}
+
 func contestChangeRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
@@ -61,7 +102,7 @@ func contestChangeRouteHandler(c *fiber.Ctx) error {
 	payload := struct {
 		Id               string `json:"id,omitempty"`
 		AcceptingAnswers bool   `json:"accepting_answers,omitempty"`
-		LimitQuestions   uint16 `json:"limit_questions,omitempty"`
+		LimitQuestions   uint8  `json:"limit_questions,omitempty"`
 		LimitTime        uint32 `json:"limit_time,omitempty"`
 		DataSheet        string `json:"data_sheet,omitempty"`
 		Info             string `json:"info,omitempty"`
@@ -130,6 +171,155 @@ func contestGetRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_UNKNOWN_CONTEST", "error")
 		return c.SendString(res.String())
 	}
-	res = contest.serialize()
+	res = contest.serialize(user.Admin)
+	return c.SendString(res.String())
+}
+
+func contestSessionGetRouteHandler(c *fiber.Ctx) error {
+	res := gabs.New()
+	token := c.Get("token")
+	success, email := getEmailFromToken(token, c.UserContext())
+	if !success {
+		_, _ = res.Set(email, "error")
+		return c.SendString(res.String())
+	}
+	user := getProfile(email)
+	if user == nil {
+		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+		return c.SendString(res.String())
+	}
+
+	id := c.Query("id", "")
+	if id == "" {
+		_, _ = res.Set("ERR_INVALID_CONTEST_ID", "error")
+		return c.SendString(res.String())
+	}
+	contestSession := getContestSession(email, id)
+	if contestSession == nil {
+		_, _ = res.Set("ERR_UNKNOWN_CONTEST_SESSION", "error")
+		return c.SendString(res.String())
+	}
+	res = contestSession.serialize()
+	return c.SendString(res.String())
+}
+
+func contestSessionSubmitRouteHandler(c *fiber.Ctx) error {
+	res := gabs.New()
+	token := c.Get("token")
+	success, email := getEmailFromToken(token, c.UserContext())
+	if !success {
+		_, _ = res.Set(email, "error")
+		return c.SendString(res.String())
+	}
+	user := getProfile(email)
+	if user == nil {
+		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+		return c.SendString(res.String())
+	}
+
+	payload := struct {
+		Id          string `json:"id,omitempty"`
+		AnswerSheet string `json:"answer_sheet,omitempty"`
+		SaveOnly    bool   `json:"save_only,omitempty"`
+	}{}
+
+	if err := c.BodyParser(&payload); err != nil {
+		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
+		return c.SendString(res.String())
+	}
+
+	if getContest(payload.Id) == nil {
+		_, _ = res.Set("ERR_UNKNOWN_CONTEST", "error")
+		return c.SendString(res.String())
+	}
+
+	_, _ = res.Set(submitContestSession(email, payload.Id, payload.AnswerSheet, payload.SaveOnly), "success")
+	return c.SendString(res.String())
+}
+
+func contestSessionJoinRouteHandler(c *fiber.Ctx) error {
+	res := gabs.New()
+	token := c.Get("token")
+	success, email := getEmailFromToken(token, c.UserContext())
+	if !success {
+		_, _ = res.Set(email, "error")
+		return c.SendString(res.String())
+	}
+	user := getProfile(email)
+	if user == nil {
+		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+		return c.SendString(res.String())
+	}
+
+	payload := struct {
+		Id string `questionSheetJSON:"id,omitempty"`
+	}{}
+
+	if err := c.BodyParser(&payload); err != nil {
+		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
+		return c.SendString(res.String())
+	}
+
+	ev := getEvent(payload.Id)
+	t := time.Now().UnixMilli()
+	if ev.StartDate > t || t > ev.EndDate {
+		_, _ = res.Set("ERR_EVENT_UNAVAILABLE", "error")
+		return c.SendString(res.String())
+	}
+	if (ev.Privacy&2) == 2 && !(user.Mod || user.Admin) {
+		_, _ = res.Set("ERR_NO_PERMISSION", "error")
+		return c.SendString(res.String())
+	}
+	if (ev.Privacy&4) == 4 && !user.Admin {
+		_, _ = res.Set("ERR_NO_PERMISSION", "error")
+		return c.SendString(res.String())
+	}
+
+	contest := getContest(payload.Id)
+	if contest == nil {
+		_, _ = res.Set("ERR_UNKNOWN_CONTEST", "error")
+		return c.SendString(res.String())
+	}
+	if !contest.AcceptingAnswers {
+		_, _ = res.Set("ERR_CONTEST_CLOSED", "error")
+		return c.SendString(res.String())
+	}
+
+	if getContestSession(email, payload.Id) != nil {
+		_, _ = res.Set("ERR_CONTEST_ATTENDED", "error")
+		return c.SendString(res.String())
+	}
+
+	dataSheet, _ := gabs.ParseJSON([]byte(contest.DataSheet))
+	in := dataSheet.Children()
+	rand.Seed(time.Now().Unix())
+	rand.Shuffle(len(in), func(i, j int) {
+		in[i], in[j] = in[j], in[i]
+	})
+	expectedAnswerSheet, _ := gabs.ParseJSON([]byte("[]"))
+	questionSheet, _ := gabs.ParseJSON([]byte("[]"))
+	for i := 0; i < int(contest.LimitQuestions); i++ {
+		_ = expectedAnswerSheet.ArrayAppend(in[i].Path("answer").Data().(float64))
+		_ = in[i].Delete("answer")
+		_ = questionSheet.ArrayAppend(in[i])
+	}
+	questionSheetJSON, err := questionSheet.MarshalJSON()
+	if err != nil {
+		log.Println(err)
+	}
+	expectedAnswerSheetJSON, err := expectedAnswerSheet.MarshalJSON()
+	if err != nil {
+		log.Println(err)
+	}
+	answerSheet, _ := gabs.ParseJSON([]byte("[]"))
+	for i := 0; i < int(contest.LimitQuestions); i++ {
+		_ = answerSheet.ArrayAppend(-1)
+	}
+	answerSheetJSON, err := answerSheet.MarshalJSON()
+	if err != nil {
+		log.Println(err)
+	}
+	contestSession := createContestSession(email, payload.Id, contest.LimitTime, string(questionSheetJSON), string(answerSheetJSON), string(expectedAnswerSheetJSON))
+	res = contestSession.serialize()
 	return c.SendString(res.String())
 }
