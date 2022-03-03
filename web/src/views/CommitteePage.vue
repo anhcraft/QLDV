@@ -1,6 +1,6 @@
 <template>
   <Header></Header>
-  <div class="pb-16 max-w-[1024px] m-auto p-5 md:px-10">
+  <div class="pb-16 max-w-[1024px] m-auto p-5 md:px-0">
     <Breadcrumb text="BCH Đoàn trường" link="/bch/"></Breadcrumb>
     <div class="max-w-[1024px] m-auto grid grid-cols-1 md:grid-cols-6 md:gap-24 mt-10">
       <div class="col-span-4">
