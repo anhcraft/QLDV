@@ -4,6 +4,7 @@ import "github.com/Jeffail/gabs/v2"
 
 type PostStat struct {
 	PostId string `gorm:"primaryKey"`
+	Post   Post   `gorm:"constraint:OnDelete:CASCADE;"`
 	UserId string `gorm:"primaryKey"`
 	Action string `gorm:"primaryKey"`
 	Date   int64

@@ -3,9 +3,10 @@ package main
 import "github.com/Jeffail/gabs/v2"
 
 type Attachment struct {
-	ID     string
-	PostId string
+	ID     string `gorm:"primaryKey"`
 	Date   int64
+	PostId string `gorm:"primaryKey"`
+	Post   Post   `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 func (a *Attachment) serialize() interface{} {
