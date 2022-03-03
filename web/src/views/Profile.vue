@@ -65,7 +65,7 @@
               ></Editor>
               <button class="float-right bg-pink-400 hover:bg-pink-500 cursor-pointer px-3 py-1 text-white text-center text-sm mt-5" @click="saveBoard">Lưu lại</button>
             </div>
-            <div v-else id="content" class="break-words" v-html="profile.profileBoard"></div>
+            <div v-else class="break-words prose max-w-max" v-html="profile.profileBoard"></div>
           </section>
         </LoadingState>
       </div>
@@ -175,31 +175,3 @@ export default {
   }
 }
 </script>
-
-<style>
-#content a {
-  color: rgb(38 143 207);
-}
-#content ol {
-  display: block;
-  list-style-type: decimal;
-  margin-block-start: 1em;
-  margin-block-end: 1em;
-  margin-inline-start: 0;
-  margin-inline-end: 0;
-  padding-inline-start: 40px;
-}
-#content ul {
-  display: block;
-  list-style-type: disc;
-  margin-block-start: 1em;
-  margin-block-end: 1em;
-  margin-inline-start: 0;
-  margin-inline-end: 0;
-  padding-inline-start: 40px;
-}
-#content img, #content svg, #content video, #content canvas, #content audio, #content iframe, #content embed, #content object {
-  display: inline;
-  vertical-align: middle;
-}
-</style>

@@ -9,7 +9,7 @@
       </header>
       <div class="grid grid-cols-3">
         <div class="pt-5 pr-5 break-all" :class="contestSession === undefined || contestSession.finished ? 'col-span-2' : 'col-span-3'">
-          <div v-if="contestSession === undefined" v-html="event.contest.info"></div>
+          <div v-if="contestSession === undefined" class="break-words prose max-w-max" v-html="event.contest.info"></div>
           <div v-else ref="questionContainer">
             <div class="mb-10" v-for="(q, i) in contestSession.questionSheet">
               <div class="text-lg">{{ q.question }}</div>

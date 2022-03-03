@@ -16,7 +16,7 @@
       </div>
       <article class="border-y-2 border-y-slate-300 py-10">
         <header class="text-4xl">{{ post.title }}</header>
-        <section id="content" class="mt-5 break-words" v-html="post.content"></section>
+        <section class="mt-5 break-words prose max-w-max" v-html="post.content"></section>
       </article>
       <div class="mt-10 flex flex-row flex-wrap gap-3" v-if="post.attachments.length > 0">
         <img v-for="att in post.attachments" class="max-w-xs cursor-pointer hover:opacity-80" :src="serverBaseURL + '/static/' + att.id" alt="" @click="previewImage(att.id)" />
@@ -99,33 +99,3 @@ export default {
   }
 }
 </script>
-
-<style>
-#content a {
-  color: rgb(38 143 207);
-  text-decoration: underline;
-}
-#content ol {
-  display: block;
-  list-style-type: decimal;
-  margin-block-start: 1em;
-  margin-block-end: 1em;
-  margin-inline-start: 0;
-  margin-inline-end: 0;
-  padding-inline-start: 40px;
-}
-#content ul {
-  display: block;
-  list-style-type: disc;
-  margin-block-start: 1em;
-  margin-block-end: 1em;
-  margin-inline-start: 0;
-  margin-inline-end: 0;
-  padding-inline-start: 40px;
-}
-#content img, #content svg, #content video, #content canvas, #content audio, #content iframe, #content embed, #content object {
-  display: inline;
-  vertical-align: middle;
-  width: 100%;
-}
-</style>
