@@ -8,6 +8,7 @@ import (
 	"gorm.io/gorm/clause"
 	"log"
 	"math/rand"
+	"strconv"
 	"time"
 )
 
@@ -51,6 +52,12 @@ func getContestSession(user string, contest string) *ContestSession {
 	} else {
 		return &contestSession
 	}
+}
+
+func getContestSessions(contest string, limit int, older int64) []ContestSession {
+	var contestSessions []ContestSession
+	_ = db.Where("contest_id = ? and last_answer_submitted_time < ?", contest, older).Order("last_answer_submitted_time desc").Limit(limit).Find(&contestSessions)
+	return contestSessions
 }
 
 func createContestSession(user string, contest string, limitTime uint32, questionSheet string, answerSheet string, expectedAnswerSheet string) *ContestSession {
@@ -200,6 +207,39 @@ func contestSessionGetRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 	res = contestSession.serialize()
+	return c.SendString(res.String())
+}
+
+func contestSessionListRouteHandler(c *fiber.Ctx) error {
+	res := gabs.New()
+	token := c.Get("token")
+	success, email := getEmailFromToken(token, c.UserContext())
+	if !success {
+		_, _ = res.Set(email, "error")
+		return c.SendString(res.String())
+	}
+	user := getProfile(email)
+	if user == nil {
+		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+		return c.SendString(res.String())
+	}
+	if !user.Admin {
+		_, _ = res.Set("ERR_NO_PERMISSION", "error")
+		return c.SendString(res.String())
+	}
+	limit, err1 := strconv.Atoi(c.Query("limit", ""))
+	if err1 != nil || limit > 50 {
+		limit = 50
+	}
+	older, err2 := strconv.ParseInt(c.Query("older", ""), 10, 64)
+	if err2 != nil {
+		older = time.Now().UnixMilli()
+	}
+	_, _ = res.Array("contestSessions")
+	for _, ev := range getContestSessions(c.Query("contest", ""), limit, older) {
+		cont := ev.serialize()
+		_ = res.ArrayAppend(cont, "contestSessions")
+	}
 	return c.SendString(res.String())
 }
 

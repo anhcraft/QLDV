@@ -348,6 +348,15 @@ const server = {
             })
         }).json();
     },
+    loadContestSessions: function (contest: string, limit: number, olderThan: number, token: string) {
+        return ky.get(`${conf.server}/contest-sessions?contest=${contest}&limit=${limit}&older=${olderThan}`, {
+            method: 'get',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            }
+        }).json();
+    },
 }
 
 export default server;

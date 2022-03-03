@@ -1,11 +1,11 @@
 <template>
   <Header></Header>
   <div class="max-w-[1024px] m-auto pb-16">
-    <Breadcrumb text="Quản lý cuộc thi" link="/em" class="mb-10"></Breadcrumb>
+    <Breadcrumb text="Quản lý cuộc thi" :link="'/mc/' + $route.params.id" class="mb-10"></Breadcrumb>
     <LoadingState ref="loadingState">
       <header class="border-b-2 border-b-slate-300 pb-3 text-xl flex flex-row gap-2">
         <div class="grow">{{ event.title }}</div>
-        <button class="bg-emerald-600 hover:bg-emerald-700 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="saveChanges">Xem kết quả</button>
+        <button class="bg-emerald-600 hover:bg-emerald-700 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="manageContestSessions()">Xem kết quả</button>
         <button class="bg-rose-400 hover:bg-rose-500 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="this.$refs.removePrompt.toggle()">Xóa cuộc thi</button>
       </header>
       <div class="mt-5 border-b-2 border-b-slate-300 pb-3">
@@ -87,7 +87,6 @@ import auth from "../api/auth";
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
-import Datepicker from 'vue3-date-time-picker';
 import 'vue3-date-time-picker/dist/main.css'
 import LoadingState from "../components/LoadingState.vue";
 import * as XLSX from "xlsx";
@@ -96,7 +95,7 @@ import Editor from '@tinymce/tinymce-vue'
 
 export default {
   "name": "ContestManage",
-  components: {LoadingState, Header, FloatingMenu, Breadcrumb, Datepicker, Prompt, Editor},
+  components: {LoadingState, Header, FloatingMenu, Breadcrumb, Prompt, Editor},
   data() {
     return {
       event: {}
@@ -151,6 +150,9 @@ export default {
           alert(`Lỗi lưu cuộc thi: ${s["error"]}`)
         }
       })
+    },
+    manageContestSessions() {
+      this.$router.push("/mcs/" + this.$route.params.id)
     }
   },
   mounted() {
