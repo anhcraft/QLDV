@@ -1,6 +1,6 @@
 <template>
   <Header></Header>
-  <div class="md:py-16">
+  <div class="md:py-8">
     <div>
       <div v-for="(q, index) in quotes" :class="{'hidden': currentQuote !== index}">
         <div class="h-[200px] md:h-[400px] m-auto transition-all duration-300 hover:opacity-80 cursor-pointer bg-bottom bg-no-repeat bg-[length:100%] md:bg-[length:auto_400px]" :style="`background-image: url(${q.img})`" @click="currentQuote = (currentQuote === quotes.length - 1) ? 0 : currentQuote + 1"></div>

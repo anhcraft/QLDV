@@ -24,7 +24,10 @@
   <LoadingState ref="eventCalendarLoadingState">
     <div class="flex flex-col gap-3">
       <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2" v-for="event in eventCalendar.events[eventCalendar.currentMonth+'.'+eventCalendar.currentYear]" :class="{'hover:border-gray-800 cursor-pointer' : (event.hasOwnProperty('contest') && $root.isLoggedIn())}" @click="openEvent(event)">
-        <div class="text-lg break-words">{{ event.title }}</div>
+        <div class="text-lg break-words">
+          <FireIcon class="w-6 text-gray-600 text-rose-400 float-left mr-1" v-if="event.hasOwnProperty('contest')"></FireIcon>
+          <p>{{ event.title }}</p>
+        </div>
         <div class="text-sm text-gray-500">{{ getEventStatus(event) }}</div>
       </div>
     </div>
@@ -38,7 +41,7 @@
 
 <script>
 import {ChevronLeftIcon, ChevronRightIcon} from "@heroicons/vue/outline";
-import {CalendarIcon} from "@heroicons/vue/solid";
+import {CalendarIcon, FireIcon} from "@heroicons/vue/solid";
 import LoadingState from "../components/LoadingState.vue";
 import server from "../api/server";
 import auth from "../api/auth";
@@ -46,7 +49,7 @@ import auth from "../api/auth";
 export default {
   name: "Sidebar",
   components: {
-    LoadingState, CalendarIcon, ChevronLeftIcon, ChevronRightIcon
+    LoadingState, CalendarIcon, ChevronLeftIcon, ChevronRightIcon, FireIcon
   },
   data() {
     return {
