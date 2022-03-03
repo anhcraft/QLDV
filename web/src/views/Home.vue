@@ -124,6 +124,7 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
+    this.currentQuote = Math.floor(Math.random() * this.quotes.length)
     this.dateOffset = new Date().getTime()
     this.loadNextPosts()
     window.addEventListener('scroll', this.handleScroll)
