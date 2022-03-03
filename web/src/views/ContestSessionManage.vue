@@ -49,6 +49,7 @@ import LoadingState from "../components/LoadingState.vue";
 import * as XLSX from "xlsx";
 import Prompt from "../components/Prompt.vue";
 import Editor from '@tinymce/tinymce-vue'
+import lookupErrorCode from "../api/errorCode";
 
 export default {
   "name": "ContestSessionManage",
@@ -129,14 +130,32 @@ export default {
             this.loadNextSessions()
             window.addEventListener('scroll', this.handleScroll)
           } else {
-            alert('Cuộc thi chưa được tạo!')
+            this.$notify({
+              title: "Tải sự kiện thất bại",
+              text: "Cuộc thi chưa được tạo",
+              type: "error"
+            });
           }
         } else {
-          alert(`Lỗi tải sự kiện: ${s["error"]}`)
+          this.$notify({
+            title: "Tải sự kiện thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
         }
+      }, (e) => {
+        this.$notify({
+          title: "Tải sự kiện thất bại",
+          text: e.message,
+          type: "error"
+        });
       });
     } else {
-      alert(`Lỗi tải sự kiện: ${s["error"]}`)
+      this.$notify({
+        title: "Lỗi hệ thống",
+        text: "Hãy báo cáo với quản trị viên!",
+        type: "error"
+      });
     }
   }
 }

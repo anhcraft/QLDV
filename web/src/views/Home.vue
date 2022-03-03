@@ -117,6 +117,12 @@ export default {
         }
         this.posts = this.posts.concat(s.posts)
         this.$refs.postLoadingState.deactivate()
+      }, (e) => {
+        this.$notify({
+          title: "Tải bài viết thất bại",
+          text: e.message,
+          type: "error"
+        });
       })
     }
   },

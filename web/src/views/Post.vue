@@ -51,6 +51,7 @@ import Breadcrumb from "../components/Breadcrumb.vue";
 import {EyeIcon, HeartIcon} from "@heroicons/vue/solid";
 import auth from "../api/auth";
 import LoadingState from "../components/LoadingState.vue";
+import lookupErrorCode from "../api/errorCode";
 
 export default {
   name: "Post",
@@ -92,20 +93,50 @@ export default {
             this.post.likes = this.post.likes + 1
           }
         } else {
-          alert(`Lỗi: ${s["error"]}`)
+          this.$notify({
+            title: "Cập nhật bài viết thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
         }
+      }, (e) => {
+        this.$notify({
+          title: "Lỗi hệ thống",
+          text: e.message,
+          type: "error"
+        });
       })
     }
   },
   mounted() {
     server.loadPost(this.$route.params.id, auth.getToken()).then(s => {
+      if (s.hasOwnProperty("error")) {
+        this.$notify({
+          title: "Tải bài viết thất bại",
+          text: lookupErrorCode(s["error"]),
+          type: "error"
+        });
+        return
+      }
       this.post = s;
       this.$refs.loadingState.deactivate()
       server.updatePostStat(this.$route.params.id, "view", auth.getToken()).then(s => {
-        if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+        if (s.hasOwnProperty("error") && s["error"] !== "ERR_TOKEN_VERIFY") {
+          this.$notify({
+            title: "Tải bài viết thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
+        } else if(s.hasOwnProperty("success") && s["success"]) {
           this.post.views = this.post.views + 1
         }
       })
+    }, (e) => {
+      this.$notify({
+        title: "Tải bài viết thất bại",
+        text: e.message,
+        type: "error"
+      });
     })
   }
 }

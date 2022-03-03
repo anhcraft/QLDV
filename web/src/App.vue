@@ -1,12 +1,20 @@
 <template>
+  <notifications />
   <router-view />
 </template>
+
+<style>
+.vue-notification {
+  font-size: 0.9rem;
+}
+</style>
 
 <script>
 import auth from "./api/auth";
 import server from "./api/server";
 import profileCoverDefaultImg from "./assets/profile-cover.jpg"
 import conf from "./conf";
+import lookupErrorCode from "./api/errorCode";
 
 export default {
   data() {
@@ -79,6 +87,11 @@ export default {
       this.loadingProfile = true
       server.loadProfile('', tkn).then(s => {
         if (s.hasOwnProperty("error")) {
+          this.$notify({
+            title: "Tải thông tin thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
           auth.destroySession()
           this.$router.push("/")
           return
@@ -100,7 +113,13 @@ export default {
         }
         this.profile.profileBoard = s["profileBoard"]
         this.loadingProfile = false
-      })
+      }, (e) => {
+        this.$notify({
+          title: "Tải thông tin thất bại",
+          text: e.message,
+          type: "error"
+        });
+      });
     }
   }
 }

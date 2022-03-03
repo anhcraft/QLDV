@@ -94,6 +94,7 @@ import LoadingState from "../components/LoadingState.vue";
 import * as XLSX from "xlsx";
 import Prompt from "../components/Prompt.vue";
 import Editor from '@tinymce/tinymce-vue'
+import lookupErrorCode from "../api/errorCode";
 
 export default {
   "name": "ContestManage",
@@ -134,23 +135,43 @@ export default {
       if(!b) return
       this.$refs.loadingState.activate()
       server.removeContest(this.$route.params.id, auth.getToken()).then(s => {
+        this.$refs.loadingState.deactivate()
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-          this.$refs.loadingState.deactivate()
           this.$router.push('/em/')
         } else {
-          alert(`Lỗi xóa cuộc thi: ${s["error"]}`)
+          this.$notify({
+            title: "Xóa cuộc thi thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
         }
+      }, (e) => {
+        this.$notify({
+          title: "Xóa cuộc thi thất bại",
+          text: e.message,
+          type: "error"
+        });
       })
     },
     saveChanges(){
       this.$refs.loadingState.activate()
       server.changeContest(this.$route.params.id, this.event.contest, auth.getToken()).then(s => {
+        this.$refs.loadingState.deactivate()
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-          this.$refs.loadingState.deactivate()
           this.$router.push('/em/')
         } else {
-          alert(`Lỗi lưu cuộc thi: ${s["error"]}`)
+          this.$notify({
+            title: "Lưu thay đổi thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
         }
+      }, (e) => {
+        this.$notify({
+          title: "Lưu thay đổi thất bại",
+          text: e.message,
+          type: "error"
+        });
       })
     },
     manageContestSessions() {
@@ -180,11 +201,25 @@ export default {
           this.event = s;
           this.$refs.loadingState.deactivate()
         } else {
-          alert(`Lỗi tải sự kiện: ${s["error"]}`)
+          this.$notify({
+            title: "Tải sự kiện thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
         }
+      }, (e) => {
+        this.$notify({
+          title: "Tải sự kiện thất bại",
+          text: e.message,
+          type: "error"
+        });
       });
     } else {
-      this.$refs.loadingState.deactivate()
+      this.$notify({
+        title: "Lỗi hệ thống",
+        text: "Hãy báo cáo với quản trị viên!",
+        type: "error"
+      });
     }
   }
 }

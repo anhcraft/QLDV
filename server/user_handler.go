@@ -427,7 +427,7 @@ func profileBoardSetRouteHandler(c *fiber.Ctx) error {
 	if len(payload.Board) < 10 {
 		_, _ = res.Set("ERR_PROFILE_BOARD_CONTENT_MIN", "error")
 		return c.SendString(res.String())
-	} else if len(payload.Board) > 100000 {
+	} else if len(payload.Board) > 10000 {
 		_, _ = res.Set("ERR_PROFILE_BOARD_CONTENT_MAX", "error")
 		return c.SendString(res.String())
 	}

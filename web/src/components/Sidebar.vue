@@ -98,6 +98,12 @@ export default {
         v[key] = s.events
         this.eventCalendar.events = v
         this.$refs.eventCalendarLoadingState.deactivate()
+      }, (e) => {
+        this.$notify({
+          title: "Tải sự kiện thất bại",
+          text: e.message,
+          type: "error"
+        });
       })
     },
     isToday(day) {

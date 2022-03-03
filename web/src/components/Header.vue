@@ -22,13 +22,58 @@
 </template>
 
 <script>
-import auth from "../api/auth";
+import {getAuth, GoogleAuthProvider, signInWithPopup} from "firebase/auth";
+import server from "../api/server";
+import Cookies from "js-cookie";
+import lookupErrorCode from "../api/errorCode";
 
 export default {
   name: "Header",
   methods: {
     logIn() {
-      auth.createSession()
+      const provider = new GoogleAuthProvider();
+      provider.addScope('https://www.googleapis.com/auth/userinfo.email');
+      const auth = getAuth();
+      signInWithPopup(auth, provider)
+          .then((result) => {
+            const credential = GoogleAuthProvider.credentialFromResult(result);
+            if(credential != null){
+              if(result.user.email?.endsWith("@dian.sgdbinhduong.edu.vn")) {
+                auth.currentUser?.getIdToken().then(token => {
+                  server.loadProfile('', token).then((s) => {
+                    if(s.hasOwnProperty("error")) {
+                      this.$notify({
+                        title: "Đăng nhập thất bại",
+                        text: lookupErrorCode(s["error"]),
+                        type: "error"
+                      });
+                    } else {
+                      Cookies.set('qldvtkn', token, {expires: 3})
+                      window.location.reload();
+                    }
+                  }, (e) => {
+                    this.$notify({
+                      title: "Đăng nhập thất bại",
+                      text: e.message,
+                      type: "error"
+                    });
+                  })
+                })
+              } else {
+                this.$notify({
+                  title: "Đăng nhập thất bại",
+                  text: "Tài khoản không hợp lệ",
+                  type: "error"
+                });
+              }
+            } else {
+              this.$notify({
+                title: "Đăng nhập thất bại",
+                text: "Lỗi hệ thống xác thực",
+                type: "error"
+              });
+            }
+          })
     },
     viewProfile() {
       this.$router.push("/u/" + this.$root.profile.email.substring(0, this.$root.profile.email.search("@"))).then(() => {

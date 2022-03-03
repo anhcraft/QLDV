@@ -48,6 +48,7 @@ import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import LoadingState from "../components/LoadingState.vue";
+import lookupErrorCode from "../api/errorCode";
 
 export default {
   name: "EventManage",
@@ -73,7 +74,13 @@ export default {
         }
         this.events = this.events.concat(s.events)
         this.$refs.loadingState.deactivate()
-      })
+      }, (e) => {
+        this.$notify({
+          title: "Tải sự kiện thất bại",
+          text: e.message,
+          type: "error"
+        });
+      });
     },
     edit(id) {
       this.$router.push(`/ee/` + (id === undefined ? '' : id))
@@ -94,9 +101,19 @@ export default {
             this.eventRemoveId = ""
             this.eventRemoveTitle = ""
           } else {
-            alert(`Lỗi xóa sự kiện: ${s["error"]}`)
+            this.$notify({
+              title: "Xóa sự kiện thất bại",
+              text: lookupErrorCode(s["error"]),
+              type: "error"
+            });
           }
-        })
+        }, (e) => {
+          this.$notify({
+            title: "Xóa sự kiện thất bại",
+            text: e.message,
+            type: "error"
+          });
+        });
       }
     }
   },

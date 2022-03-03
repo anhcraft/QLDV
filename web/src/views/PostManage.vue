@@ -43,6 +43,7 @@ import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import LoadingState from "../components/LoadingState.vue";
+import lookupErrorCode from "../api/errorCode";
 
 export default {
   name: "PostManage",
@@ -68,6 +69,12 @@ export default {
         }
         this.posts = this.posts.concat(s.posts)
         this.$refs.loadingState.deactivate()
+      }, (e) => {
+        this.$notify({
+          title: "Tải bài viết thất bại",
+          text: e.message,
+          type: "error"
+        });
       })
     },
     createPost() {
@@ -89,9 +96,19 @@ export default {
             this.postRemoveId = ""
             this.postRemoveTitle = ""
           } else {
-            alert(`Lỗi xóa bài viết: ${s["error"]}`)
+            this.$notify({
+              title: "Xóa bài viết thất bại",
+              text: lookupErrorCode(s["error"]),
+              type: "error"
+            });
           }
-        })
+        }, (e) => {
+          this.$notify({
+            title: "Xóa bài viết thất bại",
+            text: e.message,
+            type: "error"
+          });
+        });
       }
     }
   },

@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@heroicons/vue": "^1.0.5",
+    "@kyvg/vue3-notification": "^2.3.4",
     "@tinymce/tinymce-vue": "^4.0.5",
     "echarts": "^5.2.2",
     "firebase": "^9.6.1",

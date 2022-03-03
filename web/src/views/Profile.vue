@@ -84,6 +84,7 @@ import Editor from '@tinymce/tinymce-vue'
 import conf from "../conf";
 import profileCoverDefaultImg from "../assets/profile-cover.jpg";
 import LoadingState from "../components/LoadingState.vue";
+import lookupErrorCode from "../api/errorCode";
 
 export default {
   name: "Profile",
@@ -121,30 +122,52 @@ export default {
       if (e.target.files.length > 0) {
         this.$refs.profileCoverLoadingState.activate()
         server.setProfileCover(e.target.files[0], auth.getToken()).then(s => {
+          this.$refs.profileCoverLoadingState.deactivate()
           if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-            this.$refs.profileCoverLoadingState.deactivate()
             window.location.reload()
           } else {
-            alert(`Lỗi lưu ảnh bìa: ${s["error"]}`)
+            this.$notify({
+              title: "Lưu ảnh bìa thất bại",
+              text: lookupErrorCode(s["error"]),
+              type: "error"
+            });
           }
-        })
+        }, (e) => {
+          this.$notify({
+            title: "Lưu ảnh bìa thất bại",
+            text: e.message,
+            type: "error"
+          });
+        });
       }
     },
     saveBoard(){
       this.$refs.profileBoardLoadingState.activate()
       server.setProfileBoard(this.profile.profileBoard, auth.getToken()).then(s => {
-        if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-          this.$refs.profileBoardLoadingState.deactivate()
-        } else {
-          alert(`Lỗi lưu tường nhà: ${s["error"]}`)
-        }
-      })
+        this.$refs.profileBoardLoadingState.deactivate()
+        if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) return
+        this.$notify({
+          title: "Lưu tường nhà thất bại",
+          text: lookupErrorCode(s["error"]),
+          type: "error"
+        });
+      }, (e) => {
+        this.$notify({
+          title: "Lưu tường nhà thất bại",
+          text: e.message,
+          type: "error"
+        });
+      });
     }
   },
   mounted() {
     server.loadProfile(this.getUserId(), auth.getToken()).then(s => {
       if (s.hasOwnProperty("error")) {
-        this.$router.push("/")
+        this.$notify({
+          title: "Tải thông tin thất bại",
+          text: lookupErrorCode(s["error"]),
+          type: "error"
+        });
         return
       }
       this.profile = s;
@@ -158,10 +181,20 @@ export default {
       this.$refs.profileLoadingState.deactivate()
       this.$refs.profileCoverLoadingState.deactivate()
       this.$refs.profileBoardLoadingState.deactivate()
-    })
+    }, (e) => {
+      this.$notify({
+        title: "Tải thông tin thất bại",
+        text: e.message,
+        type: "error"
+      });
+    });
     server.loadProgression(auth.getToken(), this.getUserId()).then(s => {
       if (s.hasOwnProperty("error")) {
-        this.$router.push("/")
+        this.$notify({
+          title: "Tải thông tin thất bại",
+          text: lookupErrorCode(s["error"]),
+          type: "error"
+        });
         return
       }
       s["achievements"].forEach((value) => {
@@ -171,7 +204,13 @@ export default {
         this.rates[value["year"]] = value["level"]
       })
       this.$refs.progressionLoadingState.deactivate()
-    })
+    }, (e) => {
+      this.$notify({
+        title: "Tải thông tin thất bại",
+        text: e.message,
+        type: "error"
+      });
+    });
   }
 }
 </script>

@@ -67,12 +67,12 @@ func eventGetRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	id := c.Query("id", "")
 	if id == "" {
-		_, _ = res.Set("ERR_INVALID_POST_ID", "error")
+		_, _ = res.Set("ERR_INVALID_EVENT_ID", "error")
 		return c.SendString(res.String())
 	}
 	event := getEvent(id)
 	if event == nil {
-		_, _ = res.Set("ERR_UNKNOWN_POST", "error")
+		_, _ = res.Set("ERR_UNKNOWN_EVENT", "error")
 		return c.SendString(res.String())
 	}
 
@@ -204,10 +204,10 @@ func eventChangeRouteHandler(c *fiber.Ctx) error {
 	}
 
 	if len(payload.Title) < 5 {
-		_, _ = res.Set("ERR_POST_TITLE_MIN", "error")
+		_, _ = res.Set("ERR_EVENT_TITLE_MIN", "error")
 		return c.SendString(res.String())
 	} else if len(payload.Title) > 300 {
-		_, _ = res.Set("ERR_POST_TITLE_MAX", "error")
+		_, _ = res.Set("ERR_EVENT_TITLE_MAX", "error")
 		return c.SendString(res.String())
 	}
 

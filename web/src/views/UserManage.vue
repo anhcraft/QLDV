@@ -130,6 +130,7 @@ import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import LoadingState from "../components/LoadingState.vue";
+import lookupErrorCode from "../api/errorCode";
 
 use([
   CanvasRenderer,
@@ -239,6 +240,12 @@ export default {
         }
         this.users = this.users.concat(s.users)
         this.$refs.loadingStateForUserList.deactivate()
+      }, (e) => {
+        this.$notify({
+          title: "Tải thành viên thất bại",
+          text: e.message,
+          type: "error"
+        });
       })
     },
     selectUser(user){
@@ -248,6 +255,11 @@ export default {
       this.$refs.loadingStateForUserProgression.activate()
       server.loadProgression(auth.getToken(), user.email).then(s => {
         if (s.hasOwnProperty("error")) {
+          this.$notify({
+            title: "Tải thông tin thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
           this.userProgression = {}
           return
         }
@@ -268,7 +280,13 @@ export default {
         }
         this.selectedUser = user.email
         this.$refs.loadingStateForUserProgression.deactivate()
-      })
+      }, (e) => {
+        this.$notify({
+          title: "Tải thông tin thất bại",
+          text: e.message,
+          type: "error"
+        });
+      });
     },
     addAchievementSlot() {
       this.userProgression.achievements = this.userProgression.achievements.concat({
@@ -303,19 +321,39 @@ export default {
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
           window.location.reload();
         } else {
-          alert(`Lỗi lưu thay đổi: ${s["error"]}`)
+          this.$notify({
+            title: "Lưu thay đổi thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
         }
-      })
+      }, (e) => {
+        this.$notify({
+          title: "Lưu thay đổi thất bại",
+          text: e.message,
+          type: "error"
+        });
+      });
     },
     saveProgressionChanges() {
       this.$refs.loadingStateForUserProgression.activate()
       server.saveProgressionChanges(this.userProgression, this.selectedUser, auth.getToken()).then(s => {
         this.$refs.loadingStateForUserProgression.deactivate()
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-          this.selectedUser(undefined)
+          this.selectUser(undefined)
         } else {
-          alert(`Lỗi lưu thay đổi: ${s["error"]}`)
+          this.$notify({
+            title: "Lưu thay đổi thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
         }
+      }, (e) => {
+        this.$notify({
+          title: "Lưu thay đổi thất bại",
+          text: e.message,
+          type: "error"
+        });
       })
     },
     search() {
@@ -351,6 +389,14 @@ export default {
     this.loadNextUsers()
     window.addEventListener('scroll', this.handleScroll)
     server.getUserStats(auth.getToken()).then(s => {
+      if (s.hasOwnProperty("error")) {
+        this.$notify({
+          title: "Tải dữ liệu thống kê thất bại",
+          text: lookupErrorCode(s["error"]),
+          type: "error"
+        });
+        return
+      }
       this.option.series[0].data.push({
         value: s["class10"],
         name: "10"
@@ -379,7 +425,13 @@ export default {
         value: s["class10"] + s["class11"] + s["class12"] - s["certified"],
         name: "Thanh niên"
       })
-    })
+    }, (e) => {
+      this.$notify({
+        title: "Tải dữ liệu thống kê thất bại",
+        text: e.message,
+        type: "error"
+      });
+    });
   }
 }
 </script>

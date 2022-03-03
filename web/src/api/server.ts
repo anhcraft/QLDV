@@ -45,11 +45,6 @@ const server = {
         }).json();
     },
     changePost: async function(id: string, title: string, content: string, privacy: number, removeAttachments: string[], token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/change-post`, {
             method: 'post',
             headers: {
@@ -66,11 +61,6 @@ const server = {
         }).json();
     },
     removePost: async function(id: string, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/remove-post`, {
             method: 'post',
             headers: {
@@ -81,11 +71,6 @@ const server = {
         }).json();
     },
     updatePostStat: async function(id: string, action: string, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/update-post-stat`, {
             method: 'post',
             headers: {
@@ -97,11 +82,6 @@ const server = {
         }).json();
     },
     uploadPostAttachment: async function(id: string, attachment: Blob, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/upload-attachment`, {
             method: 'post',
             headers: {
@@ -113,11 +93,6 @@ const server = {
         }).json();
     },
     loadUsers: async function (limit: number, offset: number, filter: { name: string; class: string; email: string; certified: number }, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/users`, {
             method: 'post',
             headers: {
@@ -135,11 +110,6 @@ const server = {
         }).json();
     },
     saveUserChanges: async function(changes: {}, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/change-users`, {
             method: 'post',
             headers: {
@@ -150,11 +120,6 @@ const server = {
         }).json();
     },
     getUserStats: async function(token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/get-user-stats`, {
             method: 'post',
             headers: {
@@ -164,11 +129,6 @@ const server = {
         }).json();
     },
     saveProgressionChanges(data: {}, user: string, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/change-progression`, {
             method: 'post',
             headers: {
@@ -190,11 +150,6 @@ const server = {
         }).json();
     },
     removeEvent: async function(id: string, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/remove-event`, {
             method: 'post',
             headers: {
@@ -205,11 +160,6 @@ const server = {
         }).json();
     },
     changeEvent: async function (id: string, event: { endDate: Date, title: string, startDate: Date, privacy: number }, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/change-event`, {
             method: 'post',
             headers: {
@@ -235,11 +185,6 @@ const server = {
         }).json();
     },
     setProfileCover: async function(file: Blob, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/set-profile-cover`, {
             method: 'post',
             headers: {
@@ -250,11 +195,6 @@ const server = {
         }).json();
     },
     setProfileBoard: async function(board: string, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/set-profile-board`, {
             method: 'post',
             headers: {
@@ -267,11 +207,6 @@ const server = {
         }).json();
     },
     changeContest(id: string, contest: { limitTime: number; limitQuestions: number; dataSheet: []; acceptingAnswers: boolean, info: string }, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/change-contest`, {
             method: 'post',
             headers: {
@@ -289,11 +224,6 @@ const server = {
         }).json();
     },
     removeContest(id: string, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/remove-contest`, {
             method: 'post',
             headers: {
@@ -313,11 +243,6 @@ const server = {
         }).json();
     },
     submitContestSession(id: string, answerSheet: string, saveOnly: boolean, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/submit-contest-session`, {
             method: 'post',
             headers: {
@@ -332,11 +257,6 @@ const server = {
         }).json();
     },
     joinContestSession(id: string, token: string) {
-        if(token == null || token.length == 0) {
-            return {
-                "error": "CLIENT"
-            };
-        }
         return ky.post(`${conf.server}/join-contest-session`, {
             method: 'post',
             headers: {

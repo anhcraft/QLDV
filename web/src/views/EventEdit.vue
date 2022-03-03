@@ -41,6 +41,7 @@ import Breadcrumb from "../components/Breadcrumb.vue";
 import Datepicker from 'vue3-date-time-picker';
 import 'vue3-date-time-picker/dist/main.css'
 import LoadingState from "../components/LoadingState.vue";
+import lookupErrorCode from "../api/errorCode";
 
 export default {
   "name": "EventEdit",
@@ -61,13 +62,23 @@ export default {
     submit() {
       this.submittingEvent = true
       server.changeEvent(this.$route.params.id, this.event, auth.getToken()).then(s => {
+        this.submittingEvent = false
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-          this.submittingEvent = false
           this.$router.push('/em/')
         } else {
-          alert(`Lỗi lưu sự kiện: ${s["error"]}`)
+          this.$notify({
+            title: "Lưu thay đổi thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
         }
-      })
+      }, (e) => {
+        this.$notify({
+          title: "Lưu thay đổi thất bại",
+          text: e.message,
+          type: "error"
+        });
+      });
     }
   },
   mounted() {
@@ -83,13 +94,23 @@ export default {
           this.event.endDate = new Date(s.endDate);
           this.$refs.loadingState.deactivate()
         } else {
-          alert(`Lỗi tải sự kiện: ${s["error"]}`)
+          this.$notify({
+            title: "Tải sự kiện thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
         }
+      }, (e) => {
+        this.$notify({
+          title: "Tải sự kiện thất bại",
+          text: e.message,
+          type: "error"
+        });
       });
     } else {
       this.$refs.loadingState.deactivate()
       this.event.startDate = new Date()
-      this.event.endDate = new Date()
+      this.event.endDate = new Date(this.event.startDate.getTime() + 60 * 60 * 24 * 1000)
     }
   }
 }

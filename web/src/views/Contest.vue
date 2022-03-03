@@ -85,6 +85,7 @@ import 'vue3-date-time-picker/dist/main.css'
 import LoadingState from "../components/LoadingState.vue";
 import {ClockIcon, QuestionMarkCircleIcon, UsersIcon} from "@heroicons/vue/solid";
 import Prompt from "../components/Prompt.vue";
+import lookupErrorCode from "../api/errorCode";
 
 export default {
   "name": "Contest",
@@ -132,10 +133,20 @@ export default {
       this.$refs.loadingState.activate()
       server.joinContestSession(this.$route.params.id, auth.getToken()).then(s => {
         if(s.hasOwnProperty("error")) {
-          alert(`Lỗi tải cuộc thi: ${s["error"]}`)
+          this.$notify({
+            title: "Tải cuộc thi thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
         } else {
           window.location.reload()
         }
+      }, (e) => {
+        this.$notify({
+          title: "Kết nối máy chủ thất bại",
+          text: e.message,
+          type: "error"
+        });
       })
     },
     submitContest() {
@@ -160,10 +171,20 @@ export default {
         }
         server.submitContestSession(this.$route.params.id, this.contestSession.answerSheet, false, auth.getToken()).then((s) => {
           if(s.hasOwnProperty("error") || (s.hasOwnProperty("success") && !s["success"])) {
-            alert(`Lỗi nộp bài: ${s["error"]}`)
+            this.$notify({
+              title: "Nộp bài thất bại",
+              text: lookupErrorCode(s["error"]),
+              type: "error"
+            });
           } else {
             setTimeout(() => window.location.reload(), 2000)
           }
+        }, (e) => {
+          this.$notify({
+            title: "Nộp bài thất bại",
+            text: e.message,
+            type: "error"
+          });
         })
       }
       f();
@@ -211,7 +232,11 @@ export default {
                   this.contestSession = undefined
                   this.$refs.loadingState.deactivate()
                 } else {
-                  alert(`Lỗi tải cuộc thi: ${s["error"]}`)
+                  this.$notify({
+                    title: "Tải bài thi thất bại",
+                    text: lookupErrorCode(s["error"]),
+                    type: "error"
+                  });
                 }
               } else {
                 s.questionSheet = JSON.parse(s.questionSheet)
@@ -234,23 +259,57 @@ export default {
                   this.savingContest = true
                   server.submitContestSession(q.id, this.contestSession.answerSheet, true, auth.getToken()).then((s) => {
                     if(s.hasOwnProperty("error") || (s.hasOwnProperty("success") && !s["success"])) {
-                     // alert(`Lỗi lưu dữ liệu: ${s["error"]}`)
+                      this.$notify({
+                        title: "Lưu bài thất bại",
+                        text: s["error"],
+                        type: "error"
+                      });
                     } else {
                       this.savingContest = false
                     }
+                  }, (e) => {
+                    this.$notify({
+                      title: "Lưu bài thất bại",
+                      text: e.message,
+                      type: "error"
+                    });
                   })
                 }, 10000);
               }
+            }, (e) => {
+              this.$notify({
+                title: "Tải bài thi thất bại",
+                text: e.message,
+                type: "error"
+              });
             })
           } else {
-            alert('Lỗi sự kiện invalid')
+            this.$notify({
+              title: "Lỗi hệ thống",
+              text: "Hãy báo cáo với quản trị viên!",
+              type: "error"
+            });
           }
         } else {
-          alert(`Lỗi tải sự kiện: ${q["error"]}`)
+          this.$notify({
+            title: "Nộp bài thất bại",
+            text: lookupErrorCode(q["error"]),
+            type: "error"
+          });
         }
-      });
+      }, (e) => {
+        this.$notify({
+          title: "Tải sự kiện thất bại",
+          text: e.message,
+          type: "error"
+        });
+      })
     } else {
-      alert(`Lỗi tải sự kiện invalid`)
+      this.$notify({
+        title: "Lỗi hệ thống",
+        text: "Hãy báo cáo với quản trị viên!",
+        type: "error"
+      });
     }
   }
 }

@@ -65,6 +65,7 @@ import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import LoadingState from "../components/LoadingState.vue";
+import lookupErrorCode from "../api/errorCode";
 
 export default {
   "name": "PostEdit",
@@ -100,23 +101,49 @@ export default {
             this.$router.push('/pm/')
           } else {
             for (let i = 0; i < this.attachmentUpload.length; i++) {
-              server.uploadPostAttachment(s["id"], this.attachmentUpload[i], auth.getToken()).then(s => {
-                if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+              server.uploadPostAttachment(s["id"], this.attachmentUpload[i], auth.getToken()).then(ss => {
+                if (!ss.hasOwnProperty("error") && ss.hasOwnProperty("success") && ss["success"]) {
+                  this.$notify({
+                    title: "Tải ảnh thành công",
+                    text: "",
+                    type: "success"
+                  });
                   this.attachmentUploadQueue--
                   if (this.attachmentUploadQueue === 0) {
                     this.submittingPost = false
                     this.$router.push('/pm/')
                   }
                 } else {
-                  alert(`Lỗi lưu bài viết: ${s["error"]}`)
+                  this.$notify({
+                    title: "Tải ảnh thất bại",
+                    text: lookupErrorCode(ss["error"]),
+                    type: "error"
+                  });
                 }
-              })
+              }, (e) => {
+                this.$notify({
+                  title: "Tải ảnh thất bại",
+                  text: e.message,
+                  type: "error"
+                });
+              });
             }
           }
         } else {
-          alert(`Lỗi lưu bài viết: ${s["error"]}`)
+          this.submittingPost = false
+          this.$notify({
+            title: "Lưu thay đổi thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
         }
-      })
+      }, (e) => {
+        this.$notify({
+          title: "Lưu thay đổi thất bại",
+          text: e.message,
+          type: "error"
+        });
+      });
     },
     onAttachmentChange(e) {
       const data = [];
@@ -141,8 +168,22 @@ export default {
     }
     if(this.$route.params.id !== undefined) {
       server.loadPost(this.$route.params.id, auth.getToken()).then(s => {
+        if (s.hasOwnProperty("error")) {
+          this.$notify({
+            title: "Tải bài viết thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
+          return
+        }
         this.post = s;
         this.$refs.loadingState.deactivate()
+      }, (e) => {
+        this.$notify({
+          title: "Tải bài viết thất bại",
+          text: e.message,
+          type: "error"
+        });
       });
     } else {
       this.$refs.loadingState.deactivate()

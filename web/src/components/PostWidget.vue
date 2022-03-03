@@ -19,7 +19,7 @@ export default {
   </router-link>
 </template>
 
-<style>
+<style scoped>
 .pw-container:hover > .pw-image {
   opacity: 0.5 !important;
 }
