@@ -13,6 +13,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 )
 
 var client *auth.Client
@@ -47,15 +48,19 @@ func setupDB() {
 }
 
 func getEmailFromToken(token string, c context.Context) (bool, string) {
+	token = strings.TrimSpace(token)
+	if len(token) == 0 {
+		return false, "ERR_TOKEN_VERIFY"
+	}
 	tkn, err := client.VerifyIDToken(c, token)
 	if err != nil {
 		log.Printf("error verifying ID token: %v\n", err)
-		return false, "ERR_TOKEN_VERIFY"
+		return false, "ERR_TOKEN_VERIFY_BACKEND"
 	}
 	u, err := client.GetUser(c, tkn.UID)
 	if err != nil {
 		log.Printf("error getting user %s: %v\n", tkn.UID, err)
-		return false, "ERR_USER_GET"
+		return false, "ERR_USER_GET_BACKEND"
 	}
 	return true, u.Email
 }
