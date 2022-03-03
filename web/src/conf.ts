@@ -8,7 +8,7 @@ const conf = {
         appId: "1:197333612896:web:d00de79ea57271d1504605",
         measurementId: "G-0LYF0592TD"
     },
-    server: "https://0be3-2402-800-6310-7f0d-5fc3-c024-cdc5-f229.ngrok.io"
+    server: "https://d6ce-2402-800-6310-bbbc-70c7-cf62-535f-73cf.ngrok.io"
 };
 
 export default conf;

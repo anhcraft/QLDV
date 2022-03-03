@@ -1,26 +1,28 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1024px] m-auto pb-16">
+  <div class="max-w-[1024px] m-auto pb-16 p-5 md:px-10">
     <Breadcrumb text="Quản lý bài viết" link="/pm"></Breadcrumb>
     <div class="mt-10">
-      <button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-3 py-1 text-center text-sm" @click="createPost">Tạo bài viết</button>
+      <button class="btn-success" @click="createPost">Tạo bài viết</button>
     </div>
-    <table class="w-full mt-10">
-      <tbody>
-        <tr v-for="post in posts">
-          <td>{{ post.title }}</td>
-          <td class="float-right flex flex-row gap-3">
-            <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="editPost(post.id)"></PencilIcon>
-            <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="removePost(post.id, post.title)"></TrashIcon>
-            <p class="text-gray-500">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</p>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="overflow-auto mt-10">
+      <table class="w-max md:w-full">
+        <tbody>
+          <tr v-for="post in posts">
+            <td class="max-w-xs break-words">{{ post.title }}</td>
+            <td class="float-right ml-5 flex flex-row gap-1">
+              <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="editPost(post.id)"></PencilIcon>
+              <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="removePost(post.id, post.title)"></TrashIcon>
+              <p class="text-gray-500">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div class="mt-10">
       <LoadingState ref="loadingState">
         <div v-if="postAvailable">
-          <button class="rounded-md bg-blue-500 hover:bg-blue-600 cursor-pointer px-3 py-2 text-white text-center text-xs m-auto block" @click="loadNextPosts()">Xem thêm...</button>
+          <button class="btn-info m-auto block" @click="loadNextPosts()">Xem thêm...</button>
         </div>
         <div v-else>Đã tải hết bài viết.</div>
       </LoadingState>

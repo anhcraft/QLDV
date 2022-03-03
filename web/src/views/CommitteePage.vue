@@ -1,7 +1,8 @@
 <template>
   <Header></Header>
-  <div class="py-16">
-    <div class="max-w-[1024px] m-auto grid grid-cols-6 gap-24">
+  <div class="pb-16 max-w-[1024px] m-auto p-5 md:px-10">
+    <Breadcrumb text="BCH Đoàn trường" link="/bch/"></Breadcrumb>
+    <div class="max-w-[1024px] m-auto grid grid-cols-1 md:grid-cols-6 md:gap-24 mt-10">
       <div class="col-span-4">
         <div class="border-l-4 border-l-emerald-400 font-light text-xl px-4">BAN CHẤP HÀNH ĐOÀN</div>
         <div class="flex flex-col gap-5 mt-5">
@@ -15,7 +16,7 @@
           </div>
         </div>
       </div>
-      <div class="col-span-2">
+      <div class="col-span-2 mt-10 md:mt-0">
         <Sidebar></Sidebar>
       </div>
     </div>
@@ -27,11 +28,12 @@
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Sidebar from "../components/Sidebar.vue";
+import Breadcrumb from "../components/Breadcrumb.vue";
 
 export default {
   name: "CommitteePage",
   components: {
-    Header, FloatingMenu, Sidebar
+    Header, FloatingMenu, Sidebar, Breadcrumb
   },
   data() {
     return {

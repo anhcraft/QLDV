@@ -1,28 +1,14 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1024px] m-auto pb-16">
+  <div class="max-w-[1024px] m-auto pb-16 p-5 md:px-10">
     <Breadcrumb text="Vào thi" :link="'/c/' + event.id" class="mb-10"></Breadcrumb>
     <LoadingState ref="loadingState">
-      <header class="border-b-2 border-b-slate-300 pb-3 text-xl flex flex-row gap-2">
-        <div class="grow">{{ event.title }}</div>
-        <button class="bg-sky-500 hover:bg-sky-600 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="joinContest" v-if="contestSession === undefined && event.contest.acceptingAnswers">VÀO THI</button>
+      <header class="border-b-2 border-b-slate-300 pb-3 text-xl flex flex-col md:flex-row gap-2">
+        <div class="grow break-words">{{ event.title }}</div>
+        <button class="btn-info" @click="joinContest" v-if="contestSession === undefined && event.contest.acceptingAnswers">VÀO THI</button>
       </header>
-      <div class="grid grid-cols-3">
-        <div class="pt-5 pr-5 break-all" :class="contestSession === undefined || contestSession.finished ? 'col-span-2' : 'col-span-3'">
-          <div v-if="contestSession === undefined" class="break-words prose max-w-max" v-html="event.contest.info"></div>
-          <div v-else ref="questionContainer">
-            <div class="mb-10" v-for="(q, i) in contestSession.questionSheet">
-              <div class="text-lg">{{ q.question }}</div>
-              <div class="grid grid-cols-2">
-                <div class="flex flex-row gap-2 place-items-center" v-for="(c, j) in q.choices" :class="getResultBackground(i, j)">
-                  <input type="radio" :value="j" v-model="contestSession.answerSheet[i]" :disabled="endingContest || contestSession.finished">
-                  <div>{{ c }}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="border-l-2 border-l-slate-300 p-5" v-if="contestSession === undefined || contestSession.finished">
+      <div class="grid grid-cols-1 md:grid-cols-3">
+        <div class="md:border-l-2 md:border-l-slate-300 pt-5 md:p-5 md:order-last" v-if="contestSession === undefined || contestSession.finished">
           <div class="mb-10 flex flex-row place-items-center" v-if="contestSession !== undefined && contestSession.finished">
             <div class="grow text-center">
               <span class="text-5xl">{{ rightAnswers }}</span><span class="text-4xl"> / {{ contestSession.answerSheet.length }}</span>
@@ -32,7 +18,7 @@
               <p>Chính xác: {{ Math.floor(rightAnswers/contestSession.answerSheet.length*100) }}%</p>
             </div>
           </div>
-          <div class="px-5">
+          <div class="md:px-5">
             <div class="flex flex-row gap-2">
               <QuestionMarkCircleIcon class="w-4"></QuestionMarkCircleIcon>
               <p>{{ event.contest.limitQuestions }} câu hỏi</p>
@@ -47,21 +33,35 @@
             </div>
           </div>
         </div>
+        <div class="pt-5 pr-5 break-words" :class="contestSession === undefined || contestSession.finished ? 'col-span-2' : 'col-span-3'">
+          <div v-if="contestSession === undefined" class="break-words prose max-w-max" v-html="event.contest.info"></div>
+          <div v-else ref="questionContainer">
+            <div class="mb-10" v-for="(q, i) in contestSession.questionSheet">
+              <div class="text-lg">{{ q.question }}</div>
+              <div class="grid grid-cols-1 md:grid-cols-2">
+                <div class="flex flex-row gap-2 place-items-center" v-for="(c, j) in q.choices" :class="getResultBackground(i, j)">
+                  <input type="radio" :value="j" v-model="contestSession.answerSheet[i]" :disabled="endingContest || contestSession.finished">
+                  <div>{{ c }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="fixed top-1/2 right-10 -translate-y-1/2	p-10 pb-5 bg-gray-200 shadow-lg shadow-slate-400" v-if="contestSession !== undefined && !contestSession.finished">
-        <div class="text-3xl text-center font-light">
+      <div class="fixed top-20 md:top-1/2 right-0 md:right-10 md:-translate-y-1/2	p-5 md:p-8 bg-gray-200 shadow-lg shadow-slate-400" v-if="contestSession !== undefined && !contestSession.finished">
+        <div class="text-2xl md:text-3xl text-center font-light">
           {{ stringifyTime(timeLeft) }}
         </div>
-        <div class="grid grid-cols-5 gap-3 place-items-center mt-10">
-          <svg height="16" width="16" class="cursor-pointer" v-for="(_, i) in contestSession.questionSheet" @click="scrollToQuestion(i)">
+        <div class="grid grid-cols-4 gap-1 place-items-center mt-10">
+          <svg height="16" width="16" class="scale-75 cursor-pointer" v-for="(_, i) in contestSession.questionSheet" @click="scrollToQuestion(i)">
             <circle cx="8" cy="8" r="8" :fill="contestSession.answerSheet[i] === -1 ? '#aaa' : '#3b73c2'" />
           </svg>
         </div>
-        <button class="bg-rose-400 hover:bg-rose-500 cursor-pointer px-4 py-2 text-white text-center text-sm block m-auto mt-10" @click="submitContest" v-if="!endingContest">NỘP BÀI</button>
-        <div class="mt-10" v-if="savingContest">
+        <button class="btn-danger block m-auto mt-10" @click="submitContest" v-if="!endingContest">Nộp bài</button>
+        <div class="mt-5" v-if="savingContest">
           <LoadingState text="Đang lưu bài"></LoadingState>
         </div>
-        <div class="mt-10" v-else-if="endingContest">
+        <div class="mt-5" v-else-if="endingContest">
           <LoadingState text="Đang nộp bài"></LoadingState>
         </div>
       </div>

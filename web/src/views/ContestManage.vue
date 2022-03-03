@@ -1,12 +1,12 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1024px] m-auto pb-16">
+  <div class="max-w-[1024px] m-auto pb-16 p-5 md:px-10">
     <Breadcrumb text="Quản lý cuộc thi" :link="'/mc/' + $route.params.id" class="mb-10"></Breadcrumb>
     <LoadingState ref="loadingState">
-      <header class="border-b-2 border-b-slate-300 pb-3 text-xl flex flex-row gap-2">
-        <div class="grow">{{ event.title }}</div>
-        <button class="bg-emerald-600 hover:bg-emerald-700 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="manageContestSessions()">Xem kết quả</button>
-        <button class="bg-rose-400 hover:bg-rose-500 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="this.$refs.removePrompt.toggle()">Xóa cuộc thi</button>
+      <header class="border-b-2 border-b-slate-300 pb-3 text-xl flex flex-col md:flex-row gap-2">
+        <div class="grow break-all">{{ event.title }}</div>
+        <button class="btn-info" @click="manageContestSessions()">Xem kết quả</button>
+        <button class="btn-danger" @click="this.$refs.removePrompt.toggle()">Xóa cuộc thi</button>
       </header>
       <div class="mt-5 border-b-2 border-b-slate-300 pb-3">
         <div class="flex flex-row gap-5 place-items-center">
@@ -52,26 +52,28 @@
       </div>
       <div class="mt-5" v-if="event.contest.dataSheet.length > 0">
         <p class="font-bold">Bộ câu hỏi</p>
-        <table class="table-fixed border-collapse border border-slate-300 w-full mt-5">
-          <thead>
-            <tr>
-              <th class="border border-slate-300">Câu hỏi</th>
-              <th class="border border-slate-300">Lựa chọn 1</th>
-              <th class="border border-slate-300">Lựa chọn 2</th>
-              <th class="border border-slate-300">Lựa chọn 3</th>
-              <th class="border border-slate-300">Lựa chọn 4</th>
-            </tr>
-          </thead>
-          <tbody class="text-sm">
-            <tr v-for="item in event.contest.dataSheet">
-              <td class="border border-slate-300 overflow-auto p-2">{{ item.question }}</td>
-              <td v-for="(choice, i) in item.choices" class="border border-slate-300 p-2 overflow-auto" :class="{'bg-yellow-400' : i === item.answer}">{{ choice }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="overflow-auto">
+          <table class="w-max border-collapse border border-slate-300 w-full mt-5">
+            <thead>
+              <tr>
+                <th class="border border-slate-300">Câu hỏi</th>
+                <th class="border border-slate-300">Lựa chọn 1</th>
+                <th class="border border-slate-300">Lựa chọn 2</th>
+                <th class="border border-slate-300">Lựa chọn 3</th>
+                <th class="border border-slate-300">Lựa chọn 4</th>
+              </tr>
+            </thead>
+            <tbody class="text-sm">
+              <tr v-for="item in event.contest.dataSheet">
+                <td class="border border-slate-300 p-2 max-w-xs break-words">{{ item.question }}</td>
+                <td v-for="(choice, i) in item.choices" class="border border-slate-300 p-2 max-w-xs break-words" :class="{'bg-yellow-400' : i === item.answer}">{{ choice }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
       <div class="mt-5">
-        <button class="bg-pink-400 hover:bg-pink-500 cursor-pointer px-4 py-2 text-white text-center text-sm" @click="saveChanges">Lưu thay đổi</button>
+        <button class="btn-success" @click="saveChanges">Lưu thay đổi</button>
       </div>
    </LoadingState>
   </div>

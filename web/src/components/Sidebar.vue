@@ -24,15 +24,12 @@
   <LoadingState ref="eventCalendarLoadingState">
     <div class="flex flex-col gap-3">
       <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2" v-for="event in eventCalendar.events[eventCalendar.currentMonth+'.'+eventCalendar.currentYear]" :class="{'hover:border-gray-800 cursor-pointer' : (event.hasOwnProperty('contest') && $root.isLoggedIn())}" @click="openEvent(event)">
-        <div class="text-lg">{{ event.title }}</div>
-        <div class="text-sm text-gray-500">
-          {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.startDate)) }} -
-          {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.endDate)) }}
-        </div>
+        <div class="text-lg break-words">{{ event.title }}</div>
+        <div class="text-sm text-gray-500">{{ getEventStatus(event) }}</div>
       </div>
     </div>
   </LoadingState>
-  <div class="my-10 flex flex-col gap-3">
+  <div class="my-5 md:my-10 flex flex-col gap-3">
     <router-link to="/bch/" class="text-white text-xl px-10 py-5 shadow-lg shadow-slate-400" style="background: radial-gradient(circle, rgba(34,120,195,1) 0%, rgba(162,45,253,1) 100%);">BCH Công Đoàn</router-link>
     <router-link to="/" class="text-white text-xl px-10 py-5 shadow-lg shadow-slate-400" style="background: radial-gradient(circle, rgba(238,174,202,1) 0%, rgba(148,187,233,1) 100%);">Hội thi ATGT</router-link>
     <router-link to="/" class="text-white text-xl px-10 py-5 shadow-lg shadow-slate-400" style="background: linear-gradient(21deg, rgba(58,137,180,1) 0%, rgba(13,191,35,1) 100%);">Thư viện ảnh</router-link>
@@ -70,6 +67,12 @@ export default {
       if(event.hasOwnProperty("contest") && this.$root.isLoggedIn()) {
         this.$router.push("/c/" + event.contest.id)
       }
+    },
+    getEventStatus(event){
+      if((event.endDate - new Date().getTime()) >= 60*60*3*1000) {
+        return ""
+      }
+      return "Sắp kết thúc: " + new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.endDate))
     },
     nextMonth(delta){
       let d = this.eventCalendar.currentMonth + delta;

@@ -1,31 +1,33 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1024px] m-auto pb-16">
+  <div class="max-w-[1024px] m-auto pb-16 p-5 md:px-10">
     <Breadcrumb text="Quản lý sự kiện" link="/em"></Breadcrumb>
     <div class="mt-10">
-      <button class="bg-white hover:bg-pink-300 cursor-pointer border-2 border-pink-300 px-3 py-1 text-center text-sm" @click="edit(undefined)">Tạo sự kiện</button>
+      <button class="btn-success" @click="edit(undefined)">Tạo sự kiện</button>
     </div>
-    <table class="w-full mt-10">
-      <tbody>
-        <tr v-for="event in events">
-          <td>{{ event.title }}</td>
-          <td class="text-gray-500">
-            {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.startDate)) }} -
-            {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.endDate)) }}
-          </td>
-          <td class="float-right flex flex-row gap-3">
-            <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="edit(event.id)"></PencilIcon>
-            <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="remove(event.id, event.title)"></TrashIcon>
-            <PuzzleIcon class="w-6 cursor-pointer text-gray-500" @click="manageContest(event.id)"></PuzzleIcon>
-            <p class="text-gray-500">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.date)) }}</p>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="overflow-auto mt-10">
+      <table class="w-max md:w-full">
+        <tbody>
+          <tr v-for="event in events">
+            <td class="max-w-xs break-words">{{ event.title }}</td>
+            <td class="text-gray-500">
+              {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.startDate)) }} -
+              {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.endDate)) }}
+            </td>
+            <td class="float-right ml-5 flex flex-row gap-1">
+              <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="edit(event.id)"></PencilIcon>
+              <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="remove(event.id, event.title)"></TrashIcon>
+              <PuzzleIcon class="w-6 cursor-pointer text-gray-500" @click="manageContest(event.id)"></PuzzleIcon>
+              <p class="text-gray-500">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.date)) }}</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div class="mt-10">
       <LoadingState ref="loadingState">
         <div v-if="eventAvailable">
-          <button class="rounded-md bg-blue-500 hover:bg-blue-600 cursor-pointer px-3 py-2 text-white text-center text-xs m-auto block" @click="loadNextEvents()">Xem thêm...</button>
+          <button class="btn-info m-auto block" @click="loadNextEvents()">Xem thêm...</button>
         </div>
         <div v-else>Đã tải hết sự kiện.</div>
       </LoadingState>

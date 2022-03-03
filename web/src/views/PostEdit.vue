@@ -1,6 +1,6 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1024px] m-auto pb-16">
+  <div class="max-w-[1024px] m-auto pb-16 p-5 md:px-10">
     <Breadcrumb :text="($route.params.id === undefined ? 'Tạo' : 'Sửa') + ' bài viết'" link="/pm" class="mb-10"></Breadcrumb>
     <LoadingState ref="loadingState">
       <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model="post.title">
@@ -40,14 +40,14 @@
         <p>Ảnh đính kèm:</p>
         <div class="my-10">
           <div class="flex flex-row flex-wrap gap-3">
-            <img v-for="att in post.attachments" class="max-w-md" :class="{'border-2 border-slate-500 opacity-50' : removeAttachments.includes(att.id)}" :src="serverBaseURL + '/static/' + att.id" alt="" @click="removeAttachment(att.id)" />
+            <img v-for="att in post.attachments" class="max-h-36" :class="{'border-2 border-slate-500 opacity-50' : removeAttachments.includes(att.id)}" :src="serverBaseURL + '/static/' + att.id" alt="" @click="removeAttachment(att.id)" />
           </div>
           <p class="text-red-500 mt-3" v-if="removeAttachments.length > 0">Sẽ xóa {{ removeAttachments.length }} ảnh được chọn.</p>
         </div>
         <p>Tải ảnh mới:</p>
         <input @change="onAttachmentChange" accept="image/*" multiple class="block px-3 py-1.5 text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" type="file">
         <div class="flex flex-row flex-wrap gap-3 my-10">
-          <img v-for="url in attachmentUploadPreviews" class="max-w-md" :src="url" alt=""/>
+          <img v-for="url in attachmentUploadPreviews" class="max-h-36" :src="url" alt=""/>
         </div>
       </div>
       <button class="bg-pink-400 hover:bg-pink-500 cursor-pointer px-4 py-2 text-white text-center text-sm" v-if="!submittingPost" @click="submitPost">{{ $route.params.id === undefined ? "Đăng bài" : "Lưu chỉnh sửa" }}</button>

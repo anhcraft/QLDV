@@ -1,8 +1,8 @@
 <template>
   <Header></Header>
-  <div class="pb-16 max-w-[1024px] m-auto">
+  <div class="pb-16 max-w-[1024px] m-auto p-5 md:px-10">
     <Breadcrumb text="Trang cá nhân" :link="`/u/${this.$route.params.id}`"></Breadcrumb>
-    <div class="grid grid-cols-3 gap-16 mt-10">
+    <div class="grid grid-cols-1 md:grid-cols-3 md:gap-16 mt-10">
       <div class="col-span-1 shadow-lg shadow-slate-400 self-start">
         <LoadingState ref="profileLoadingState" hidden>
           <section>
@@ -37,7 +37,7 @@
           </section>
         </LoadingState>
       </div>
-      <div class="col-span-2">
+      <div class="col-span-2 mt-10 md:mt-0">
         <LoadingState ref="profileCoverLoadingState">
           <section class="w-full inline-block relative overflow-hidden border-4 border-dashed border-white" :class="{'hover:opacity-80 hover:border-black' : isPersonalProfile}">
             <div :style="{ 'background-image': 'url(' + profile.profileCover + ')' }" class="w-full h-64 bg-cover bg-center bg-no-repeat" />
@@ -63,7 +63,7 @@
                 }"
                   v-model="profile.profileBoard"
               ></Editor>
-              <button class="float-right bg-pink-400 hover:bg-pink-500 cursor-pointer px-3 py-1 text-white text-center text-sm mt-5" @click="saveBoard">Lưu lại</button>
+              <button class="float-right btn-success mt-5" @click="saveBoard">Lưu lại</button>
             </div>
             <div v-else class="break-words prose max-w-max" v-html="profile.profileBoard"></div>
           </section>

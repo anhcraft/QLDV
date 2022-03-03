@@ -1,11 +1,11 @@
 <template>
   <Header></Header>
-  <div class="py-16">
+  <div class="md:py-16">
     <div>
       <div v-for="(q, index) in quotes" :class="{'hidden': currentQuote !== index}">
-        <img :src="q.img" alt="" class="h-[400px] m-auto transition-all duration-300 hover:opacity-80 cursor-pointer" @click="currentQuote = (currentQuote === quotes.length - 1) ? 0 : currentQuote + 1">
+        <div class="h-[200px] md:h-[400px] m-auto transition-all duration-300 hover:opacity-80 cursor-pointer bg-bottom bg-no-repeat bg-[length:100%] md:bg-[length:auto_400px]" :style="`background-image: url(${q.img})`" @click="currentQuote = (currentQuote === quotes.length - 1) ? 0 : currentQuote + 1"></div>
         <div class="max-w-[800px] h-[120px] m-auto mt-7 text-center">
-          <q class="font-yomogi text-2xl">{{ q.text }}</q>
+          <q class="font-yomogi text-xl md:text-2xl">{{ q.text }}</q>
           <p class="font-serif text-gray-500 italic mt-1">― {{ q.author }}</p>
         </div>
       </div>
@@ -18,9 +18,12 @@
       </div>
     </div>
   </div>
-  <div class="py-16">
-    <div class="max-w-[1024px] m-auto grid grid-cols-6 gap-24">
-      <div class="col-span-4">
+  <div class="p-5 md:p-10 py-16">
+    <div class="max-w-[1024px] m-auto grid grid-cols-1 md:grid-cols-6 md:gap-24">
+      <div class="col-span-2 md:order-last">
+        <Sidebar></Sidebar>
+      </div>
+      <div class="col-span-4 mt-10 md:mt-0">
         <div class="flex flex-row gap-3 place-items-center">
           <NewspaperIcon class="w-8 text-gray-600"></NewspaperIcon>
           <span class="font-light text-xl">TIN TỨC</span>
@@ -31,9 +34,6 @@
         <div class="mt-10">
           <LoadingState ref="postLoadingState"></LoadingState>
         </div>
-      </div>
-      <div class="col-span-2">
-        <Sidebar></Sidebar>
       </div>
     </div>
   </div>

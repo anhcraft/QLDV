@@ -1,9 +1,9 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1024px] m-auto pb-16">
+  <div class="max-w-[1024px] m-auto pb-16 p-5 md:px-10">
     <Breadcrumb :text="($route.params.id === undefined ? 'Tạo' : 'Sửa') + ' sự kiện'" link="/em" class="mb-10"></Breadcrumb>
     <LoadingState ref="loadingState">
-      <div class="flex flex-col gap-5 mb-20">
+      <div class="flex flex-col gap-5 mb-10">
         <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tên sự kiện..." v-model="event.title">
         <div class="flex flex-row gap-5 place-items-center">
           <p>Ngày bắt đầu</p>
@@ -26,7 +26,7 @@
           <input type="checkbox" class="w-4 h-4" v-bind:checked="(event.privacy & 4) === 4" @input="event.privacy = $event.target.value ? (event.privacy ^ 4) : (event.privacy | 4)">
         </div>
       </div>
-      <button class="bg-pink-400 hover:bg-pink-500 cursor-pointer px-4 py-2 text-white text-center text-sm" v-if="!submittingEvent" @click="submit()">{{ $route.params.id === undefined ? "Thêm sự kiện" : "Lưu chỉnh sửa" }}</button>
+      <button class="btn-success" v-if="!submittingEvent" @click="submit()">{{ $route.params.id === undefined ? "Thêm sự kiện" : "Lưu chỉnh sửa" }}</button>
     </LoadingState>
   </div>
   <FloatingMenu></FloatingMenu>

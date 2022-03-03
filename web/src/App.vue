@@ -2,6 +2,12 @@
   <router-view />
 </template>
 
+<style>
+html {
+  border: 1px red solid;
+}
+</style>
+
 <script>
 import auth from "./api/auth";
 import server from "./api/server";
