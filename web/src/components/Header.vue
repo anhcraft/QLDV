@@ -6,8 +6,8 @@
   <div class="py-8 md:py-10 relative">
     <div class="max-w-[1024px] w-fit md:w-full m-auto relative">
       <div class="flex flex-row gap-3 place-items-center md:p-10">
-        <img src="../assets/youth_logo.png" class="w-12 h-12"  alt=""/>
-        <img src="../assets/das_logo.png" class="w-12 h-12"  alt=""/>
+        <img src="../assets/youth-logo.png" class="w-12 h-12"  alt=""/>
+        <img src="../assets/das-logo.png" class="w-12 h-12"  alt=""/>
         <router-link to="/" class="text-3xl ml-5 font-light border-b-2 border-b-white hover:border-b-gray-500">
           <span class="block md:inline">ĐOÀN THPT</span> <span>DĨ AN</span>
           <p class="text-sm italic">Website đang hoạt động thử nghiệm</p>

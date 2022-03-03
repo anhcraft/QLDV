@@ -33,9 +33,14 @@
     </div>
   </LoadingState>
   <div class="my-5 md:my-10 flex flex-col gap-3">
-    <router-link to="/bch/" class="text-white text-xl px-10 py-5 shadow-lg shadow-slate-400" style="background: radial-gradient(circle, rgba(34,120,195,1) 0%, rgba(162,45,253,1) 100%);">BCH Công Đoàn</router-link>
-    <router-link to="/" class="text-white text-xl px-10 py-5 shadow-lg shadow-slate-400" style="background: radial-gradient(circle, rgba(238,174,202,1) 0%, rgba(148,187,233,1) 100%);">Hội thi ATGT</router-link>
-    <router-link to="/" class="text-white text-xl px-10 py-5 shadow-lg shadow-slate-400" style="background: linear-gradient(21deg, rgba(58,137,180,1) 0%, rgba(13,191,35,1) 100%);">Thư viện ảnh</router-link>
+    <router-link to="/bch/" class="bg-blue-800 hover:opacity-80 transition transition-all text-white text-xl p-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
+      <img src="../assets/youth-logo.png" class="w-12 h-12"  alt=""/>
+      <p>BCH Đoàn trường</p>
+    </router-link>
+    <a href="https://youtube.com/channel/UCPtKpRuGva1y2RwJCooVu5Q" target="_blank" class="bg-indigo-800 hover:opacity-80 transition transition-all text-white text-xl p-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
+      <img src="../assets/youtube-btn.png" class="w-12 h-12"  alt=""/>
+      <p>Video hoạt động</p>
+    </a>
   </div>
 </template>
 
