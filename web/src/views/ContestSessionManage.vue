@@ -22,7 +22,7 @@
           <tr v-for="cs in contestSessions" class="text-sm hover:bg-blue-200 text-center">
             <td class="text-left">{{ cs.userId }}</td>
             <td>{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(cs.startTime)) }}</td>
-            <td>{{ stringifyTime(cs.finished ? 0 : Math.max(0, new Date() - cs.endTime)) }}</td>
+            <td>{{ stringifyTime(cs.finished ? 0 : Math.max(0, cs.endTime - new Date())) }}</td>
             <td>{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(cs.lastAnswerSubmittedTime)) }}</td>
             <td>{{ cs.finished ? "Đã hoàn thành" : "Đang làm bài" }}</td>
             <td>{{ cs.hasOwnProperty("expectedAnswerSheet") ? `${(getCorrectAnswers(cs)/cs.answerSheet.length*10).toFixed(1)}  (${getCorrectAnswers(cs)}/${cs.answerSheet.length})` : "" }}</td>
