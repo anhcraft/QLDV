@@ -9,7 +9,7 @@
       <tbody>
         <tr v-for="post in posts">
           <td>{{ post.title }}</td>
-          <td class="flex flex-row gap-3">
+          <td class="float-right flex flex-row gap-3">
             <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="editPost(post.id)"></PencilIcon>
             <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="removePost(post.id, post.title)"></TrashIcon>
             <p class="text-gray-500">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</p>
