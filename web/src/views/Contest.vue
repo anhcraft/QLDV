@@ -221,6 +221,7 @@ export default {
                 }
                 this.contestSession = s
                 this.$refs.loadingState.deactivate()
+                if(s.finished) return
                 this.countdown = setInterval(() => {
                   if(this.endingContest) return
                   this.timeLeft = Math.max(0, s.endTime - new Date().getTime())
