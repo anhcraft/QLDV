@@ -10,6 +10,7 @@
         <img src="../assets/das_logo.png" class="w-12 h-12"  alt=""/>
         <router-link to="/" class="text-3xl ml-5 font-light border-b-2 border-b-white hover:border-b-gray-500">
           <span class="block md:inline">ĐOÀN THPT</span> <span>DĨ AN</span>
+          <p class="text-sm italic">Website đang hoạt động thử nghiệm</p>
         </router-link>
         <div class="absolute right-10 hidden md:block">
           <button v-if="!$root.isLoggedIn()" @click="logIn()" class="btn-primary">Đăng nhập</button>
