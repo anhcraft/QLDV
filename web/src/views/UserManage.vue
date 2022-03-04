@@ -155,6 +155,7 @@ export default {
       dataOffset: 0,
       certChanges: {},
       modChanges: {},
+      savingUserChanges: false,
       filter: {
         name: "",
         email: "",
@@ -295,6 +296,7 @@ export default {
       })
     },
     toggleCertified(user) {
+      if(this.savingUserChanges) return
       user.certified = !user.certified
       if(this.certChanges.hasOwnProperty(user.email)) {
         delete this.certChanges[user.email]
@@ -303,6 +305,7 @@ export default {
       }
     },
     toggleMod(user) {
+      if(this.savingUserChanges) return
       user.mod = !user['mod']
       if(this.modChanges.hasOwnProperty(user.email)) {
         delete this.modChanges[user.email]
@@ -311,15 +314,21 @@ export default {
       }
     },
     saveChanges() {
-      if(this.sumChanges === 0) {
-        return
-      }
+      if(this.savingUserChanges || this.sumChanges === 0) return
+      this.savingUserChanges = true
       server.saveUserChanges({
         certified: this.certChanges,
         mod: this.modChanges
       }, auth.getToken()).then(s => {
+        this.savingUserChanges = false
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-          window.location.reload();
+          this.certChanges = {};
+          this.modChanges = {};
+          this.$notify({
+            title: "Đã lưu thay đổi",
+            text: "",
+            type: "success"
+          });
         } else {
           this.$notify({
             title: "Lưu thay đổi thất bại",
@@ -340,6 +349,11 @@ export default {
       server.saveProgressionChanges(this.userProgression, this.selectedUser, auth.getToken()).then(s => {
         this.$refs.loadingStateForUserProgression.deactivate()
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+          this.$notify({
+            title: "Đã lưu thay đổi",
+            text: "",
+            type: "success"
+          });
           this.selectUser(undefined)
         } else {
           this.$notify({

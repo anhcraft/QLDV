@@ -124,7 +124,12 @@ export default {
         server.setProfileCover(e.target.files[0], auth.getToken()).then(s => {
           this.$refs.profileCoverLoadingState.deactivate()
           if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-            window.location.reload()
+            this.$notify({
+              title: "Đã lưu ảnh bìa",
+              text: "",
+              type: "success"
+            });
+            window.location.reload() // cover image wont be changed without page-reloading
           } else {
             this.$notify({
               title: "Lưu ảnh bìa thất bại",
@@ -145,7 +150,14 @@ export default {
       this.$refs.profileBoardLoadingState.activate()
       server.setProfileBoard(this.profile.profileBoard, auth.getToken()).then(s => {
         this.$refs.profileBoardLoadingState.deactivate()
-        if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) return
+        if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+          this.$notify({
+            title: "Đã lưu tường nhà",
+            text: "",
+            type: "success"
+          });
+          return
+        }
         this.$notify({
           title: "Lưu tường nhà thất bại",
           text: lookupErrorCode(s["error"]),
