@@ -121,6 +121,16 @@ func setUserModStatus(mod map[string]bool) bool {
 	return true
 }
 
+func setProfileBoard(email string, text string) bool {
+	tx := db.Model(&User{}).Where("email = ?", email).Update("profile_board", text)
+	return tx.RowsAffected > 0
+}
+
+func setProfileSettings(email string, settings uint8) bool {
+	tx := db.Model(&User{}).Where("email = ?", email).Update("profile_settings", settings)
+	return tx.RowsAffected > 0
+}
+
 func profileGetRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 
@@ -169,27 +179,33 @@ func progressionGetRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	if success && payload.User == "" {
-		payload.User = email
-	} /*else if payload.User != email {
-		user := getProfile(email)
-		if user == nil {
-			_, _ = res.Set("ERR_UNKNOWN_USER", "error")
-			return c.SendString(res.String())
+	var requester *User = nil
+	if success {
+		requester = getProfile(email)
+		if payload.User == "" {
+			payload.User = email
 		}
-		if !user.Admin && !user.Mod {
-			_, _ = res.Set("ERR_NO_PERMISSION", "error")
-			return c.SendString(res.String())
-		}
-	}*/
-
-	_, _ = res.Array("rates")
-	for _, rate := range getRates(payload.User) {
-		_ = res.ArrayAppend(rate.serialize(), "rates")
 	}
+
+	profile := getProfile(payload.User)
+	if profile == nil {
+		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+		return c.SendString(res.String())
+	}
+
 	_, _ = res.Array("achievements")
-	for _, rate := range getAchievements(payload.User) {
-		_ = res.ArrayAppend(rate.serialize(), "achievements")
+	_, _ = res.Array("rates")
+
+	if (requester != nil && (requester.Admin || requester.Mod)) || (!profile.isProfileLocked() && profile.isAchievementPublic()) {
+		for _, rate := range getAchievements(payload.User) {
+			_ = res.ArrayAppend(rate.serialize(), "achievements")
+		}
+	}
+
+	if (requester != nil && (requester.Admin || requester.Mod)) || (!profile.isProfileLocked() && profile.isRatePublic()) {
+		for _, rate := range getRates(payload.User) {
+			_ = res.ArrayAppend(rate.serialize(), "rates")
+		}
 	}
 	return c.SendString(res.String())
 }
@@ -439,7 +455,29 @@ func profileBoardSetRouteHandler(c *fiber.Ctx) error {
 	return c.SendString(res.String())
 }
 
-func setProfileBoard(email string, text string) bool {
-	db.Model(&User{}).Where("email = ?", email).Update("profile_board", text)
-	return true
+func profileSettingSetRouteHandler(c *fiber.Ctx) error {
+	res := gabs.New()
+	token := c.Get("token")
+	success, email := getEmailFromToken(token, c.UserContext())
+	if !success {
+		_, _ = res.Set(email, "error")
+		return c.SendString(res.String())
+	}
+	user := getProfile(email)
+	if user == nil {
+		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+		return c.SendString(res.String())
+	}
+
+	payload := struct {
+		Settings uint8 `json:"settings,omitempty"`
+	}{}
+
+	if err := c.BodyParser(&payload); err != nil {
+		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
+		return c.SendString(res.String())
+	}
+
+	_, _ = res.Set(setProfileSettings(email, payload.Settings), "success")
+	return c.SendString(res.String())
 }

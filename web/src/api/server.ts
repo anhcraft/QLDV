@@ -206,6 +206,18 @@ const server = {
             })
         }).json();
     },
+    setProfileSettings: async function(settings: number, token: string) {
+        return ky.post(`${conf.server}/set-profile-settings`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            },
+            body: JSON.stringify({
+                "settings": settings
+            })
+        }).json();
+    },
     changeContest(id: string, contest: { limitTime: number; limitQuestions: number; dataSheet: []; acceptingAnswers: boolean, info: string }, token: string) {
         return ky.post(`${conf.server}/change-contest`, {
             method: 'post',
