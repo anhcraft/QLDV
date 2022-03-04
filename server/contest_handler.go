@@ -9,6 +9,7 @@ import (
 	"log"
 	"math/rand"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -119,6 +120,7 @@ func contestChangeRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
 		return c.SendString(res.String())
 	}
+	payload.Info = strings.TrimSpace(payload.Info)
 
 	if getEvent(payload.Id) == nil {
 		_, _ = res.Set("ERR_UNKNOWN_EVENT", "error")

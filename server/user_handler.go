@@ -423,6 +423,7 @@ func profileBoardSetRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
 		return c.SendString(res.String())
 	}
+	payload.Board = strings.TrimSpace(payload.Board)
 
 	if len(payload.Board) < 10 {
 		_, _ = res.Set("ERR_PROFILE_BOARD_CONTENT_MIN", "error")

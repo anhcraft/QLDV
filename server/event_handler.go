@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -202,6 +203,7 @@ func eventChangeRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
 		return c.SendString(res.String())
 	}
+	payload.Title = strings.TrimSpace(payload.Title)
 
 	if len(payload.Title) < 5 {
 		_, _ = res.Set("ERR_EVENT_TITLE_MIN", "error")
