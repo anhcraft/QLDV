@@ -9,6 +9,7 @@ const list = {
     "ERR_EVENT_UNAVAILABLE": "Không thể tham gia sự kiện ngay lúc này",
     "ERR_UNKNOWN_CONTEST": "Không tìm thấy cuộc thi",
     "ERR_INVALID_CONTEST_ID": "Không tìm thấy cuộc thi",
+    "ERR_CONTEST_DATA_INSUFFICIENT": "Lỗi cuộc thi. Vui lòng báo quản trị viên!",
     "ERR_CONTEST_CLOSED": "Cuộc thi đã kết thúc",
     "ERR_CONTEST_ATTENDED": "Đã tham gia cuộc thi",
     "ERR_UNKNOWN_CONTEST_SESSION": "Không tìm thấy bài làm",

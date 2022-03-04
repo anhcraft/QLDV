@@ -334,6 +334,10 @@ func contestSessionJoinRouteHandler(c *fiber.Ctx) error {
 
 	dataSheet, _ := gabs.ParseJSON([]byte(contest.DataSheet))
 	in := dataSheet.Children()
+	if len(in) < int(contest.LimitQuestions) {
+		_, _ = res.Set("ERR_CONTEST_DATA_INSUFFICIENT", "error")
+		return c.SendString(res.String())
+	}
 	rand.Seed(time.Now().Unix())
 	rand.Shuffle(len(in), func(i, j int) {
 		in[i], in[j] = in[j], in[i]
