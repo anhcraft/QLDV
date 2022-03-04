@@ -402,51 +402,53 @@ export default {
     }
     this.loadNextUsers()
     window.addEventListener('scroll', this.handleScroll)
-    if(!this.$root.profile.admin) return;
-    server.getUserStats(auth.getToken()).then(s => {
-      if (s.hasOwnProperty("error")) {
+    setTimeout(() => {
+      if(!this.$root.profile.admin) return;
+      server.getUserStats(auth.getToken()).then(s => {
+        if (s.hasOwnProperty("error")) {
+          this.$notify({
+            title: "Tải dữ liệu thống kê thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
+          return
+        }
+        this.option.series[0].data.push({
+          value: s["class10"],
+          name: "10"
+        })
+        this.option.series[0].data.push({
+          value: s["class11"],
+          name: "11"
+        })
+        this.option.series[0].data.push({
+          value: s["class12"],
+          name: "12"
+        })
+        this.option.series[1].data.push({
+          value: s["women"],
+          name: "Nữ"
+        })
+        this.option.series[1].data.push({
+          value: s["class10"] + s["class11"] + s["class12"] - s["women"],
+          name: "Nam"
+        })
+        this.option.series[2].data.push({
+          value: s["certified"],
+          name: "Đoàn viên"
+        })
+        this.option.series[2].data.push({
+          value: s["class10"] + s["class11"] + s["class12"] - s["certified"],
+          name: "Thanh niên"
+        })
+      }, (e) => {
         this.$notify({
           title: "Tải dữ liệu thống kê thất bại",
-          text: lookupErrorCode(s["error"]),
+          text: e.message,
           type: "error"
         });
-        return
-      }
-      this.option.series[0].data.push({
-        value: s["class10"],
-        name: "10"
-      })
-      this.option.series[0].data.push({
-        value: s["class11"],
-        name: "11"
-      })
-      this.option.series[0].data.push({
-        value: s["class12"],
-        name: "12"
-      })
-      this.option.series[1].data.push({
-        value: s["women"],
-        name: "Nữ"
-      })
-      this.option.series[1].data.push({
-        value: s["class10"] + s["class11"] + s["class12"] - s["women"],
-        name: "Nam"
-      })
-      this.option.series[2].data.push({
-        value: s["certified"],
-        name: "Đoàn viên"
-      })
-      this.option.series[2].data.push({
-        value: s["class10"] + s["class11"] + s["class12"] - s["certified"],
-        name: "Thanh niên"
-      })
-    }, (e) => {
-      this.$notify({
-        title: "Tải dữ liệu thống kê thất bại",
-        text: e.message,
-        type: "error"
       });
-    });
+    }, 1000)
   }
 }
 </script>
