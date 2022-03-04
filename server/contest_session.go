@@ -27,7 +27,15 @@ func (a *ContestSession) serialize() *gabs.Container {
 	_, _ = res.Set(a.LastAnswerSubmittedTime, "lastAnswerSubmittedTime")
 	_, _ = res.Set(a.Finished, "finished")
 	if a.Finished {
-		_, _ = res.Set(a.ExpectedAnswerSheet, "expectedAnswerSheet")
+		//_, _ = res.Set(a.ExpectedAnswerSheet, "expectedAnswerSheet")
+		answerSheet, _ := gabs.ParseJSON([]byte(a.AnswerSheet))
+		answerSheetList := answerSheet.Children()
+		expectedAnswerSheet, _ := gabs.ParseJSON([]byte(a.ExpectedAnswerSheet))
+		expectedAnswerSheetList := expectedAnswerSheet.Children()
+		_, _ = res.Array("answerAccuracy")
+		for i := 0; i < len(answerSheetList); i++ {
+			_ = res.ArrayAppend(answerSheetList[i].Data().(float64) == expectedAnswerSheetList[i].Data().(float64), "answerAccuracy")
+		}
 	}
 	return res
 }

@@ -9,27 +9,34 @@
       </header>
       <div class="grid grid-cols-1 md:grid-cols-3">
         <div class="md:border-l-2 md:border-l-slate-300 pt-5 md:p-5 md:order-last" v-if="contestSession === undefined || contestSession.finished">
-          <div class="mb-10 flex flex-row place-items-center" v-if="contestSession !== undefined && contestSession.finished">
-            <div class="grow text-center">
-              <span class="text-5xl">{{ rightAnswers }}</span><span class="text-4xl"> / {{ contestSession.answerSheet.length }}</span>
-            </div>
-            <div>
-              <p>Điểm: {{ (rightAnswers/contestSession.answerSheet.length*10).toFixed(1) }}</p>
-              <p>Chính xác: {{ Math.floor(rightAnswers/contestSession.answerSheet.length*100) }}%</p>
+          <div class="mb-10">
+            <div class="border-l-4 border-l-orange-400 bg-orange-200 px-4 py-2">Thông tin bài làm</div>
+            <div class="flex flex-row place-items-center mt-3" v-if="contestSession !== undefined && contestSession.finished">
+              <div class="grow text-center">
+                <span class="text-5xl">{{ rightAnswers }}</span><span class="text-4xl"> / {{ contestSession.answerSheet.length }}</span>
+              </div>
+              <div>
+                <p>Điểm: {{ (rightAnswers/contestSession.answerSheet.length*10).toFixed(1) }}</p>
+                <p>Chính xác: {{ Math.floor(rightAnswers/contestSession.answerSheet.length*100) }}%</p>
+                <p>Thời gian: {{ this.stringifyTime(contestSession.lastAnswerSubmittedTime - contestSession.startTime) }}</p>
+              </div>
             </div>
           </div>
-          <div class="md:px-5">
-            <div class="flex flex-row gap-2">
-              <QuestionMarkCircleIcon class="w-4"></QuestionMarkCircleIcon>
-              <p>{{ event.contest.limitQuestions }} câu hỏi</p>
-            </div>
-            <div class="flex flex-row gap-2">
-              <ClockIcon class="w-4"></ClockIcon>
-              <p>Thời gian: {{ this.stringifyTime(event.contest.limitTime) }}</p>
-            </div>
-            <div class="flex flex-row gap-2">
-              <UsersIcon class="w-4"></UsersIcon>
-              <p>Số lượt làm: 0</p>
+          <div>
+            <div class="border-l-4 border-l-gray-400 bg-gray-300 px-4 py-2">Thông tin cuộc thi</div>
+            <div class="mt-3">
+              <div class="flex flex-row gap-2">
+                <QuestionMarkCircleIcon class="w-4"></QuestionMarkCircleIcon>
+                <p>{{ event.contest.limitQuestions }} câu hỏi</p>
+              </div>
+              <div class="flex flex-row gap-2">
+                <ClockIcon class="w-4"></ClockIcon>
+                <p>Thời gian: {{ this.stringifyTime(event.contest.limitTime) }}</p>
+              </div>
+              <div class="flex flex-row gap-2">
+                <UsersIcon class="w-4"></UsersIcon>
+                <p>Số lượt làm: 0</p>
+              </div>
             </div>
           </div>
         </div>
@@ -103,13 +110,7 @@ export default {
   },
   computed: {
     rightAnswers() {
-      let q = 0;
-      for (let i = 0; i < this.contestSession.answerSheet.length; i++){
-        if(this.contestSession.expectedAnswerSheet[i] === this.contestSession.answerSheet[i]){
-          q++;
-        }
-      }
-      return q
+      return this.contestSession.answerAccuracy.filter(v => v === true).length;
     }
   },
   methods: {
@@ -193,12 +194,12 @@ export default {
       this.$refs.questionContainer.children.item(i).scrollIntoView({ behavior: 'smooth' });
     },
     getResultBackground(i, j) {
-      if(this.contestSession.hasOwnProperty("expectedAnswerSheet")){
+      if(this.contestSession.hasOwnProperty("answerAccuracy")){
         if(this.contestSession.answerSheet[i] === -1) {
           return ""
         } else if (this.contestSession.answerSheet[i] === j) {
-          if (this.contestSession.expectedAnswerSheet[i] === j) {
-            return "bg-emerald-300"
+          if (this.contestSession.answerAccuracy[i] === true) {
+            return "bg-emerald-200"
           } else {
             return "bg-rose-200"
           }
