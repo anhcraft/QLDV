@@ -59,7 +59,8 @@
                   toolbar: 'undo redo | styleselect | bold italic | forecolor backcolor emoticons link | ' +
                     'bullist numlist outdent indent | media | ' +
                     'alignleft aligncenter alignright alignjustify | help',
-                  menubar: false
+                  menubar: false,
+                  branding: false
                 }"
                   v-model="profile.profileBoard"
               ></Editor>
