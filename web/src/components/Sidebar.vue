@@ -41,6 +41,10 @@
       <img src="../assets/youtube-btn.png" class="w-12 h-12"  alt=""/>
       <p>Video hoạt động</p>
     </a>
+    <a href="https://forms.gle/jg5aNgWeb52wjgFf9" target="_blank" class="bg-gray-600 hover:opacity-80 transition transition-all text-white text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
+      <img src="../assets/filling-form.png" class="w-12 h-12"  alt=""/>
+      <p>Góp ý website</p>
+    </a>
   </div>
 </template>
 
