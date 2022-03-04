@@ -39,13 +39,13 @@
       </div>
       <div class="col-span-2 mt-10 md:mt-0">
         <LoadingState ref="profileCoverLoadingState">
-          <section class="w-full inline-block relative overflow-hidden border-4 border-dashed border-white" :class="{'hover:opacity-80 hover:border-black' : isPersonalProfile}">
+          <section class="w-full inline-block relative overflow-hidden shadow-lg shadow-slate-400" :class="{'border-4 border-dashed border-white hover:opacity-80 hover:border-black' : isPersonalProfile}">
             <div :style="{ 'background-image': 'url(' + profile.profileCover + ')' }" class="w-full h-64 bg-cover bg-center bg-no-repeat" />
             <input type="file" class="absolute left-0 top-0 opacity-0 h-64 w-full cursor-pointer" @change="onProfileCoverChange" accept="image/*" v-if="isPersonalProfile" />
           </section>
         </LoadingState>
         <LoadingState hidden ref="profileBoardLoadingState">
-          <section class="mt-10">
+          <section class="mt-5 p-5 shadow-lg shadow-slate-400">
             <div v-if="isPersonalProfile">
               <Editor
                   apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
@@ -63,9 +63,11 @@
                 }"
                   v-model="profile.profileBoard"
               ></Editor>
-              <button class="float-right btn-success mt-5" @click="saveBoard">Lưu lại</button>
+              <div class="flex place-content-end">
+                <button class="btn-success mt-5" @click="saveBoard">Lưu lại</button>
+              </div>
             </div>
-            <div v-else class="break-words prose max-w-max" v-html="profile.profileBoard"></div>
+            <div v-else class="break-words prose w-full" v-html="profile.profileBoard"></div>
           </section>
         </LoadingState>
       </div>
