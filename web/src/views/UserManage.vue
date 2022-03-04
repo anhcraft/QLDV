@@ -402,6 +402,7 @@ export default {
     }
     this.loadNextUsers()
     window.addEventListener('scroll', this.handleScroll)
+    if(!this.$root.profile.admin) return;
     server.getUserStats(auth.getToken()).then(s => {
       if (s.hasOwnProperty("error")) {
         this.$notify({
