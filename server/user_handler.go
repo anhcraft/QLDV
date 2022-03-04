@@ -279,6 +279,9 @@ func userListRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
 		return c.SendString(res.String())
 	}
+	payload.FilterName = strings.TrimSpace(payload.FilterName)
+	payload.FilterClass = strings.TrimSpace(payload.FilterClass)
+	payload.FilterEmail = strings.TrimSpace(payload.FilterEmail)
 
 	if requester.Mod {
 		payload.FilterClass = requester.Class
