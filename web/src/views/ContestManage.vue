@@ -15,13 +15,17 @@
         </div>
         <div class="flex flex-row gap-5 place-items-center">
           <p class="font-bold">Giới hạn số câu hỏi</p>
-          <input type="number" min="3" max="100" class="border border-slate-300 px-1" v-model.number="event.contest.limitQuestions">
+          <input type="number" min="3" max="100" class="border border-slate-300 px-1" v-model.number="event.contest.limitQuestions"> câu
         </div>
         <div class="flex flex-row gap-5 place-items-center">
           <p class="font-bold">Giới hạn thời gian làm</p>
           <input type="number" min="0" max="1440" class="border border-slate-300 px-1" v-model.number="event.contest.limitTime"> phút
         </div>
         <p class="italic">(Điền 0 để quy định không giới hạn về thời gian)</p>
+        <div class="flex flex-row gap-5 place-items-center">
+          <p class="font-bold">Giới hạn số lần làm</p>
+          <input type="number" min="1" max="30" class="border border-slate-300 px-1" v-model.number="event.contest.limitSessions"> lần
+        </div>
         <div class="mt-5">
           <p class="font-bold">Thông tin cuộc thi</p>
           <Editor
@@ -195,6 +199,7 @@ export default {
               acceptingAnswers: false,
               limitQuestions: 10,
               limitTime: 15,
+              limitSessions: 1,
               dataSheet: [],
               info: ""
             }

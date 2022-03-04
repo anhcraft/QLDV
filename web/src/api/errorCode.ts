@@ -12,7 +12,7 @@ const list = {
     "ERR_CONTEST_DATA_INSUFFICIENT": "Lỗi cuộc thi. Vui lòng báo quản trị viên!",
     "ERR_CONTEST_CLOSED": "Cuộc thi đã kết thúc",
     "ERR_CONTEST_ATTENDED": "Đã tham gia cuộc thi",
-    "ERR_UNKNOWN_CONTEST_SESSION": "Không tìm thấy bài làm",
+    "ERR_CONTEST_ATTENDED_MAX": "Số lần tham gia đã đạt giới hạn",
     "ERR_DATE_RANGE": "Ngày kết thúc phải sau ngày bắt đầu",
     "ERR_UNKNOWN_POST": "Không tìm thấy bài viết",
     "ERR_POST_TITLE_MIN": "Tiêu đề bài viết phải từ 5 - 300 kí tự",

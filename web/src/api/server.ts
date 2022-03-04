@@ -218,7 +218,7 @@ const server = {
             })
         }).json();
     },
-    changeContest(id: string, contest: { limitTime: number; limitQuestions: number; dataSheet: []; acceptingAnswers: boolean, info: string }, token: string) {
+    changeContest(id: string, contest: { limitTime: number; limitQuestions: number; limitSessions: number; dataSheet: []; acceptingAnswers: boolean, info: string }, token: string) {
         return ky.post(`${conf.server}/change-contest`, {
             method: 'post',
             headers: {
@@ -229,6 +229,7 @@ const server = {
                 id: id,
                 accepting_answers: contest.acceptingAnswers,
                 limit_questions: contest.limitQuestions,
+                limit_sessions: contest.limitSessions,
                 limit_time: contest.limitTime * 60000,
                 data_sheet: JSON.stringify(contest.dataSheet),
                 info: contest.info
@@ -242,15 +243,6 @@ const server = {
                 'content-type': 'application/json',
                 'token': token,
                 'id': id === undefined ? '' : id
-            }
-        }).json();
-    },
-    loadContestSession: function (id: string, token: string) {
-        return ky.get(`${conf.server}/contest-session?id=${id}`, {
-            method: 'get',
-            headers: {
-                'content-type': 'application/json',
-                'token': token
             }
         }).json();
     },
@@ -280,13 +272,21 @@ const server = {
             })
         }).json();
     },
-    loadContestSessions: function (contest: string, limit: number, olderThan: number, token: string) {
-        return ky.get(`${conf.server}/contest-sessions?contest=${contest}&limit=${limit}&older=${olderThan}`, {
-            method: 'get',
+    loadContestSessions: function (contest: string, limit: number, offset: number, filterAttendant: string, filterFinished: boolean, sortBy: string[], token: string) {
+        return ky.post(`${conf.server}/contest-sessions`, {
+            method: 'post',
             headers: {
                 'content-type': 'application/json',
                 'token': token
-            }
+            },
+            body: JSON.stringify({
+                'contest': contest,
+                'limit': limit,
+                'offset': offset,
+                'filter_attendant': filterAttendant,
+                'filter_finished': filterFinished,
+                'sort_by': sortBy
+            })
         }).json();
     },
 }

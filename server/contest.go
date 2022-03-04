@@ -6,6 +6,7 @@ type Contest struct {
 	AcceptingAnswers bool
 	LimitQuestions   uint8
 	LimitTime        uint32
+	LimitSessions    uint8
 	DataSheet        string
 	Info             string
 	EventID          string `gorm:"primaryKey"`
@@ -18,6 +19,7 @@ func (a *Contest) serialize(showData bool) *gabs.Container {
 	_, _ = res.Set(a.AcceptingAnswers, "acceptingAnswers")
 	_, _ = res.Set(a.LimitQuestions, "limitQuestions")
 	_, _ = res.Set(a.LimitTime, "limitTime")
+	_, _ = res.Set(a.LimitSessions, "limitSessions")
 	if showData {
 		_, _ = res.Set(a.DataSheet, "dataSheet")
 	}

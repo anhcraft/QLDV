@@ -6,7 +6,6 @@
       <div class="grow">{{ event.title }}</div>
     </header>
     <div class="mt-5">
-
       <table class="w-full">
         <thead>
           <tr>
@@ -25,7 +24,7 @@
             <td>{{ stringifyTime(cs.finished ? 0 : Math.max(0, cs.endTime - new Date())) }}</td>
             <td>{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(cs.lastAnswerSubmittedTime)) }}</td>
             <td>{{ cs.finished ? "Đã hoàn thành" : "Đang làm bài" }}</td>
-            <td>{{ cs.hasOwnProperty("expectedAnswerSheet") ? `${(getCorrectAnswers(cs)/cs.answerSheet.length*10).toFixed(1)}  (${getCorrectAnswers(cs)}/${cs.answerSheet.length})` : "" }}</td>
+            <td>{{ cs.score }}</td>
           </tr>
         </tbody>
       </table>
@@ -50,6 +49,7 @@ import * as XLSX from "xlsx";
 import Prompt from "../components/Prompt.vue";
 import Editor from '@tinymce/tinymce-vue'
 import lookupErrorCode from "../api/errorCode";
+import utils from "../api/utils";
 
 export default {
   "name": "ContestSessionManage",
@@ -58,19 +58,11 @@ export default {
     return {
       event: {},
       sessionAvailable: true,
-      contestSessions: []
+      contestSessions: [],
+      dataOffset: 0,
     }
   },
   methods: {
-    getCorrectAnswers(a) {
-      let q = 0;
-      for (let i = 0; i < a.answerSheet.length; i++){
-        if(a.expectedAnswerSheet[i] === a.answerSheet[i]){
-          q++;
-        }
-      }
-      return q
-    },
     stringifyTime(num) {
       num /= 1000
       let hours = Math.floor(num / 3600);
@@ -89,19 +81,13 @@ export default {
     },
     loadNextSessions(){
       this.$refs.sessionLoadingState.activate()
-      const older = this.contestSessions.length === 0 ? new Date().getTime() : this.contestSessions[this.contestSessions.length - 1].lastAnswerSubmittedTime
-      server.loadContestSessions(this.$route.params.id, 50, older, auth.getToken()).then(s => {
+      server.loadContestSessions(this.$route.params.id, 50, this.dataOffset, "", false, [], auth.getToken()).then(s => {
         if(s.contestSessions.length === 0) {
           this.sessionAvailable = false
+        } else {
+          this.dataOffset += s.contestSessions.length
         }
-        this.contestSessions = this.contestSessions.concat(s.contestSessions.map((v) => {
-          v.questionSheet = JSON.parse(v.questionSheet)
-          v.answerSheet = JSON.parse(v.answerSheet)
-          if(v.hasOwnProperty("expectedAnswerSheet")) {
-            v.expectedAnswerSheet = JSON.parse(v.expectedAnswerSheet)
-          }
-          return v
-        }))
+        this.contestSessions = this.contestSessions.concat(s.contestSessions.map((v) => utils.parseContestSession(v)))
         this.$refs.sessionLoadingState.deactivate()
       })
     },

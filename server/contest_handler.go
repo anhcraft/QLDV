@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gofiber/fiber/v2"
@@ -8,23 +10,23 @@ import (
 	"gorm.io/gorm/clause"
 	"log"
 	"math/rand"
-	"strconv"
 	"strings"
 	"time"
 )
 
-func editOrCreateContest(eventId string, answers bool, questions uint8, time uint32, sheet string, info string) interface{} {
+func editOrCreateContest(eventId string, answers bool, limitQuestions uint8, limitTime uint32, limitSessions uint8, sheet string, info string) interface{} {
 	contest := &Contest{
 		AcceptingAnswers: answers,
-		LimitQuestions:   questions,
-		LimitTime:        time,
+		LimitQuestions:   limitQuestions,
+		LimitTime:        limitTime,
+		LimitSessions:    limitSessions,
 		DataSheet:        sheet,
 		EventID:          eventId,
 		Info:             info,
 	}
 	_ = db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "event_id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"accepting_answers", "limit_questions", "limit_time", "data_sheet", "info"}),
+		DoUpdates: clause.AssignmentColumns([]string{"accepting_answers", "limit_questions", "limit_time", "limit_sessions", "data_sheet", "info"}),
 	}).Create(&contest)
 	return &contest
 }
@@ -45,25 +47,44 @@ func getContest(id string) *Contest {
 	}
 }
 
-func getContestSession(user string, contest string) *ContestSession {
-	var contestSession ContestSession
-	result := db.Take(&contestSession, "user_id = ? and contest_id = ?", user, contest)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil
-	} else {
-		return &contestSession
+func containString(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
 	}
+	return false
 }
 
-func getContestSessions(contest string, limit int, older int64) []ContestSession {
+func getContestSessions(contest string, limit int, offset int, attendant string, requireFinished bool, order []string) []ContestSession {
 	var contestSessions []ContestSession
-	_ = db.Where("contest_id = ? and last_answer_submitted_time < ?", contest, older).Order("last_answer_submitted_time desc").Limit(limit).Find(&contestSessions)
+	a := db.Where("contest_id = ?", contest)
+	if len(attendant) > 0 {
+		a = a.Where("LOWER(`user_id`) like ?", "%"+attendant+"%")
+	}
+	if requireFinished {
+		t := time.Now().UnixMilli()
+		a = a.Where("(? - `end_time` > 0) or (finished = ?)", t, true)
+	}
+	if containString(order, "final-score") {
+		a = a.Order("score desc")
+	}
+	if containString(order, "session-time") {
+		a = a.Order("(`last_answer_submitted_time` - `start_time`) desc")
+	} else { // session-time can not be combined with sorting by latest submitted time
+		a = a.Order("last_answer_submitted_time desc")
+	}
+	a = a.Offset(offset).Limit(limit).Find(&contestSessions)
 	return contestSessions
 }
 
 func createContestSession(user string, contest string, limitTime uint32, questionSheet string, answerSheet string, expectedAnswerSheet string) *ContestSession {
 	t := time.Now().UnixMilli()
+	hash := sha256.New()
+	hash.Write([]byte(user + contest + time.Now().String()))
+	id := hex.EncodeToString(hash.Sum(nil))
 	c := &ContestSession{
+		ID:                      id,
 		ContestID:               contest,
 		UserID:                  user,
 		StartTime:               t,
@@ -73,19 +94,61 @@ func createContestSession(user string, contest string, limitTime uint32, questio
 		ExpectedAnswerSheet:     expectedAnswerSheet,
 		LastAnswerSubmittedTime: 0,
 		Finished:                false,
+		Score:                   0,
+		AnswerAccuracy:          "[]",
 	}
 	_ = db.Clauses(clause.OnConflict{DoNothing: true}).Create(&c)
 	return c
 }
 
-func submitContestSession(user string, contest string, answerSheet string, saveOnly bool) bool {
+func submitContestSession(id string, answerSheet string, saveOnly bool) bool {
 	t := time.Now().UnixMilli()
+	score := float32(0)
+	answerAccuracy := "[]"
+	if !saveOnly {
+		var contestSession ContestSession
+		result := db.Take(&contestSession, "id = ? and finished = ? and start_time <= ? and end_time + 20000 >= ?", id, false, t, t)
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return false
+		}
+		answerSheetJSON, err := gabs.ParseJSON([]byte(answerSheet))
+		if err != nil {
+			return false
+		}
+		answerSheetList := answerSheetJSON.Children()
+		expectedAnswerSheetJSON, err := gabs.ParseJSON([]byte(contestSession.ExpectedAnswerSheet))
+		if err != nil {
+			return false
+		}
+		expectedAnswerSheetList := expectedAnswerSheetJSON.Children()
+		answerAccuracyJSON, err := gabs.ParseJSON([]byte("[]"))
+		if err != nil {
+			return false
+		}
+		j := float32(0)
+		for i := 0; i < len(answerSheetList); i++ {
+			b := answerSheetList[i].Data().(float64) == expectedAnswerSheetList[i].Data().(float64)
+			_ = answerAccuracyJSON.ArrayAppend(b)
+			if b {
+				j++
+			}
+		}
+		score = j / float32(len(expectedAnswerSheetList)) * 10.0
+		answerAccuracyBytes, err := answerAccuracyJSON.MarshalJSON()
+		if err != nil {
+			return false
+		}
+		answerAccuracy = string(answerAccuracyBytes)
+	}
 	c := &ContestSession{
 		AnswerSheet:             answerSheet,
 		LastAnswerSubmittedTime: t,
 		Finished:                !saveOnly,
+		Score:                   score,
+		AnswerAccuracy:          answerAccuracy,
 	}
-	tx := db.Model(c).Where("user_id = ? and contest_id = ? and finished = ? and start_time <= ? and end_time + 20000 >= ?", user, contest, false, t, t).Select("answer_sheet", "last_answer_submitted_time", "finished").Updates(c)
+	tx := db.Model(c).Where("id = ? and finished = ? and start_time <= ? and end_time + 20000 >= ?", id, false, t, t)
+	tx = tx.Select("answer_sheet", "last_answer_submitted_time", "finished", "score", "answer_accuracy").Updates(c)
 	return tx.RowsAffected > 0
 }
 
@@ -112,6 +175,7 @@ func contestChangeRouteHandler(c *fiber.Ctx) error {
 		AcceptingAnswers bool   `json:"accepting_answers,omitempty"`
 		LimitQuestions   uint8  `json:"limit_questions,omitempty"`
 		LimitTime        uint32 `json:"limit_time,omitempty"`
+		LimitSessions    uint8  `json:"limit_sessions,omitempty"`
 		DataSheet        string `json:"data_sheet,omitempty"`
 		Info             string `json:"info,omitempty"`
 	}{}
@@ -121,6 +185,9 @@ func contestChangeRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 	payload.Info = strings.TrimSpace(payload.Info)
+	if payload.LimitSessions > 30 {
+		payload.LimitSessions = 30
+	}
 
 	if getEvent(payload.Id) == nil {
 		_, _ = res.Set("ERR_UNKNOWN_EVENT", "error")
@@ -128,7 +195,7 @@ func contestChangeRouteHandler(c *fiber.Ctx) error {
 	}
 
 	payload.Info = ugcPolicy.Sanitize(payload.Info)
-	_ = editOrCreateContest(payload.Id, payload.AcceptingAnswers, payload.LimitQuestions, payload.LimitTime, payload.DataSheet, payload.Info)
+	_ = editOrCreateContest(payload.Id, payload.AcceptingAnswers, payload.LimitQuestions, payload.LimitTime, payload.LimitSessions, payload.DataSheet, payload.Info)
 	_, _ = res.Set(true, "success")
 	return c.SendString(res.String())
 }
@@ -156,62 +223,6 @@ func contestRemoveRouteHandler(c *fiber.Ctx) error {
 	return c.SendString(res.String())
 }
 
-func contestGetRouteHandler(c *fiber.Ctx) error {
-	res := gabs.New()
-	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
-	if !success {
-		_, _ = res.Set(email, "error")
-		return c.SendString(res.String())
-	}
-	user := getProfile(email)
-	if user == nil {
-		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
-		return c.SendString(res.String())
-	}
-
-	id := c.Query("id", "")
-	if id == "" {
-		_, _ = res.Set("ERR_INVALID_CONTEST_ID", "error")
-		return c.SendString(res.String())
-	}
-	contest := getContest(id)
-	if contest == nil {
-		_, _ = res.Set("ERR_UNKNOWN_CONTEST", "error")
-		return c.SendString(res.String())
-	}
-	res = contest.serialize(user.Admin)
-	return c.SendString(res.String())
-}
-
-func contestSessionGetRouteHandler(c *fiber.Ctx) error {
-	res := gabs.New()
-	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
-	if !success {
-		_, _ = res.Set(email, "error")
-		return c.SendString(res.String())
-	}
-	user := getProfile(email)
-	if user == nil {
-		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
-		return c.SendString(res.String())
-	}
-
-	id := c.Query("id", "")
-	if id == "" {
-		_, _ = res.Set("ERR_INVALID_CONTEST_ID", "error")
-		return c.SendString(res.String())
-	}
-	contestSession := getContestSession(email, id)
-	if contestSession == nil {
-		_, _ = res.Set("ERR_UNKNOWN_CONTEST_SESSION", "error")
-		return c.SendString(res.String())
-	}
-	res = contestSession.serialize()
-	return c.SendString(res.String())
-}
-
 func contestSessionListRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
@@ -225,20 +236,32 @@ func contestSessionListRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
 	}
-	if !user.Admin {
-		_, _ = res.Set("ERR_NO_PERMISSION", "error")
+
+	payload := struct {
+		Contest         string   `json:"contest,omitempty"`
+		Limit           int      `json:"limit,omitempty"`
+		Offset          int      `json:"offset,omitempty"`
+		FilterAttendant string   `json:"filter_attendant,omitempty"`
+		FilterFinished  bool     `json:"filter_finished,omitempty"`
+		SortBy          []string `json:"sort_by,omitempty"`
+	}{}
+
+	if err := c.BodyParser(&payload); err != nil {
+		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
 		return c.SendString(res.String())
 	}
-	limit, err1 := strconv.Atoi(c.Query("limit", ""))
-	if err1 != nil || limit > 50 {
-		limit = 50
+	payload.FilterAttendant = strings.TrimSpace(payload.FilterAttendant)
+	if payload.Limit > 50 {
+		payload.Limit = 50
 	}
-	older, err2 := strconv.ParseInt(c.Query("older", ""), 10, 64)
-	if err2 != nil {
-		older = time.Now().UnixMilli()
+	if payload.Offset < 0 {
+		payload.Offset = 0
+	}
+	if !user.Admin {
+		payload.FilterAttendant = user.Email
 	}
 	_, _ = res.Array("contestSessions")
-	for _, ev := range getContestSessions(c.Query("contest", ""), limit, older) {
+	for _, ev := range getContestSessions(payload.Contest, payload.Limit, payload.Offset, payload.FilterAttendant, payload.FilterFinished, payload.SortBy) {
 		cont := ev.serialize()
 		_ = res.ArrayAppend(cont, "contestSessions")
 	}
@@ -270,12 +293,7 @@ func contestSessionSubmitRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	if getContest(payload.Id) == nil {
-		_, _ = res.Set("ERR_UNKNOWN_CONTEST", "error")
-		return c.SendString(res.String())
-	}
-
-	_, _ = res.Set(submitContestSession(email, payload.Id, payload.AnswerSheet, payload.SaveOnly), "success")
+	_, _ = res.Set(submitContestSession(payload.Id, payload.AnswerSheet, payload.SaveOnly), "success")
 	return c.SendString(res.String())
 }
 
@@ -294,7 +312,7 @@ func contestSessionJoinRouteHandler(c *fiber.Ctx) error {
 	}
 
 	payload := struct {
-		Id string `questionSheetJSON:"id,omitempty"`
+		Id string `json:"id,omitempty"`
 	}{}
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -327,9 +345,16 @@ func contestSessionJoinRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	if getContestSession(email, payload.Id) != nil {
-		_, _ = res.Set("ERR_CONTEST_ATTENDED", "error")
+	joinedSessions := getContestSessions(payload.Id, int(contest.LimitSessions), 0, email, false, []string{})
+	if len(joinedSessions) >= int(contest.LimitSessions) {
+		_, _ = res.Set("ERR_CONTEST_ATTENDED_MAX", "error")
 		return c.SendString(res.String())
+	}
+	for i := 0; i < len(joinedSessions); i++ {
+		if !joinedSessions[i].Finished && joinedSessions[i].EndTime >= t {
+			_, _ = res.Set("ERR_CONTEST_ATTENDED", "error")
+			return c.SendString(res.String())
+		}
 	}
 
 	dataSheet, _ := gabs.ParseJSON([]byte(contest.DataSheet))
@@ -338,7 +363,7 @@ func contestSessionJoinRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_CONTEST_DATA_INSUFFICIENT", "error")
 		return c.SendString(res.String())
 	}
-	rand.Seed(time.Now().Unix())
+	rand.Seed(t)
 	rand.Shuffle(len(in), func(i, j int) {
 		in[i], in[j] = in[j], in[i]
 	})
@@ -366,6 +391,6 @@ func contestSessionJoinRouteHandler(c *fiber.Ctx) error {
 		log.Println(err)
 	}
 	contestSession := createContestSession(email, payload.Id, contest.LimitTime, string(questionSheetJSON), string(answerSheetJSON), string(expectedAnswerSheetJSON))
-	res = contestSession.serialize()
+	_, _ = res.Set(contestSession.ID, "id")
 	return c.SendString(res.String())
 }

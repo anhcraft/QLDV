@@ -1,12 +1,14 @@
 package main
 
-import "github.com/Jeffail/gabs/v2"
+import (
+	"github.com/Jeffail/gabs/v2"
+	"time"
+)
 
 type ContestSession struct {
-	ContestID               string  `gorm:"primaryKey"`
-	Contest                 Contest `gorm:"constraint:OnDelete:CASCADE;"`
-	UserID                  string  `gorm:"primaryKey"`
-	User                    User    `gorm:"constraint:OnDelete:CASCADE;"`
+	ID                      string `gorm:"primaryKey"`
+	ContestID               string
+	UserID                  string
 	StartTime               int64
 	EndTime                 int64
 	QuestionSheet           string
@@ -14,10 +16,13 @@ type ContestSession struct {
 	ExpectedAnswerSheet     string
 	LastAnswerSubmittedTime int64
 	Finished                bool
+	Score                   float32
+	AnswerAccuracy          string
 }
 
 func (a *ContestSession) serialize() *gabs.Container {
 	res := gabs.New()
+	_, _ = res.Set(a.ID, "id")
 	_, _ = res.Set(a.UserID, "userId")
 	_, _ = res.Set(a.ContestID, "contestId")
 	_, _ = res.Set(a.StartTime, "startTime")
@@ -28,14 +33,10 @@ func (a *ContestSession) serialize() *gabs.Container {
 	_, _ = res.Set(a.Finished, "finished")
 	if a.Finished {
 		//_, _ = res.Set(a.ExpectedAnswerSheet, "expectedAnswerSheet")
-		answerSheet, _ := gabs.ParseJSON([]byte(a.AnswerSheet))
-		answerSheetList := answerSheet.Children()
-		expectedAnswerSheet, _ := gabs.ParseJSON([]byte(a.ExpectedAnswerSheet))
-		expectedAnswerSheetList := expectedAnswerSheet.Children()
-		_, _ = res.Array("answerAccuracy")
-		for i := 0; i < len(answerSheetList); i++ {
-			_ = res.ArrayAppend(answerSheetList[i].Data().(float64) == expectedAnswerSheetList[i].Data().(float64), "answerAccuracy")
-		}
+		_, _ = res.Set(a.AnswerAccuracy, "answerAccuracy")
+		_, _ = res.Set(a.Score, "score")
+	} else {
+		_, _ = res.Set(time.Now().UnixMilli() >= a.EndTime, "finished")
 	}
 	return res
 }
