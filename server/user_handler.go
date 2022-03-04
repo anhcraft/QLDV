@@ -133,17 +133,17 @@ func profileGetRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	requesterToken := c.Get("token")
+	success, requesterEmail := getEmailFromToken(requesterToken, c.UserContext())
 	var requester *User = nil
 	if success {
-		requester = getProfile(email)
+		requester = getProfile(requesterEmail)
 		if payload.User == "" {
-			payload.User = email
+			payload.User = requesterEmail
 		}
 	}
 	if payload.User == "" {
-		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+		_, _ = res.Set("ERR_TOKEN_VERIFY", "error")
 		return c.SendString(res.String())
 	}
 
@@ -152,7 +152,7 @@ func profileGetRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
 	}
-	return c.SendString(user.serialize(success && requester != nil && (payload.User == email || requester.Mod || requester.Admin)).String())
+	return c.SendString(user.serialize(success && requester != nil && (payload.User == requesterEmail || requester.Mod || requester.Admin)).String())
 }
 
 func progressionGetRouteHandler(c *fiber.Ctx) error {
