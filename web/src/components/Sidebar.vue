@@ -32,14 +32,18 @@
       </div>
     </div>
   </LoadingState>
-  <div class="my-5 md:my-10 flex flex-col gap-3">
+  <div class="my-5 md:my-10 flex flex-col gap-1">
     <router-link to="/bch/" class="bg-blue-800 hover:opacity-80 transition transition-all text-white text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
       <img src="../assets/youth-logo.png" class="w-12 h-12"  alt=""/>
       <p>BCH Đoàn trường</p>
     </router-link>
-    <a href="https://youtube.com/channel/UCPtKpRuGva1y2RwJCooVu5Q" target="_blank" class="bg-indigo-800 hover:opacity-80 transition transition-all text-white text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
+    <a href="https://youtube.com/channel/UCPtKpRuGva1y2RwJCooVu5Q" target="_blank" class="bg-blue-800 hover:opacity-80 transition transition-all text-white text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
       <img src="../assets/youtube-btn.png" class="w-12 h-12"  alt=""/>
       <p>Video hoạt động</p>
+    </a>
+    <a href="https://fb.com/tuoitretruongthptdian" target="_blank" class="bg-gray-600 hover:opacity-80 transition transition-all text-white text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
+      <img src="../assets/fanpage-logo.png" class="w-12 h-12 rounded-full"  alt=""/>
+      <p>Fanpage Đoàn trường</p>
     </a>
     <a href="https://forms.gle/jg5aNgWeb52wjgFf9" target="_blank" class="bg-gray-600 hover:opacity-80 transition transition-all text-white text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
       <img src="../assets/filling-form.png" class="w-12 h-12"  alt=""/>
