@@ -9,9 +9,9 @@
       </header>
       <div class="grid grid-cols-1 md:grid-cols-3">
         <div class="md:border-l-2 md:border-l-slate-300 pt-5 md:p-5 md:order-last" v-if="contestSession === undefined || contestSession.finished">
-          <div class="mb-10">
+          <div class="mb-5" v-if="contestSession !== undefined && contestSession.finished">
             <div class="border-l-4 border-l-orange-400 bg-orange-200 px-4 py-2">Thông tin bài làm</div>
-            <div class="flex flex-row place-items-center mt-3" v-if="contestSession !== undefined && contestSession.finished">
+            <div class="flex flex-row place-items-center mt-3">
               <div class="grow text-center">
                 <span class="text-5xl">{{ rightAnswers }}</span><span class="text-4xl"> / {{ contestSession.answerSheet.length }}</span>
               </div>
@@ -47,7 +47,7 @@
               <div class="text-lg">{{ q.question }}</div>
               <div class="grid grid-cols-1 md:grid-cols-2">
                 <div class="flex flex-row gap-2 place-items-center" v-for="(c, j) in q.choices" :class="getResultBackground(i, j)">
-                  <input type="radio" :value="j" v-model="contestSession.answerSheet[i]" :disabled="endingContest || contestSession.finished">
+                  <input type="radio" class="w-4 h-4" :value="j" v-model="contestSession.answerSheet[i]" :disabled="endingContest || contestSession.finished">
                   <div>{{ c }}</div>
                 </div>
               </div>
