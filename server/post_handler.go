@@ -78,12 +78,12 @@ func setPostStat(postId string, userId string, action string) bool {
 func postChangeRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -142,12 +142,12 @@ func postChangeRouteHandler(c *fiber.Ctx) error {
 func postStatUpdateRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -172,16 +172,16 @@ func postStatUpdateRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_UNKNOWN_POST_ACTION", "error")
 		return c.SendString(res.String())
 	}
-	_, _ = res.Set(setPostStat(id, email, action), "success")
+	_, _ = res.Set(setPostStat(id, emailOrError, action), "success")
 	return c.SendString(res.String())
 }
 
 func postListRouteHandler(c *fiber.Ctx) error {
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	var user *User = nil
 	if success {
-		user = getProfile(email)
+		user = getProfile(emailOrError)
 	}
 	res := gabs.New()
 	limit, err1 := strconv.Atoi(c.Query("limit", ""))
@@ -226,12 +226,12 @@ func postListRouteHandler(c *fiber.Ctx) error {
 func postRemoveRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -247,12 +247,13 @@ func postRemoveRouteHandler(c *fiber.Ctx) error {
 }
 
 func postGetRouteHandler(c *fiber.Ctx) error {
-	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
-	if !success {
-		email = "***"
-	}
 	res := gabs.New()
+	token := c.Get("token")
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
+	if !success {
+		_, _ = res.Set(emailOrError, "error")
+		return c.SendString(res.String())
+	}
 	id := c.Query("id", "")
 	if id == "" {
 		_, _ = res.Set("ERR_INVALID_POST_ID", "error")
@@ -266,7 +267,7 @@ func postGetRouteHandler(c *fiber.Ctx) error {
 
 	var user *User = nil
 	if success {
-		user = getProfile(email)
+		user = getProfile(emailOrError)
 	}
 	if (post.Privacy&1) == 1 && user == nil {
 		_, _ = res.Set("ERR_NO_PERMISSION", "error")
@@ -294,7 +295,7 @@ func postGetRouteHandler(c *fiber.Ctx) error {
 		view      int64
 	}{}
 
-	x := db.Raw("select count(if(post_id = ? and action = 'like', 1, null)) as 'like', count(if(post_id = ? and action = 'like' and user_id = ?, 1, null)) as likeCheck, count(if(post_id = ? and action = 'view', 1, null)) as view from post_stats", id, id, email, id)
+	x := db.Raw("select count(if(post_id = ? and action = 'like', 1, null)) as 'like', count(if(post_id = ? and action = 'like' and user_id = ?, 1, null)) as likeCheck, count(if(post_id = ? and action = 'view', 1, null)) as view from post_stats", id, id, emailOrError, id)
 	_ = x.Row().Scan(&result.like, &result.likeCheck, &result.view)
 	_, _ = res.Set(result.like, "likes")
 	_, _ = res.Set(result.view, "views")

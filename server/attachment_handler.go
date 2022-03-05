@@ -46,12 +46,12 @@ func removeAttachments(postId string, atts []string) bool {
 func attachmentUploadRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())

@@ -78,10 +78,10 @@ func eventGetRouteHandler(c *fiber.Ctx) error {
 	}
 
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	var user *User = nil
 	if success {
-		user = getProfile(email)
+		user = getProfile(emailOrError)
 	}
 	if (event.Privacy&1) == 1 && user == nil {
 		_, _ = res.Set("ERR_NO_PERMISSION", "error")
@@ -106,10 +106,10 @@ func eventGetRouteHandler(c *fiber.Ctx) error {
 
 func eventListRouteHandler(c *fiber.Ctx) error {
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	var user *User = nil
 	if success {
-		user = getProfile(email)
+		user = getProfile(emailOrError)
 	}
 
 	res := gabs.New()
@@ -153,12 +153,12 @@ func eventListRouteHandler(c *fiber.Ctx) error {
 func eventRemoveRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -176,12 +176,12 @@ func eventRemoveRouteHandler(c *fiber.Ctx) error {
 func eventChangeRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())

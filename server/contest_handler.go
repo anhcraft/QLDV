@@ -155,12 +155,12 @@ func submitContestSession(id string, answerSheet string, saveOnly bool) bool {
 func contestChangeRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -203,12 +203,12 @@ func contestChangeRouteHandler(c *fiber.Ctx) error {
 func contestRemoveRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -226,12 +226,12 @@ func contestRemoveRouteHandler(c *fiber.Ctx) error {
 func contestSessionListRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -271,12 +271,12 @@ func contestSessionListRouteHandler(c *fiber.Ctx) error {
 func contestSessionSubmitRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -300,12 +300,12 @@ func contestSessionSubmitRouteHandler(c *fiber.Ctx) error {
 func contestSessionJoinRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -345,7 +345,7 @@ func contestSessionJoinRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	joinedSessions := getContestSessions(payload.Id, int(contest.LimitSessions), 0, email, false, []string{})
+	joinedSessions := getContestSessions(payload.Id, int(contest.LimitSessions), 0, emailOrError, false, []string{})
 	if len(joinedSessions) >= int(contest.LimitSessions) {
 		_, _ = res.Set("ERR_CONTEST_ATTENDED_MAX", "error")
 		return c.SendString(res.String())
@@ -390,7 +390,7 @@ func contestSessionJoinRouteHandler(c *fiber.Ctx) error {
 	if err != nil {
 		log.Println(err)
 	}
-	contestSession := createContestSession(email, payload.Id, contest.LimitTime, string(questionSheetJSON), string(answerSheetJSON), string(expectedAnswerSheetJSON))
+	contestSession := createContestSession(emailOrError, payload.Id, contest.LimitTime, string(questionSheetJSON), string(answerSheetJSON), string(expectedAnswerSheetJSON))
 	_, _ = res.Set(contestSession.ID, "id")
 	return c.SendString(res.String())
 }

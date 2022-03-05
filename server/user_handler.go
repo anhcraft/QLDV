@@ -144,12 +144,12 @@ func profileGetRouteHandler(c *fiber.Ctx) error {
 	}
 
 	requesterToken := c.Get("token")
-	success, requesterEmail := getEmailFromToken(requesterToken, c.UserContext())
+	success, requesterEmailOrError := getEmailFromToken(requesterToken, c.UserContext())
 	var requester *User = nil
 	if success {
-		requester = getProfile(requesterEmail)
+		requester = getProfile(requesterEmailOrError)
 		if payload.User == "" {
-			payload.User = requesterEmail
+			payload.User = requesterEmailOrError
 		}
 	}
 	if payload.User == "" {
@@ -162,13 +162,13 @@ func profileGetRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
 	}
-	return c.SendString(user.serialize(success && requester != nil && (payload.User == requesterEmail || requester.Mod || requester.Admin)).String())
+	return c.SendString(user.serialize(success && requester != nil && (payload.User == requesterEmailOrError || requester.Mod || requester.Admin)).String())
 }
 
 func progressionGetRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 
 	payload := struct {
 		User string `json:"user,omitempty"`
@@ -181,9 +181,9 @@ func progressionGetRouteHandler(c *fiber.Ctx) error {
 
 	var requester *User = nil
 	if success {
-		requester = getProfile(email)
+		requester = getProfile(emailOrError)
 		if payload.User == "" {
-			payload.User = email
+			payload.User = emailOrError
 		}
 	}
 
@@ -213,12 +213,12 @@ func progressionGetRouteHandler(c *fiber.Ctx) error {
 func progressionChangeRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	requester := getProfile(email)
+	requester := getProfile(emailOrError)
 	if requester == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -251,12 +251,12 @@ func progressionChangeRouteHandler(c *fiber.Ctx) error {
 func userListRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	requester := getProfile(email)
+	requester := getProfile(emailOrError)
 	if requester == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -303,12 +303,12 @@ func userListRouteHandler(c *fiber.Ctx) error {
 func userChangeRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	requester := getProfile(email)
+	requester := getProfile(emailOrError)
 	if requester == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -345,12 +345,12 @@ func userChangeRouteHandler(c *fiber.Ctx) error {
 func userStatGetRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	requester := getProfile(email)
+	requester := getProfile(emailOrError)
 	if requester == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -381,12 +381,12 @@ func userStatGetRouteHandler(c *fiber.Ctx) error {
 func profileCoverSetRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -395,9 +395,9 @@ func profileCoverSetRouteHandler(c *fiber.Ctx) error {
 	t := c.Get("content-type")
 
 	if t == "image/png" {
-		_, _ = res.Set(setProfileCover(email, c.Body(), ".png"), "success")
+		_, _ = res.Set(setProfileCover(emailOrError, c.Body(), ".png"), "success")
 	} else if t == "image/jpeg" {
-		_, _ = res.Set(setProfileCover(email, c.Body(), ".jpeg"), "success")
+		_, _ = res.Set(setProfileCover(emailOrError, c.Body(), ".jpeg"), "success")
 	} else {
 		_, _ = res.Set("ERR_ILLEGAL_PROFILE_COVER", "error")
 		return c.SendString(res.String())
@@ -423,12 +423,12 @@ func setProfileCover(email string, data []byte, ext string) bool {
 func profileBoardSetRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -454,19 +454,19 @@ func profileBoardSetRouteHandler(c *fiber.Ctx) error {
 
 	payload.Board = ugcPolicy.Sanitize(payload.Board)
 
-	_, _ = res.Set(setProfileBoard(email, payload.Board), "success")
+	_, _ = res.Set(setProfileBoard(emailOrError, payload.Board), "success")
 	return c.SendString(res.String())
 }
 
 func profileSettingSetRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, email := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(email, "error")
+		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(email)
+	user := getProfile(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -481,6 +481,6 @@ func profileSettingSetRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	_, _ = res.Set(setProfileSettings(email, payload.Settings), "success")
+	_, _ = res.Set(setProfileSettings(emailOrError, payload.Settings), "success")
 	return c.SendString(res.String())
 }
