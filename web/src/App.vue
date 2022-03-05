@@ -7,6 +7,9 @@
 .vue-notification {
   font-size: 0.9rem;
 }
+.prose img {
+  display: inline;
+}
 </style>
 
 <script>
