@@ -253,8 +253,8 @@ func postGetRouteHandler(c *fiber.Ctx) error {
 	token := c.Get("token")
 	success, emailOrError := getEmailFromToken(token, c.UserContext())
 	if !success {
-		_, _ = res.Set(emailOrError, "error")
-		return c.SendString(res.String())
+		// guest can view public posts
+		emailOrError = "***"
 	}
 	id := c.Query("id", "")
 	if id == "" {
