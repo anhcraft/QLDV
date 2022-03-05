@@ -6,7 +6,10 @@ import (
 	"firebase.google.com/go/auth"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
+	recover2 "github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/microcosm-cc/bluemonday"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -84,6 +87,10 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 	}))
+	app.Use(recover2.New())
+	app.Use(compress.New(compress.Config{
+		Level: compress.LevelBestCompression,
+	}))
 
 	app.Post("/profile", profileGetRouteHandler)
 	app.Post("/progression", progressionGetRouteHandler)
@@ -114,6 +121,7 @@ func main() {
 	app.Post("/join-contest-session", contestSessionJoinRouteHandler)
 
 	app.Static("/static/", "./public")
+	app.Get("/status", monitor.New())
 
 	err := app.Listen(":3002")
 	if err != nil {
