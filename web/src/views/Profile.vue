@@ -156,6 +156,14 @@ export default {
     },
     onProfileCoverChange(e) {
       if (e.target.files.length > 0) {
+        if(e.target.files[0].size > 500000){
+          this.$notify({
+            title: "Lưu ảnh bìa thất bại",
+            text: lookupErrorCode("ERR_PROFILE_COVER_SIZE_EXCEEDED"),
+            type: "error"
+          });
+          return
+        }
         this.$refs.profileCoverLoadingState.activate()
         server.setProfileCover(e.target.files[0], auth.getToken()).then(s => {
           this.$refs.profileCoverLoadingState.deactivate()

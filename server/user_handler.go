@@ -394,8 +394,11 @@ func profileCoverSetRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
+	if len(c.Body()) > 500000 { // 500KB
+		_, _ = res.Set("ERR_PROFILE_COVER_SIZE_EXCEEDED", "error")
+		return c.SendString(res.String())
+	}
 	t := c.Get("content-type")
-
 	if t == "image/png" {
 		_, _ = res.Set(setProfileCover(emailOrError, c.Body(), ".png"), "success")
 	} else if t == "image/jpeg" {

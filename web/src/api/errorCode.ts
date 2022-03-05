@@ -23,6 +23,7 @@ const list = {
     "ERR_ATTACHMENT_REMOVE_FAILED": "Lỗi xóa ảnh đính kèm",
     "ERR_UNKNOWN_POST_ACTION": "Hành động tương tác bài việt không hợp lệ",
     "ERR_ILLEGAL_PROFILE_COVER": "Ảnh bìa phải ở định dạng .png/.jpg/.jpeg",
+    "ERR_PROFILE_COVER_SIZE_EXCEEDED": "Ảnh bìa vượt dung lượng cho phép (500 KB)",
     "ERR_PROFILE_BOARD_CONTENT_MIN": "Nội dung tường nhà phải từ 10 - 10.000 kí tự",
     "ERR_PROFILE_BOARD_CONTENT_MAX": "Nội dung tường nhà phải từ 10 - 10.000 kí tự"
 }
