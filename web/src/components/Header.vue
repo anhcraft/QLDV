@@ -62,7 +62,7 @@ export default {
               } else {
                 this.$notify({
                   title: "Đăng nhập thất bại",
-                  text: "Tài khoản không hợp lệ",
+                  text: "Tài khoản không thuộc nội bộ nhà trường",
                   type: "error"
                 });
               }
