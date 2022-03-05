@@ -259,12 +259,13 @@ func contestSessionListRouteHandler(c *fiber.Ctx) error {
 	if payload.Offset < 0 {
 		payload.Offset = 0
 	}
-	if !user.Admin {
+	if !user.Admin && payload.FilterAttendant != "" {
 		payload.FilterAttendant = user.Email
 	}
+	fullDetails := user.Admin || payload.FilterAttendant == user.Email
 	_, _ = res.Array("contestSessions")
 	for _, ev := range getContestSessions(payload.Contest, payload.Limit, payload.Offset, payload.FilterAttendant, payload.FilterFinished, payload.SortBy) {
-		cont := ev.serialize()
+		cont := ev.serialize(fullDetails)
 		_ = res.ArrayAppend(cont, "contestSessions")
 	}
 	return c.SendString(res.String())
