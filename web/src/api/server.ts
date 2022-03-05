@@ -289,6 +289,18 @@ const server = {
             })
         }).json();
     },
+    getContestStats: async function(contest: string, token: string) {
+        return ky.post(`${conf.server}/get-contest-stats`, {
+            method: 'post',
+            headers: {
+                'content-type': 'application/json',
+                'token': token
+            },
+            body: JSON.stringify({
+                'id': contest
+            })
+        }).json();
+    },
 }
 
 export default server;

@@ -152,6 +152,39 @@ func submitContestSession(id string, answerSheet string, saveOnly bool) bool {
 	return tx.RowsAffected > 0
 }
 
+func contestStatGetRouteHandler(c *fiber.Ctx) error {
+	res := gabs.New()
+	token := c.Get("token")
+	success, emailOrError := getEmailFromToken(token, c.UserContext())
+	if !success {
+		_, _ = res.Set(emailOrError, "error")
+		return c.SendString(res.String())
+	}
+	user := getProfile(emailOrError)
+	if user == nil {
+		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
+		return c.SendString(res.String())
+	}
+
+	payload := struct {
+		Id string `json:"id,omitempty"`
+	}{}
+	if err := c.BodyParser(&payload); err != nil {
+		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
+		return c.SendString(res.String())
+	}
+
+	var results []ContestScoreRank
+	x := db.Table("contest_sessions").Select("round(`score`, 1) as `rank`, count(round(`score`, 1)) as `count`")
+	x = x.Where("contest_id = ?", payload.Id).Group("`rank`").Order("`count` DESC").Limit(10)
+	_ = x.Find(&results)
+	res, _ = gabs.ParseJSON([]byte("[]"))
+	for i := 0; i < len(results); i++ {
+		_ = res.ArrayAppend(results[i].serialize())
+	}
+	return c.SendString(res.String())
+}
+
 func contestChangeRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")

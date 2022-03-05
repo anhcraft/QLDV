@@ -117,6 +117,7 @@ func main() {
 	app.Post("/change-contest", contestChangeRouteHandler)
 	app.Post("/remove-contest", contestRemoveRouteHandler)
 	app.Post("/contest-sessions", contestSessionListRouteHandler)
+	app.Post("/get-contest-stats", contestStatGetRouteHandler)
 	app.Post("/submit-contest-session", contestSessionSubmitRouteHandler)
 	app.Post("/join-contest-session", contestSessionJoinRouteHandler)
 

@@ -22,9 +22,12 @@
             </div>
             <div class="flex flex-row gap-2">
               <UsersIcon class="w-4"></UsersIcon>
-              <p>Số lượt làm: 0</p>
+              <p>Số lượt làm: {{ option.series[0].data.reduce((s, a) => s + a, 0) }}</p>
             </div>
             <div class="break-words prose max-w-max mt-5" v-html="event.contest.info"></div>
+            <div class="w-full h-48 mt-5">
+              <v-chart class="chart" :option="option" />
+            </div>
           </div>
         </div>
 
@@ -116,10 +119,25 @@ import Prompt from "../components/Prompt.vue";
 import lookupErrorCode from "../api/errorCode";
 import utils from "../api/utils"
 import {ChevronLeftIcon, ChevronRightIcon} from "@heroicons/vue/outline";
+import { use } from "echarts/core";
+import { CanvasRenderer } from "echarts/renderers";
+import {LineChart} from "echarts/charts";
+import {GridComponent, TitleComponent} from "echarts/components";
+import VChart from "vue-echarts";
+
+use([
+  CanvasRenderer,
+  LineChart,
+  TitleComponent,
+  GridComponent
+]);
 
 export default {
   "name": "Contest",
-  components: {LoadingState, Header, FloatingMenu, Breadcrumb, Prompt, QuestionMarkCircleIcon, UsersIcon, ClockIcon, ChevronLeftIcon, ChevronRightIcon},
+  components: {
+    LoadingState, Header, FloatingMenu, Breadcrumb, Prompt, VChart,
+    QuestionMarkCircleIcon, UsersIcon, ClockIcon, ChevronLeftIcon, ChevronRightIcon
+  },
   data() {
     return {
       event: {},
@@ -130,7 +148,26 @@ export default {
       autoSaver: undefined,
       timeLeft: 0,
       savingContest: false,
-      endingContest: false
+      endingContest: false,
+      option: {
+        title: {
+          text: "Thống kê kết quả",
+          left: "center"
+        },
+        xAxis: {
+          type: 'category',
+          data: []
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            data: [],
+            type: 'line'
+          }
+        ]
+      }
     }
   },
   computed: {
@@ -252,6 +289,28 @@ export default {
       }
       return ""
     },
+    loadContestStats() {
+      server.getContestStats(this.$route.params.id, auth.getToken()).then(s => {
+        if (s.hasOwnProperty("error")) {
+          this.$notify({
+            title: "Tải thống kê thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
+        } else {
+          s.forEach((v) => {
+            this.option.xAxis.data = this.option.xAxis.data.concat(v.rank)
+            this.option.series[0].data = this.option.series[0].data.concat(v.count)
+          })
+        }
+      }, (e) => {
+        this.$notify({
+          title: "Tải thống kê thất bại",
+          text: e.message,
+          type: "error"
+        });
+      })
+    },
     loadContestSessions() {
       server.loadContestSessions(this.$route.params.id, 30, 0, this.$root.profile.email, false, [], auth.getToken()).then(s => {
         if(s.hasOwnProperty("error")) {
@@ -269,7 +328,10 @@ export default {
             return v
           })
           this.$refs.loadingState.deactivate()
-          if(this.activeContestSession === undefined) return
+          if(this.activeContestSession === undefined) {
+            this.loadContestStats()
+            return
+          }
           this.countdown = setInterval(() => {
             if(this.endingContest) return
             this.timeLeft = Math.max(0, this.activeContestSession.endTime - new Date().getTime())
