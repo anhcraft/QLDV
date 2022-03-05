@@ -289,6 +289,8 @@ func userListRouteHandler(c *fiber.Ctx) error {
 
 	if payload.Limit > 50 {
 		payload.Limit = 50
+	} else if payload.Limit < 1 {
+		payload.Limit = 1
 	}
 	if payload.Offset < 0 {
 		payload.Offset = 0

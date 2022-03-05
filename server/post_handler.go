@@ -187,6 +187,8 @@ func postListRouteHandler(c *fiber.Ctx) error {
 	limit, err1 := strconv.Atoi(c.Query("limit", ""))
 	if err1 != nil || limit > 50 {
 		limit = 50
+	} else if limit < 1 {
+		limit = 1
 	}
 	older, err2 := strconv.ParseInt(c.Query("older", ""), 10, 64)
 	if err2 != nil {
