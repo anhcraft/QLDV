@@ -176,7 +176,7 @@ func contestStatGetRouteHandler(c *fiber.Ctx) error {
 
 	var results []ContestScoreRank
 	x := db.Table("contest_sessions").Select("round(`score`, 1) as `rank`, count(round(`score`, 1)) as `count`")
-	x = x.Where("contest_id = ?", payload.Id).Group("`rank`").Order("`count` DESC").Limit(200)
+	x = x.Where("contest_id = ?", payload.Id).Group("`rank`").Order("`rank`").Limit(200)
 	_ = x.Find(&results)
 	res, _ = gabs.ParseJSON([]byte("[]"))
 	for i := 0; i < len(results); i++ {
