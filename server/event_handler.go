@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gofiber/fiber/v2"
@@ -44,10 +42,7 @@ func getEvent(id string) *Event {
 
 func editOrCreateEvent(id string, title string, startDate int64, endDate int64, privacy uint8) *Event {
 	if id == "" {
-		hash := sha256.New()
-		hash.Write([]byte(id + title + time.Now().String()))
-		md := hash.Sum(nil)
-		id = hex.EncodeToString(md)
+		id = GenerateIdFromTitle(title)
 	}
 	event := Event{
 		ID:        id,
