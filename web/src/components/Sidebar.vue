@@ -15,7 +15,8 @@
     </div>
     <div class="grid grid-cols-7 gap-y-3 my-3">
       <div v-for="i in 35">
-        <div class="m-auto w-7 h-7 rounded-full flex items-center justify-center" :class="{'bg-pink-400 text-white': isToday(i)}">
+        <div class="m-auto w-7 h-7 rounded-full flex items-center justify-center" @click="chooseCalendarDay(i)"
+             :class="(i === eventCalendar.currentDay ? 'bg-pink-400 text-white' : (isToday(i) ? 'bg-gray-300 text-white' : '')) + (i <= this.getDaysInMonth ? ' transition-all duration-300 cursor-pointer hover:bg-pink-300 hover:text-white' : '')">
           <span v-if="i <= this.getDaysInMonth" class="text-sm">{{ i }}</span>
         </div>
       </div>
@@ -23,7 +24,8 @@
   </div>
   <LoadingState ref="eventCalendarLoadingState">
     <div class="flex flex-col gap-3">
-      <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2" v-for="event in eventCalendar.events[eventCalendar.currentMonth+'.'+eventCalendar.currentYear]" :class="{'hover:border-gray-800 cursor-pointer' : (event.hasOwnProperty('contest') && $root.isLoggedIn())}" @click="openEvent(event)">
+      <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2" v-for="event in availableEvents"
+           :class="{'hover:border-gray-800 cursor-pointer' : (event.hasOwnProperty('contest') && $root.isLoggedIn())}" @click="openEvent(event)">
         <div class="text-lg break-words">
           <FireIcon class="w-6 text-gray-600 text-rose-400 float-left mr-1" v-if="event.hasOwnProperty('contest')"></FireIcon>
           <p>{{ event.title }}</p>
@@ -69,6 +71,7 @@ export default {
       eventCalendar: {
         currentYear: 0,
         currentMonth: 0,
+        currentDay: 0,
         events: {}
       }
     }
@@ -76,19 +79,40 @@ export default {
   computed: {
     getDaysInMonth() {
       return new Date(this.eventCalendar.currentYear, this.eventCalendar.currentMonth + 1, 0).getDate()
+    },
+    currentDate() {
+      return new Date(this.eventCalendar.currentYear, this.eventCalendar.currentMonth, this.eventCalendar.currentDay)
+    },
+    availableEvents() {
+      return this.eventCalendar.events[this.eventCalendar.currentMonth+'.'+this.eventCalendar.currentYear].filter((v) => {
+        return this.currentDate.getTime() >= v.startDate && this.currentDate.getTime() <= v.endDate
+      })
     }
   },
   methods: {
+    inSameDay(date1, date2) {
+      return date1.getDate() === date2.getDate() && date1.getMonth() === date2.getMonth() && date1.getFullYear() === date2.getFullYear()
+    },
     openEvent(event){
       if(event.hasOwnProperty("contest") && this.$root.isLoggedIn()) {
         this.$router.push("/c/" + event.contest.id)
       }
     },
     getEventStatus(event){
-      if((event.endDate - new Date().getTime()) >= 60*60*3*1000) {
-        return ""
+      const now = new Date().getTime()
+      if(now >= event.endDate) {
+        return "Đã kết thúc"
+      } else if((event.endDate - now) <= 60*60*3*1000) {
+        return "Sắp kết thúc: " + new Intl.DateTimeFormat("vi-VN", {
+          timeStyle: "medium",
+          dateStyle: "short"
+        }).format(new Date(event.endDate))
       }
-      return "Sắp kết thúc: " + new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.endDate))
+      return ""
+    },
+    chooseCalendarDay(i) {
+      if(i > this.getDaysInMonth) return
+      this.eventCalendar.currentDay = i
     },
     nextMonth(delta){
       let d = this.eventCalendar.currentMonth + delta;
@@ -101,6 +125,13 @@ export default {
       }
       this.eventCalendar.currentMonth = d
 
+      const cur = new Date()
+      if(d === cur.getMonth()) {
+        this.eventCalendar.currentDay = cur.getDate()
+      } else {
+        this.eventCalendar.currentDay = 1
+      }
+
       const key = this.eventCalendar.currentMonth + "." + this.eventCalendar.currentYear;
       if(this.eventCalendar.events.hasOwnProperty(key)) return
       this.$refs.eventCalendarLoadingState.activate()
@@ -108,7 +139,9 @@ export default {
       const b = new Date(this.eventCalendar.currentYear, this.eventCalendar.currentMonth + 1, 1, 0, 0, 0)
       server.loadEvents(10, new Date().getTime(), a.getTime(), b.getTime() - 1000, auth.getToken()).then(s => {
         const v = this.eventCalendar.events
-        v[key] = s.events
+        v[key] = s.events.sort((ev) => {
+          return ev.hasOwnProperty('contest') ? -1 : 0
+        })
         this.eventCalendar.events = v
         this.$refs.eventCalendarLoadingState.deactivate()
       }, (e) => {
@@ -132,7 +165,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-
-</style>
