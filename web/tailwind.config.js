@@ -6,8 +6,7 @@ module.exports = {
   theme: {
     fontFamily: {
       'sans': ['Roboto', 'ui-sans-serif', 'system-ui'],
-      'serif': ['serif'],
-      'yomogi': ['Yomogi', 'cursive']
+      'serif': ['serif']
     },
     extend: {
       typography: {

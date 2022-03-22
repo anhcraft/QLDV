@@ -4,9 +4,8 @@
     <div>
       <div v-for="(q, index) in quotes" :class="{'hidden': currentQuote !== index}">
         <div class="h-[200px] md:h-[400px] m-auto transition-all duration-300 hover:opacity-80 cursor-pointer bg-bottom bg-no-repeat bg-[length:100%] md:bg-[length:auto_400px]" :style="`background-image: url(${q.img})`" @click="currentQuote = (currentQuote === quotes.length - 1) ? 0 : currentQuote + 1"></div>
-        <div class="max-w-[800px] h-[120px] m-auto mt-7 text-center">
-          <q class="font-yomogi text-xl md:text-2xl">{{ q.text }}</q>
-          <p class="font-serif text-gray-500 italic mt-1">― {{ q.author }}</p>
+        <div class="max-w-[800px] h-[120px] m-auto mt-7 text-center font-light text-xl md:text-2xl">
+          {{ q.text }}
         </div>
       </div>
     </div>
