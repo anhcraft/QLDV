@@ -22,58 +22,53 @@
 </template>
 
 <script>
-import {getAuth, GoogleAuthProvider, signInWithPopup} from "firebase/auth";
+import auth from "../api/auth";
 import server from "../api/server";
-import Cookies from "js-cookie";
 import lookupErrorCode from "../api/errorCode";
 
 export default {
   name: "Header",
   methods: {
+    postLogIn() {
+      server.loadProfile('', auth.getToken()).then((s) => {
+        if(s.hasOwnProperty("error")) {
+          this.$notify({
+            title: "Đăng nhập thất bại",
+            text: lookupErrorCode(s["error"]),
+            type: "error"
+          });
+          return
+        }
+        auth.setAuthenticated(true)
+        window.location.reload();
+      }, (e) => {
+        this.$notify({
+          title: "Đăng nhập thất bại",
+          text: e.message,
+          type: "error"
+        });
+      })
+    },
     logIn() {
-      const provider = new GoogleAuthProvider();
-      provider.addScope('https://www.googleapis.com/auth/userinfo.email');
-      const auth = getAuth();
-      signInWithPopup(auth, provider)
-          .then((result) => {
-            const credential = GoogleAuthProvider.credentialFromResult(result);
-            if(credential != null){
-              if(result.user.email?.endsWith("@dian.sgdbinhduong.edu.vn")) {
-                auth.currentUser?.getIdToken().then(token => {
-                  server.loadProfile('', token).then((s) => {
-                    if(s.hasOwnProperty("error")) {
-                      this.$notify({
-                        title: "Đăng nhập thất bại",
-                        text: lookupErrorCode(s["error"]),
-                        type: "error"
-                      });
-                    } else {
-                      Cookies.set('qldvtkn', token, {expires: 3})
-                      window.location.reload();
-                    }
-                  }, (e) => {
-                    this.$notify({
-                      title: "Đăng nhập thất bại",
-                      text: e.message,
-                      type: "error"
-                    });
-                  })
-                })
-              } else {
-                this.$notify({
-                  title: "Đăng nhập thất bại",
-                  text: "Tài khoản không thuộc nội bộ nhà trường",
-                  type: "error"
-                });
-              }
-            } else {
-              this.$notify({
-                title: "Đăng nhập thất bại",
-                text: "Lỗi hệ thống xác thực",
-                type: "error"
-              });
-            }
-          })
+      auth.requestAuth((result) => {
+        if(result === null){
+          return
+        }
+        if(!result.user.email?.endsWith("@dian.sgdbinhduong.edu.vn")) {
+          this.$notify({
+            title: "Đăng nhập thất bại",
+            text: "Tài khoản không thuộc nội bộ nhà trường",
+            type: "error"
+          });
+        }
+        setTimeout(this.postLogIn, 1000) // delay a little so #getToken can work later
+      }, (e) => {
+        this.$notify({
+          title: "Đăng nhập thất bại",
+          text: e.message,
+          type: "error"
+        });
+      })
     },
     viewProfile() {
       this.$router.push("/u/" + this.$root.profile.email.substring(0, this.$root.profile.email.search("@"))).then(() => {

@@ -38,7 +38,7 @@ export default {
   },
   methods: {
     logOut() {
-      auth.destroySession()
+      auth.setAuthenticated(false)
       window.location.reload()
     }
   }
