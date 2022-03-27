@@ -1,9 +1,9 @@
 <template>
   <Header></Header>
-  <div class="pb-16 max-w-[1024px] m-auto p-5 md:px-0">
+  <div class="pt-10 pb-16 px-5 md:px-0 max-w-[1100px] m-auto">
     <Breadcrumb text="BCH Đoàn trường" link="/bch/"></Breadcrumb>
-    <div class="max-w-[1024px] m-auto grid grid-cols-1 md:grid-cols-6 md:gap-24 mt-10">
-      <div class="col-span-4">
+    <div class="grid grid-cols-1 md:grid-cols-7 md:gap-16 mt-5">
+      <div class="col-span-5">
         <div class="border-l-4 border-l-emerald-400 font-light text-xl px-4">BAN CHẤP HÀNH ĐOÀN</div>
         <div class="flex flex-col gap-5 mt-5">
           <div v-for="i in committees">

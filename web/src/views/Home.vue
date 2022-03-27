@@ -1,28 +1,37 @@
 <template>
   <Header></Header>
-  <div class="md:py-8">
+  <div class="max-w-[1100px] m-auto flex flex-col gap-3 mt-5 px-3">
+    <div class="flex flex-row place-items-center text-sm">
+      <div class="whitespace-nowrap px-3 py-1 bg-blue-800 text-white">
+        Thông báo
+      </div>
+      <div class="contents">
+        <marquee-text class="py-1 bg-blue-200">
+          Chào mừng kỷ niệm 91 năm Ngày thành lập Đoàn TNCS Hồ Chí Minh (26/3/1931 - 26/3/2022). Chung kết cấp tỉnh "Tự hào Việt Nam" lần thứ IV năm 2022.
+        </marquee-text>
+      </div>
+    </div>
     <div>
-      <div v-for="(q, index) in quotes" :class="{'hidden': currentQuote !== index}">
-        <div class="h-[200px] md:h-[400px] m-auto transition-all duration-300 hover:opacity-80 cursor-pointer bg-bottom bg-no-repeat bg-[length:100%] md:bg-[length:auto_400px]" :style="`background-image: url(${q.img})`" @click="currentQuote = (currentQuote === quotes.length - 1) ? 0 : currentQuote + 1"></div>
-        <div class="max-w-[800px] h-[120px] m-auto mt-7 text-center font-light text-xl md:text-2xl">
-          {{ q.text }}
+      <div class="mb-5">
+        <div v-for="(q, index) in slideshow.images" :class="{'hidden': slideshow.cursor !== index}">
+          <div class="h-[200px] md:h-[400px] m-auto transition-all duration-300 cursor-pointer hover:opacity-80 bg-center bg-no-repeat bg-cover"
+               :style="`background-image: url(${q})`"
+               @click="slideshow.cursor = (slideshow.cursor === slideshow.images.length - 1) ? 0 : slideshow.cursor + 1"></div>
+        </div>
+      </div>
+      <div class="flex flex-row place-content-center gap-3">
+        <div class="cursor-pointer" v-for="(_, index) in slideshow.images" @click="slideshow.cursor = index">
+          <svg height="10" width="10">
+            <circle cx="5" cy="5" r="5" :fill="slideshow.cursor === index ? '#555' : '#aaa'" />
+          </svg>
         </div>
       </div>
     </div>
-    <div class="flex flex-row place-content-center gap-3">
-      <div class="cursor-pointer" v-for="(_, index) in quotes" @click="currentQuote = index">
-        <svg height="10" width="10">
-          <circle cx="5" cy="5" r="5" :fill="currentQuote === index ? '#555' : '#aaa'" />
-        </svg>
-      </div>
-    </div>
-  </div>
-  <div class="p-5 md:p-10 py-16">
-    <div class="max-w-[1024px] m-auto grid grid-cols-1 md:grid-cols-6 md:gap-24">
+    <div class="grid grid-cols-1 md:grid-cols-7 md:gap-16 mt-5">
       <div class="col-span-2 md:order-last">
         <Sidebar></Sidebar>
       </div>
-      <div class="col-span-4 mt-10 md:mt-0">
+      <div class="col-span-5 mt-5 md:mt-0 md:pr-10">
         <div class="flex flex-row gap-3 place-items-center">
           <NewspaperIcon class="w-8 text-gray-600"></NewspaperIcon>
           <span class="font-light text-xl">TIN TỨC</span>
@@ -54,42 +63,22 @@ import FloatingMenu from "../components/FloatingMenu.vue";
 import auth from "../api/auth";
 import LoadingState from "../components/LoadingState.vue";
 import Sidebar from "../components/Sidebar.vue";
+import MarqueeText from "vue-marquee-text-component";
 
 export default {
   name: "Home",
   components: {
-    LoadingState, Header, PostWidget, FloatingMenu, Sidebar, NewspaperIcon
+    LoadingState, Header, PostWidget, FloatingMenu, Sidebar, NewspaperIcon, MarqueeText
   },
   data() {
     return {
-      quotes: [
-        {
-          text: "Trees are poems that the earth writes upon the sky.",
-          author: "Kahlil Gebran",
-          img: treePlanting
-        },
-        {
-          text: "Nature is painting for us, day after day, pictures of infinite beauty if only we have the eyes to see them.",
-          author: "John Ruskin",
-          img: protectNature
-        },
-        {
-          text: "No water, no life. No blue, no green.",
-          author: "Dr. Sylvia Earle",
-          img: saveOcean
-        },
-        {
-          text: "Một năm khởi đầu từ mùa xuân. Một đời khởi đầu từ tuổi trẻ. Tuổi trẻ là mùa xuân của xã hội.",
-          author: "Ho Chi Minh",
-          img: springWallpaper
-        },
-        {
-          text: "Chúng ta phải học, phải cố gắng học nhiều. Không chịu khó học thì không tiến bộ được...",
-          author: "Ho Chi Minh",
-          img: studyTogether
-        }
-      ],
-      currentQuote: 0,
+      slideshow: {
+        images: [
+            "https://i.imgur.com/qK6gzc0.jpg",
+            "https://i.imgur.com/CvXZJy4.jpg"
+        ],
+        cursor: 0
+      },
       postAvailable: true,
       dateOffset: 0,
       posts: []
@@ -129,7 +118,7 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
-    this.currentQuote = Math.floor(Math.random() * this.quotes.length)
+    this.slideshow.cursor = Math.floor(Math.random() * this.slideshow.images.length)
     this.dateOffset = new Date().getTime()
     this.loadNextPosts()
     window.addEventListener('scroll', this.handleScroll)

@@ -1,29 +1,36 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1024px] m-auto pb-16 p-5 md:px-10">
+  <div class="pt-10 pb-16 px-5 md:px-0 max-w-[1100px] m-auto">
     <Breadcrumb text="Tin tức" link="/"></Breadcrumb>
-    <LoadingState ref="loadingState">
-      <div class="flex flex-row gap-5 place-content-end place-items-center text-slate-500 mb-3">
-        <p class="text-sm">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</p>
-        <div class="flex flex-row gap-1 text-xs">
-          <EyeIcon class="w-4"></EyeIcon>
-          <p>{{ post.views }}</p>
-        </div>
-        <div class="flex flex-row gap-1 border-2 border-white rounded-md px-2 py-1 text-xs transition-all duration-300" :class="
+    <div class="grid grid-cols-1 md:grid-cols-7 md:gap-16 mt-5">
+      <div class="col-span-5">
+        <LoadingState ref="loadingState">
+          <div class="flex flex-row gap-5 place-content-end place-items-center text-slate-500 mb-3">
+            <p class="text-sm">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</p>
+            <div class="flex flex-row gap-1 text-xs">
+              <EyeIcon class="w-4"></EyeIcon>
+              <p>{{ post.views }}</p>
+            </div>
+            <div class="flex flex-row gap-1 border-2 border-white rounded-md px-2 py-1 text-xs transition-all duration-300" :class="
           (post.liked ? 'bg-pink-500 text-white hover:bg-pink-300': '') + ' ' +
           (this.$root.isLoggedIn() ? 'cursor-pointer border-pink-500' : '')" @click="likePost()">
-          <HeartIcon class="w-4" :class="post.liked ? 'text-white' : 'text-pink-500'"></HeartIcon>
-          <p>{{ post.likes }}</p>
-        </div>
+              <HeartIcon class="w-4" :class="post.liked ? 'text-white' : 'text-pink-500'"></HeartIcon>
+              <p>{{ post.likes }}</p>
+            </div>
+          </div>
+          <article class="border-t-2 border-t-slate-300 py-10">
+            <header class="text-3xl md:text-4xl">{{ post.title }}</header>
+            <section class="mt-5 break-words prose max-w-max" v-html="post.content"></section>
+          </article>
+          <div class="mt-10 flex flex-row flex-wrap gap-3" v-if="post.attachments.length > 0">
+            <img v-for="att in post.attachments" class="max-h-36 cursor-pointer hover:opacity-80" :src="serverBaseURL + '/static/' + att.id" alt="" @click="previewImage(att.id)" />
+          </div>
+        </LoadingState>
       </div>
-      <article class="border-y-2 border-y-slate-300 py-10">
-        <header class="text-4xl">{{ post.title }}</header>
-        <section class="mt-5 break-words prose max-w-max" v-html="post.content"></section>
-      </article>
-      <div class="mt-10 flex flex-row flex-wrap gap-3" v-if="post.attachments.length > 0">
-        <img v-for="att in post.attachments" class="max-h-36 cursor-pointer hover:opacity-80" :src="serverBaseURL + '/static/' + att.id" alt="" @click="previewImage(att.id)" />
+      <div class="col-span-2 mt-10 md:mt-0">
+        <Sidebar></Sidebar>
       </div>
-    </LoadingState>
+    </div>
   </div>
   <FloatingMenu></FloatingMenu>
   <div class="select-none" v-if="previewImageId !== undefined">
@@ -52,11 +59,12 @@ import {EyeIcon, HeartIcon} from "@heroicons/vue/solid";
 import auth from "../api/auth";
 import LoadingState from "../components/LoadingState.vue";
 import lookupErrorCode from "../api/errorCode";
+import Sidebar from "../components/Sidebar.vue";
 
 export default {
   name: "Post",
   components: {
-    LoadingState, Header, FloatingMenu, Breadcrumb,
+    LoadingState, Header, FloatingMenu, Breadcrumb, Sidebar,
     ZoomInIcon, ZoomOutIcon, EyeIcon, HeartIcon
   },
   data() {

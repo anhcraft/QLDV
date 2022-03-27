@@ -3,7 +3,7 @@
     <CalendarIcon class="w-8 text-gray-600"></CalendarIcon>
     <span class="font-light text-xl">HOẠT ĐỘNG</span>
   </div>
-  <div class="my-5">
+  <div class="border-x border-x-slate-300 shadow-lg shadow-slate-300 rounded-md p-5 mt-3">
     <div class="border-b-4 border-b-sky-300 pb-3 flex flex-row">
       <div class="text-xl grow">Tháng {{ eventCalendar.currentMonth + 1 }}/{{ eventCalendar.currentYear }}</div>
       <div class="p-1 cursor-pointer hover:bg-gray-300" @click="nextMonth(-1)">
@@ -13,7 +13,7 @@
         <ChevronRightIcon class="w-4 text-gray-600"></ChevronRightIcon>
       </div>
     </div>
-    <div class="grid grid-cols-7 gap-y-3 my-3">
+    <div class="grid grid-cols-7 gap-y-2 my-3">
       <div v-for="i in 35">
         <div class="m-auto w-7 h-7 rounded-full flex items-center justify-center" @click="chooseCalendarDay(i)"
              :class="(i === eventCalendar.currentDay ? 'bg-pink-400 text-white' : (isToday(i) ? 'bg-gray-300 text-white' : '')) + (i <= this.getDaysInMonth ? ' transition-all duration-300 cursor-pointer hover:bg-pink-300 hover:text-white' : '')">
@@ -22,10 +22,10 @@
       </div>
     </div>
   </div>
-  <LoadingState ref="eventCalendarLoadingState">
-    <div class="flex flex-col gap-3">
-      <div class="border-2 border-dashed border-gray-400 rounded-xl px-5 py-2" v-for="event in availableEvents"
-           :class="{'hover:border-gray-800 cursor-pointer' : (event.hasOwnProperty('contest') && $root.isLoggedIn())}" @click="openEvent(event)">
+  <LoadingState hidden="true" ref="eventCalendarLoadingState">
+    <div class="flex flex-col">
+      <div class="border-x border-x-slate-300 shadow-lg shadow-slate-300 px-5 pt-5 pb-3" v-for="event in availableEvents"
+           :class="{'hover:border-slate-400 cursor-pointer' : (event.hasOwnProperty('contest') && $root.isLoggedIn())}" @click="openEvent(event)">
         <div class="text-lg break-words">
           <FireIcon class="w-6 text-gray-600 text-rose-400 float-left mr-1" v-if="event.hasOwnProperty('contest')"></FireIcon>
           <p>{{ event.title }}</p>
@@ -34,21 +34,21 @@
       </div>
     </div>
   </LoadingState>
-  <div class="my-5 md:my-10 flex flex-col gap-1">
-    <router-link to="/bch/" class="bg-blue-800 hover:opacity-80 transition transition-all text-white text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
-      <img src="../assets/youth-logo.png" class="w-12 h-12"  alt=""/>
+  <div class="my-5 md:my-10 grid grid-cols-2 md:grid-cols-1 gap-1">
+    <router-link to="/bch/" class="bg-blue-800 hover:opacity-80 transition transition-all text-white md:text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
+      <img src="../assets/youth-logo.png" class="w-8 h-8 md:w-12 md:h-12"  alt=""/>
       <p>BCH Đoàn trường</p>
     </router-link>
-    <a href="https://youtube.com/channel/UCPtKpRuGva1y2RwJCooVu5Q" target="_blank" class="bg-blue-800 hover:opacity-80 transition transition-all text-white text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
-      <img src="../assets/youtube-btn.png" class="w-12 h-12"  alt=""/>
+    <a href="https://youtube.com/channel/UCPtKpRuGva1y2RwJCooVu5Q" target="_blank" class="bg-blue-800 hover:opacity-80 transition transition-all text-white md:text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
+      <img src="../assets/youtube-btn.png" class="w-8 h-8 md:w-12 md:h-12"  alt=""/>
       <p>Video hoạt động</p>
     </a>
-    <a href="https://fb.com/tuoitretruongthptdian" target="_blank" class="bg-gray-600 hover:opacity-80 transition transition-all text-white text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
-      <img src="../assets/fanpage-logo.png" class="w-12 h-12 rounded-full"  alt=""/>
+    <a href="https://fb.com/tuoitretruongthptdian" target="_blank" class="bg-blue-800 hover:opacity-80 transition transition-all text-white md:text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
+      <img src="../assets/fanpage-logo.png" class="w-8 h-8 md:w-12 md:h-12 rounded-full"  alt=""/>
       <p>Fanpage Đoàn trường</p>
     </a>
-    <a href="https://forms.gle/jg5aNgWeb52wjgFf9" target="_blank" class="bg-gray-600 hover:opacity-80 transition transition-all text-white text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
-      <img src="../assets/filling-form.png" class="w-12 h-12"  alt=""/>
+    <a href="https://forms.gle/jg5aNgWeb52wjgFf9" target="_blank" class="bg-blue-800 hover:opacity-80 transition transition-all text-white md:text-lg py-3 px-5 shadow-lg shadow-slate-400 flex flex-row place-items-center gap-3">
+      <img src="../assets/filling-form.png" class="w-8 h-8 md:w-12 md:h-12"  alt=""/>
       <p>Góp ý website</p>
     </a>
   </div>
