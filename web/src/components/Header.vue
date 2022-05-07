@@ -1,20 +1,20 @@
 <template>
-  <div class="page-header relative shadow-2xl shadow-gray-400" style="background-image: url('https://i.imgur.com/qK6gzc0.jpg')">
+  <div class="page-header relative" style="background-image: url('https://i.imgur.com/qK6gzc0.jpg')">
     <div class="z-[5] relative text-white">
       <div class="w-full bg-indigo-500 text-right text-sm text-white p-3 pr-5 shadow-md shadow-slate-500 md:hidden">
         <button v-if="!$root.isLoggedIn()" @click="logIn()">Đăng nhập</button>
         <button v-else @click="viewProfile()">Trang cá nhân</button>
       </div>
       <div class="py-8 md:py-10 relative">
-        <div class="max-w-[1024px] w-fit md:w-full m-auto relative">
-          <div class="flex flex-row gap-3 place-items-center md:p-10">
+        <div class="max-w-[1100px] w-fit md:w-full m-auto relative">
+          <div class="flex flex-row gap-3 place-items-center md:py-10">
             <img src="../assets/youth-logo.png" class="w-12 h-12"  alt=""/>
             <img src="../assets/das-logo.png" class="w-12 h-12"  alt=""/>
             <router-link to="/" class="text-4xl ml-5 font-light">
               <span class="block md:inline">ĐOÀN THPT</span> <span>DĨ AN</span>
               <p class="text-sm italic">Website đang hoạt động thử nghiệm</p>
             </router-link>
-            <div class="absolute right-10 hidden md:block">
+            <div class="absolute right-0 hidden md:block">
               <button v-if="!$root.isLoggedIn()" @click="logIn()" class="btn-primary">Đăng nhập</button>
               <button v-else @click="viewProfile()" class="btn-primary">Trang cá nhân</button>
             </div>
