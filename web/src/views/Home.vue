@@ -11,21 +11,8 @@
         </marquee-text>
       </div>
     </div>
-    <div>
-      <div class="mb-5">
-        <div v-for="(q, index) in slideshow.images" :class="{'hidden': slideshow.cursor !== index}">
-          <div class="h-[200px] md:h-[400px] m-auto transition-all duration-300 cursor-pointer hover:opacity-80 bg-center bg-no-repeat bg-cover"
-               :style="`background-image: url(${q})`"
-               @click="slideshow.cursor = (slideshow.cursor === slideshow.images.length - 1) ? 0 : slideshow.cursor + 1"></div>
-        </div>
-      </div>
-      <div class="flex flex-row place-content-center gap-3">
-        <div class="cursor-pointer" v-for="(_, index) in slideshow.images" @click="slideshow.cursor = index">
-          <svg height="10" width="10">
-            <circle cx="5" cy="5" r="5" :fill="slideshow.cursor === index ? '#555' : '#aaa'" />
-          </svg>
-        </div>
-      </div>
+    <div class="mb-5 h-[300px]">
+      <SlideshowWidget :images="slideshow"></SlideshowWidget>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-7 md:gap-16 mt-5">
       <div class="col-span-2 md:order-last">
@@ -59,21 +46,19 @@ import auth from "../api/auth";
 import LoadingState from "../components/LoadingState.vue";
 import Sidebar from "../components/Sidebar.vue";
 import MarqueeText from "vue-marquee-text-component";
+import SlideshowWidget from "../components/home/SlideshowWidget.vue";
 
 export default {
   name: "Home",
   components: {
-    LoadingState, Header, PostWidget, FloatingMenu, Sidebar, NewspaperIcon, MarqueeText
+    LoadingState, Header, PostWidget, FloatingMenu, Sidebar, NewspaperIcon, MarqueeText, SlideshowWidget
   },
   data() {
     return {
-      slideshow: {
-        images: [
-            "https://i.imgur.com/qK6gzc0.jpg",
-            "https://i.imgur.com/CvXZJy4.jpg"
-        ],
-        cursor: 0
-      },
+      slideshow: [
+        "https://i.imgur.com/qK6gzc0.jpg",
+        "https://i.imgur.com/CvXZJy4.jpg"
+      ],
       postAvailable: true,
       dateOffset: 0,
       posts: []
@@ -113,7 +98,6 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
-    this.slideshow.cursor = Math.floor(Math.random() * this.slideshow.images.length)
     this.dateOffset = new Date().getTime()
     this.loadNextPosts()
     window.addEventListener('scroll', this.handleScroll)
