@@ -18,7 +18,6 @@ import server from "./api/server";
 import profileCoverDefaultImg from "./assets/profile-cover.jpg"
 import conf from "./conf";
 import lookupErrorCode from "./api/errorCode";
-import firebase from "firebase/compat";
 
 export default {
   data() {

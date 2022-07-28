@@ -49,15 +49,10 @@
 </template>
 
 <script>
-import PostWidget from "../components/PostWidget.vue";
+import PostWidget from "../components/home/PostWidget.vue";
 import {NewspaperIcon} from "@heroicons/vue/solid";
 import server from "../api/server";
 import conf from "../conf";
-import treePlanting from "../assets/tree-planting.jpg"
-import protectNature from "../assets/protect-nature.jpg"
-import saveOcean from "../assets/save-ocean.jpg"
-import springWallpaper from "../assets/spring-wallpaper.jpg"
-import studyTogether from "../assets/study-together.jpg"
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import auth from "../api/auth";
