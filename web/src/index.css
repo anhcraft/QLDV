@@ -15,4 +15,36 @@
     .btn-danger {
         @apply transition-all duration-500 rounded-md bg-rose-500 hover:bg-rose-600 px-4 py-1.5 text-white text-sm;
     }
+    .centered-horizontal {
+        @apply flex flex-row items-center
+    }
+    .page-section {
+        @apply max-w-[1300px] m-auto
+    }
+    .curved-divider-bottom {
+         position: absolute;
+         bottom: 0;
+         left: 0;
+         width: 100%;
+         overflow: hidden;
+         line-height: 0;
+         transform: rotate(180deg);
+     }
+    .curved-divider-top {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        overflow: hidden;
+        line-height: 0;
+    }
+    .curved-divider-top svg, .curved-divider-bottom svg {
+        position: relative;
+        display: block;
+        width: calc(150%);
+        height: 136px;
+    }
+    .curved-divider-top .curved-shape-fill, .curved-divider-bottom .curved-shape-fill {
+        fill: #FFFFFF;
+    }
 }

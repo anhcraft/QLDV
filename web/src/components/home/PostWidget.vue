@@ -1,23 +1,36 @@
-<script lang="ts">
-export default {
-  props: {
-    id: String,
-    title: String,
-    bg: String
-  }
-}
-</script>
-
 <template>
-  <router-link class="pw-container block cursor-pointer w-full relative h-36 md:h-42" :to="'/p/' + id">
-    <img v-if="bg === undefined || bg.length === 0" src="../../assets/vn-coast.jpg" class="object-cover object-center w-full h-36" />
-    <img v-else :src="bg" class="object-cover object-center w-full h-36" />
-    <div class="pw-image bg-black absolute w-full h-full top-0 left-0 opacity-20 transition delay-75 duration-300 ease-in-out"></div>
-    <div class="w-full absolute bottom-3 pl-5 pr-5 z-10">
-      <p class="w-full text-white md:text-xl truncate">{{ title }}</p>
+  <router-link class="pw-container block cursor-pointer rounded-2xl before:rounded-2xl w-full h-full relative" :to="'/p/' + data.id">
+    <img :src="getBackground(data)" class="object-cover object-center rounded-2xl w-full h-full" />
+    <div class="w-full absolute text-white break-words z-10" :class="large ? 'bottom-10 px-10' : 'bottom-5 px-5'">
+      <p class="font-heading" :class="large ? 'text-4xl font-bold' : 'text-xl font-semibold'">{{ data.title }}</p>
+      <p class="text-sm mt-5" v-if="large">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc sed eros metus. Aenean id porttitor lorem. Nunc rhoncus leo accumsan, facilisis sem quis, sodales dolor
+      </p>
     </div>
   </router-link>
 </template>
+
+<script>
+import conf from "../../conf";
+
+export default {
+  name: "PostWidget",
+  props: {
+    data: Object,
+    large: Boolean
+  },
+  methods: {
+    getBackground(data) {
+      if(data.hasOwnProperty("attachments")) {
+        if(data.attachments.length > 0) {
+          return conf.server + '/static/' + data.attachments[0].id
+        }
+      }
+      return "https://i.imgur.com/aH4g7pj.jpg";
+    }
+  }
+}
+</script>
 
 <style scoped>
 .pw-container:before {
@@ -31,7 +44,9 @@ export default {
   background-image: linear-gradient(180deg, transparent, #333);
   z-index: 1;
 }
-.pw-container:hover > .pw-image {
-  opacity: 0.5 !important;
+.pw-container:hover::before  {
+  height: 75%;
+  background-image: linear-gradient(180deg, transparent, #111);
+  transition: all 1s ease;
 }
 </style>

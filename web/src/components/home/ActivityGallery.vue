@@ -1,8 +1,7 @@
 <template>
   <swiper :rewind="true"
           :autoplay="{
-            delay: 2500,
-            disableOnInteraction: false,
+            delay: 2500
           }"
           :pagination="{
             clickable: true,
@@ -19,27 +18,32 @@
 
 <script>
 import { Swiper, SwiperSlide } from "swiper/vue";
-import { Lazy, Pagination, EffectFade } from "swiper";
+import { Lazy, Pagination, Autoplay, EffectFade } from "swiper";
 import "swiper/css";
 import "swiper/css/lazy";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 
 export default {
-  name: "SlideshowWidget",
+  name: "ActivityGallery",
   components: {
     Swiper,
     SwiperSlide,
   },
-  props: {
-    images: Array
+  data() {
+    return {
+      images: [
+        "https://i.imgur.com/qK6gzc0.jpg",
+        "https://i.imgur.com/CvXZJy4.jpg"
+      ]
+    }
   },
   setup() {
     return {
-      modules: [Lazy, Pagination, EffectFade]
-    };
-  },
-};
+      modules: [Autoplay, Lazy, Pagination, EffectFade]
+    }
+  }
+}
 </script>
 
 <style scoped="">

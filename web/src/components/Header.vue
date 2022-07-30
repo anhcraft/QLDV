@@ -6,7 +6,7 @@
         <button v-else @click="viewProfile()">Trang cá nhân</button>
       </div>
       <div class="py-8 md:py-10 relative">
-        <div class="max-w-[1100px] w-fit md:w-full m-auto relative">
+        <div class="max-w-[1300px] w-fit md:w-full m-auto relative">
           <div class="flex flex-row gap-3 place-items-center md:py-10">
             <img src="../assets/youth-logo.png" class="w-12 h-12"  alt=""/>
             <img src="../assets/das-logo.png" class="w-12 h-12"  alt=""/>
@@ -15,8 +15,14 @@
               <p class="text-sm italic">Website đang hoạt động thử nghiệm</p>
             </router-link>
             <div class="absolute right-0 hidden md:block">
-              <button v-if="!$root.isLoggedIn()" @click="logIn()" class="btn-primary">Đăng nhập</button>
-              <button v-else @click="viewProfile()" class="btn-primary">Trang cá nhân</button>
+              <div class="flex flex-row gap-8 items-center">
+                <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/">Trang chủ</router-link>
+                <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/posts">Tin tức</router-link>
+                <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/about">Tổ chức</router-link>
+                <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/events">Hoạt động</router-link>
+                <button v-if="!$root.isLoggedIn()" @click="logIn()" class="btn-primary ml-10">Đăng nhập</button>
+                <button v-else @click="viewProfile()" class="btn-primary ml-10">Trang cá nhân</button>
+              </div>
             </div>
           </div>
         </div>

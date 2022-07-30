@@ -27,9 +27,6 @@
           </div>
         </LoadingState>
       </div>
-      <div class="col-span-2 mt-10 md:mt-0">
-        <Sidebar></Sidebar>
-      </div>
     </div>
   </div>
   <FloatingMenu></FloatingMenu>
@@ -59,12 +56,11 @@ import {EyeIcon, HeartIcon} from "@heroicons/vue/solid";
 import auth from "../api/auth";
 import LoadingState from "../components/LoadingState.vue";
 import lookupErrorCode from "../api/errorCode";
-import Sidebar from "../components/Sidebar.vue";
 
 export default {
   name: "Post",
   components: {
-    LoadingState, Header, FloatingMenu, Breadcrumb, Sidebar,
+    LoadingState, Header, FloatingMenu, Breadcrumb,
     ZoomInIcon, ZoomOutIcon, EyeIcon, HeartIcon
   },
   data() {

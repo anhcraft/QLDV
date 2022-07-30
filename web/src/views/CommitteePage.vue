@@ -16,9 +16,6 @@
           </div>
         </div>
       </div>
-      <div class="col-span-2 mt-10 md:mt-0">
-        <Sidebar></Sidebar>
-      </div>
     </div>
   </div>
   <FloatingMenu></FloatingMenu>
@@ -27,13 +24,12 @@
 <script>
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
-import Sidebar from "../components/Sidebar.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 
 export default {
   name: "CommitteePage",
   components: {
-    Header, FloatingMenu, Sidebar, Breadcrumb
+    Header, FloatingMenu, Breadcrumb
   },
   data() {
     return {

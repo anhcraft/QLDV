@@ -1,106 +1,38 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1100px] m-auto flex flex-col gap-3 mt-5 px-3">
-    <div class="flex flex-row place-items-center text-sm">
-      <div class="whitespace-nowrap px-3 py-1 bg-blue-800 text-white">
-        Thông báo
-      </div>
-      <div class="contents">
-        <marquee-text class="py-1 bg-blue-200">
-          Chào mừng kỷ niệm 91 năm Ngày thành lập Đoàn TNCS Hồ Chí Minh (26/3/1931 - 26/3/2022). Chung kết cấp tỉnh "Tự hào Việt Nam" lần thứ IV năm 2022.
-        </marquee-text>
-      </div>
+  <section class="page-section py-16">
+    <PostSection></PostSection>
+  </section>
+  <section class="bg-neutral-100 relative">
+    <div class="curved-divider-top">
+      <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="curved-shape-fill"></path>
+      </svg>
     </div>
-    <div class="mb-5 h-[300px]">
-      <SlideshowWidget :images="slideshow"></SlideshowWidget>
+    <div class="page-section py-32">
+      <ActivitySection></ActivitySection>
     </div>
-    <div class="grid grid-cols-1 md:grid-cols-7 md:gap-16 mt-5">
-      <div class="col-span-2 md:order-last">
-        <Sidebar></Sidebar>
-      </div>
-      <div class="col-span-5 mt-5 md:mt-0 md:pr-10">
-        <div class="flex flex-row gap-3 place-items-center">
-          <NewspaperIcon class="w-8 text-gray-600"></NewspaperIcon>
-          <span class="font-light text-xl">TIN TỨC</span>
-        </div>
-        <div class="w-full flex flex-col gap-4 mt-5" v-if="posts.length > 0">
-          <PostWidget v-for="value in posts" :id="value.id" :title="value.title" :bg="getBg(value.attachments)"></PostWidget>
-        </div>
-        <div class="mt-10">
-          <LoadingState ref="postLoadingState"></LoadingState>
-        </div>
-      </div>
+    <div class="curved-divider-bottom">
+      <svg data-name="curved-divider" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+        <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="curved-shape-fill"></path>
+      </svg>
     </div>
-  </div>
+  </section>
+  <Footer></Footer>
   <FloatingMenu></FloatingMenu>
 </template>
 
 <script>
-import PostWidget from "../components/home/PostWidget.vue";
-import {NewspaperIcon} from "@heroicons/vue/solid";
-import server from "../api/server";
-import conf from "../conf";
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
-import auth from "../api/auth";
-import LoadingState from "../components/LoadingState.vue";
-import Sidebar from "../components/Sidebar.vue";
-import MarqueeText from "vue-marquee-text-component";
-import SlideshowWidget from "../components/home/SlideshowWidget.vue";
+import PostSection from "../components/home/PostSection.vue";
+import ActivitySection from "../components/home/ActivitySection.vue";
+import Footer from "../components/Footer.vue";
 
 export default {
   name: "Home",
   components: {
-    LoadingState, Header, PostWidget, FloatingMenu, Sidebar, NewspaperIcon, MarqueeText, SlideshowWidget
-  },
-  data() {
-    return {
-      slideshow: [
-        "https://i.imgur.com/qK6gzc0.jpg",
-        "https://i.imgur.com/CvXZJy4.jpg"
-      ],
-      postAvailable: true,
-      dateOffset: 0,
-      posts: []
-    }
-  },
-  methods: {
-    getBg(a) {
-      return a.length === 0 ? "" : (conf.server + '/static/' + a[0].id)
-    },
-    handleScroll() {
-      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-        if(!this.$refs.postLoadingState.loading && this.postAvailable) {
-          this.loadNextPosts()
-        }
-      }
-    },
-    loadNextPosts(){
-      this.$refs.postLoadingState.activate()
-      server.loadPosts(10, this.dateOffset, auth.getToken()).then(s => {
-        if(s.posts.length === 0) {
-          this.postAvailable = false
-        } else {
-          this.dateOffset = s.posts[s.posts.length - 1].date
-        }
-        this.posts = this.posts.concat(s.posts)
-        this.$refs.postLoadingState.deactivate()
-      }, (e) => {
-        this.$notify({
-          title: "Tải bài viết thất bại",
-          text: e.message,
-          type: "error"
-        });
-      })
-    }
-  },
-  unmounted () {
-    window.removeEventListener('scroll', this.handleScroll);
-  },
-  mounted() {
-    this.dateOffset = new Date().getTime()
-    this.loadNextPosts()
-    window.addEventListener('scroll', this.handleScroll)
+    Header, Footer, FloatingMenu, PostSection, ActivitySection
   }
 }
 </script>
