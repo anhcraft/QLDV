@@ -76,6 +76,8 @@ func getPosts(filterHashtag string, sortBy string, lowerThan uint, belowId int, 
 		if lowerThan > 0 {
 			cmd = cmd.Where("like_count < ?", lowerThan)
 		}
+	} else {
+		cmd = cmd.Order("id DESC")
 	}
 	_ = cmd.Find(&posts)
 	return posts
@@ -352,5 +354,18 @@ func postGetRouteHandler(c *fiber.Ctx) error {
 	_ = x.Row().Scan(&result.likeCheck)
 	_, _ = res.Set(result.likeCheck > 0, "liked")
 
+	return c.SendString(res.String())
+}
+
+func postHashtagListRouteHandler(c *fiber.Ctx) error {
+	res := gabs.New()
+	var hashtags []struct {
+		Hashtag string
+	}
+	db.Model(&Post{}).Distinct("hashtag").Find(&hashtags)
+	_, _ = res.Array("hashtags")
+	for _, t := range hashtags {
+		_ = res.ArrayAppend(t.Hashtag, "hashtags")
+	}
 	return c.SendString(res.String())
 }

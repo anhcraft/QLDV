@@ -108,6 +108,7 @@ func main() {
 	app.Post("/remove-post", postRemoveRouteHandler)
 	app.Post("/update-post-stat", postStatUpdateRouteHandler)
 	app.Post("/upload-attachment", attachmentUploadRouteHandler)
+	app.Get("/get-hashtags", postHashtagListRouteHandler)
 
 	app.Get("/event", eventGetRouteHandler)
 	app.Get("/events", eventListRouteHandler)
