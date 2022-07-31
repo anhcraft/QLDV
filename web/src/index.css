@@ -4,16 +4,16 @@
 
 @layer components {
     .btn-primary {
-        @apply transition-all duration-500 rounded-md bg-indigo-500 hover:bg-indigo-600 px-4 py-1.5 text-white text-sm;
+        @apply transition-all duration-500 rounded-md bg-indigo-500 hover:bg-indigo-600 px-4 py-1.5 text-white text-sm cursor-pointer;
     }
     .btn-success {
-        @apply transition-all duration-500 rounded-md bg-emerald-500 hover:bg-emerald-600 px-4 py-1.5 text-white text-sm;
+        @apply transition-all duration-500 rounded-md bg-emerald-500 hover:bg-emerald-600 px-4 py-1.5 text-white text-sm cursor-pointer;
     }
     .btn-info {
-        @apply transition-all duration-500 rounded-md bg-blue-500 hover:bg-blue-600 px-4 py-1.5 text-white text-sm;
+        @apply transition-all duration-500 rounded-md bg-blue-500 hover:bg-blue-600 px-4 py-1.5 text-white text-sm cursor-pointer;
     }
     .btn-danger {
-        @apply transition-all duration-500 rounded-md bg-rose-500 hover:bg-rose-600 px-4 py-1.5 text-white text-sm;
+        @apply transition-all duration-500 rounded-md bg-rose-500 hover:bg-rose-600 px-4 py-1.5 text-white text-sm cursor-pointer;
     }
     .centered-horizontal {
         @apply flex flex-row items-center
