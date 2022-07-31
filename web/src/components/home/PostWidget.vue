@@ -1,10 +1,21 @@
 <template>
   <router-link class="pw-container block cursor-pointer rounded-2xl before:rounded-2xl w-full h-full relative" :to="'/p/' + data.id">
     <img :src="getBackground(data)" class="object-cover object-center rounded-2xl w-full h-full" />
+    <div class="absolute text-white top-3 right-5 z-10">
+      <div class="flex flex-row gap-1">
+        <EyeIcon class="w-4"></EyeIcon>
+        <p>{{ data.views }}</p>
+      </div>
+      <div class="flex flex-row gap-1">
+        <HeartIcon class="w-4"></HeartIcon>
+        <p>{{ data.likes }}</p>
+      </div>
+    </div>
     <div class="w-full absolute text-white break-words z-10" :class="large ? 'bottom-10 px-10' : 'bottom-5 px-5'">
       <p class="font-heading" :class="large ? 'text-4xl font-bold' : 'text-xl font-semibold'">{{ data.title }}</p>
+      <p class="font-heading">#{{ data.hashtag }}</p>
       <p class="text-sm mt-5" v-if="large">
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc sed eros metus. Aenean id porttitor lorem. Nunc rhoncus leo accumsan, facilisis sem quis, sodales dolor
+        {{ data.headline }}
       </p>
     </div>
   </router-link>
@@ -12,12 +23,17 @@
 
 <script>
 import conf from "../../conf";
+import {EyeIcon, HeartIcon} from "@heroicons/vue/solid";
 
 export default {
   name: "PostWidget",
   props: {
     data: Object,
     large: Boolean
+  },
+  components: {
+    HeartIcon,
+    EyeIcon
   },
   methods: {
     getBackground(data) {

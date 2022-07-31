@@ -4,6 +4,10 @@
     <Breadcrumb :text="($route.params.id === undefined ? 'Tạo' : 'Sửa') + ' bài viết'" link="/pm" class="mb-10"></Breadcrumb>
     <LoadingState ref="loadingState">
       <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model="post.title">
+      <div class="mt-10 centered-horizontal">
+        <span>#</span>
+        <input type="text" class="border-b-2 border-b-slate-300 w-full" placeholder="Hashtag" v-model="post.hashtag">
+      </div>
       <div class="mt-10">
         <Editor
             apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
@@ -76,6 +80,7 @@ export default {
       post: {
         title: "",
         content: "",
+        hashtag: "",
         attachments: [],
         privacy: 0
       },
@@ -94,7 +99,8 @@ export default {
   methods: {
     submitPost() {
       this.submittingPost = true
-      server.changePost(this.$route.params.id, this.post.title, this.post.content, this.post.privacy, this.removeAttachments, auth.getToken()).then(s => {
+      const id = this.$route.params.id === undefined ? 0 : this.$route.params.id
+      server.changePost(id, this.post.title, this.post.content, this.post.privacy, this.post.hashtag, this.removeAttachments, auth.getToken()).then(s => {
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
           this.attachmentUploadQueue = this.attachmentUpload.length
           if(this.attachmentUploadQueue === 0) {

@@ -14,16 +14,23 @@ const server = {
             })
         }).json();
     },
-    loadPosts: function (limit: number, olderThan: number, token: string) {
-        return ky.get(`${conf.server}/posts?limit=${limit}&older=${olderThan}`, {
-            method: 'get',
+    loadPosts: function (limit: number, filterHashtag: string, sortBy: string, lowerThan: number, belowId: any, token: string) {
+        return ky.post(`${conf.server}/posts`, {
+            method: 'post',
             headers: {
                 'content-type': 'application/json',
                 'token': token
-            }
+            },
+            body: JSON.stringify({
+                'limit': limit,
+                'filter_hashtag': filterHashtag,
+                'below_id': parseInt(belowId),
+                'sort_by': sortBy,
+                'lower_than': lowerThan,
+            })
         }).json();
     },
-    loadPost: function (id: string, token: string) {
+    loadPost: function (id: number, token: string) {
         return ky.get(`${conf.server}/post?id=${id}`, {
             method: 'get',
             headers: {
@@ -44,7 +51,7 @@ const server = {
             })
         }).json();
     },
-    changePost: async function(id: string, title: string, content: string, privacy: number, removeAttachments: string[], token: string) {
+    changePost: async function(id: any, title: string, content: string, privacy: number, hashtag: string, removeAttachments: string[], token: string) {
         return ky.post(`${conf.server}/change-post`, {
             method: 'post',
             headers: {
@@ -52,42 +59,43 @@ const server = {
                 'token': token
             },
             body: JSON.stringify({
-                'id': id === undefined ? '' : id,
+                'id': id === undefined ? -1 : parseInt(id),
                 'title': title,
+                'hashtag': hashtag,
                 'content': content,
                 'privacy': privacy,
                 'remove_attachments': removeAttachments
             })
         }).json();
     },
-    removePost: async function(id: string, token: string) {
+    removePost: async function(id: number, token: string) {
         return ky.post(`${conf.server}/remove-post`, {
             method: 'post',
             headers: {
                 'content-type': 'application/json',
                 'token': token,
-                'id': id === undefined ? '' : id
+                'id': id.toString()
             }
         }).json();
     },
-    updatePostStat: async function(id: string, action: string, token: string) {
+    updatePostStat: async function(id: number, action: string, token: string) {
         return ky.post(`${conf.server}/update-post-stat`, {
             method: 'post',
             headers: {
                 'content-type': 'application/json',
                 'token': token,
-                'id': id === undefined ? '' : id,
+                'id': id.toString(),
                 'action': action
             }
         }).json();
     },
-    uploadPostAttachment: async function(id: string, attachment: Blob, token: string) {
+    uploadPostAttachment: async function(id: number, attachment: Blob, token: string) {
         return ky.post(`${conf.server}/upload-attachment`, {
             method: 'post',
             headers: {
                 'content-type': undefined,
                 'token': token,
-                'id': id
+                'id': id.toString()
             },
             body: attachment
         }).json();

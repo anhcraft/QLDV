@@ -46,7 +46,7 @@ export default {
   methods: {
     loadPosts(){
       this.$refs.postLoadingState.activate()
-      server.loadPosts(3, new Date().getTime(), auth.getToken()).then(s => {
+      server.loadPosts(3, "", "", 0, 0, auth.getToken()).then(s => {
         this.posts = s.posts
         this.$refs.postLoadingState.deactivate()
       }, (e) => {

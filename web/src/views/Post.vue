@@ -5,7 +5,10 @@
     <div class="grid grid-cols-1 md:grid-cols-7 md:gap-16 mt-5">
       <div class="col-span-5">
         <LoadingState ref="loadingState">
-          <div class="flex flex-row gap-5 place-content-end place-items-center text-slate-500 mb-3">
+          <div class="centered-horizontal gap-3 text-slate-500 mb-3">
+            <div class="grow mr-10">
+              <router-link class="text-cyan-500 text-lg hover:underline" :to="'/posts?tag=' + post.hashtag">#{{ post.hashtag }}</router-link>
+            </div>
             <p class="text-sm">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</p>
             <div class="flex flex-row gap-1 text-xs">
               <EyeIcon class="w-4"></EyeIcon>
