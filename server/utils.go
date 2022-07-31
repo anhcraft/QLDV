@@ -46,7 +46,7 @@ func RandStringBytes(n int) string {
 	return string(b)
 }
 
-func GenerateIdFromTitle(title string) string {
+func GenerateLinkFromTitle(title string) string {
 	id := strings.ToLower(strings.TrimSpace(title))
 	id = RemoveVietnameseAccents(id)
 	id = regexp.MustCompile("[^a-z0-9 ]+").ReplaceAllString(id, "")

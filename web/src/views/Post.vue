@@ -77,6 +77,12 @@ export default {
   computed: {
     serverBaseURL() {
       return conf.server
+    },
+    postId() {
+      let s = this.$route.params.id.split(".")
+      s = s[s.length - 1]
+      s = s.replace(/\D/i, s)
+      return s
     }
   },
   methods: {
@@ -90,7 +96,7 @@ export default {
     },
     likePost(){
       if(!this.$root.isLoggedIn()) return
-      server.updatePostStat(this.$route.params.id, "like", auth.getToken()).then(s => {
+      server.updatePostStat(this.postId, "like", auth.getToken()).then(s => {
         if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
           if (this.post.liked) {
             this.post.liked = false
@@ -116,7 +122,7 @@ export default {
     }
   },
   mounted() {
-    server.loadPost(this.$route.params.id, auth.getToken()).then(s => {
+    server.loadPost(this.postId, auth.getToken()).then(s => {
       if (s.hasOwnProperty("error")) {
         this.$notify({
           title: "Tải bài viết thất bại",
@@ -127,7 +133,7 @@ export default {
       }
       this.post = s;
       this.$refs.loadingState.deactivate()
-      server.updatePostStat(this.$route.params.id, "view", auth.getToken()).then(s => {
+      server.updatePostStat(this.postId, "view", auth.getToken()).then(s => {
         if (s.hasOwnProperty("error") && s["error"] !== "ERR_TOKEN_VERIFY") {
           this.$notify({
             title: "Tải bài viết thất bại",

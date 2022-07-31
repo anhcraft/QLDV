@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/Jeffail/gabs/v2"
+	"strconv"
 )
 
 type Post struct {
@@ -20,7 +21,7 @@ type Post struct {
 func (p *Post) serialize() *gabs.Container {
 	res := gabs.New()
 	_, _ = res.Set(p.ID, "id")
-	_, _ = res.Set(p.Link, "link")
+	_, _ = res.Set(p.Link+"."+strconv.Itoa(p.ID), "link")
 	_, _ = res.Set(p.Title, "title")
 	//_, _ = res.Set(p.Content, "content")
 	_, _ = res.Set(p.Date, "date")

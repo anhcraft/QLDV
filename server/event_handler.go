@@ -42,7 +42,7 @@ func getEvent(id string) *Event {
 
 func editOrCreateEvent(id string, title string, startDate int64, endDate int64, privacy uint8) *Event {
 	if id == "" {
-		id = GenerateIdFromTitle(title)
+		id = GenerateLinkFromTitle(title)
 	}
 	event := Event{
 		ID:        id,

@@ -33,7 +33,7 @@ func maxString(s string, max int) string {
 
 func editOrCreatePost(id int, title string, content string, privacy uint8, hashtag string) *Post {
 	post := Post{
-		Link:     GenerateIdFromTitle(title) + "." + strconv.Itoa(id),
+		Link:     GenerateLinkFromTitle(title),
 		Title:    title,
 		Content:  content,
 		Headline: maxString(bluemonday.StrictPolicy().Sanitize(content), 250),
