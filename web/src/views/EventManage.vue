@@ -11,8 +11,18 @@
           <tr v-for="event in events">
             <td class="max-w-xs break-words">{{ event.title }}</td>
             <td class="text-gray-500">
-              {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.startDate)) }} -
-              {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.endDate)) }}
+              {{
+                new Intl.DateTimeFormat("vi-VN", {
+                  timeStyle: "medium",
+                  dateStyle: "short"
+                }).format(new Date(event.beginDate))
+              }} -
+              {{
+                new Intl.DateTimeFormat("vi-VN", {
+                  timeStyle: "medium",
+                  dateStyle: "short"
+                }).format(new Date(event.endDate))
+              }}
             </td>
             <td class="float-right ml-5 flex flex-row gap-1">
               <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="edit(event.id)"></PencilIcon>
@@ -26,10 +36,7 @@
     </div>
     <div class="mt-10">
       <LoadingState ref="loadingState">
-        <div v-if="eventAvailable">
-          <button class="btn-info m-auto block" @click="loadNextEvents()">Xem thêm...</button>
-        </div>
-        <div v-else>Đã tải hết sự kiện.</div>
+        <div v-if="!pagination.available">Đã tải hết sự kiện.</div>
       </LoadingState>
     </div>
   </div>
@@ -58,21 +65,33 @@ export default {
   },
   data() {
     return {
-      eventAvailable: true,
       events: [],
+      pagination: {
+        belowId: 0,
+        available: true
+      },
       eventRemoveId: '',
       eventRemoveTitle: ''
     }
   },
   methods: {
+    handleScroll() {
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+        if(!this.$refs.loadingState.loading && this.pagination.available) {
+          this.loadNextEvents()
+        }
+      }
+    },
     loadNextEvents(){
       this.$refs.loadingState.activate()
-      const older = this.events.length === 0 ? new Date().getTime() : this.events[this.events.length - 1].date
-      server.loadEvents(20, older, 0, 0, auth.getToken()).then(s => {
-        if(s.events.length === 0) {
-          this.eventAvailable = false
+      server.loadEvents(10, this.pagination.belowId, 0, 0, auth.getToken()).then(s => {
+        if(s.events.length < 10) {
+          this.pagination.available = false
         }
-        this.events = this.events.concat(s.events)
+        if(s.events.length > 0) {
+          this.pagination.belowId = s.events[s.events.length - 1].id
+          this.events = this.events.concat(s.events)
+        }
         this.$refs.loadingState.deactivate()
       }, (e) => {
         this.$notify({
@@ -80,7 +99,7 @@ export default {
           text: e.message,
           type: "error"
         });
-      });
+      })
     },
     edit(id) {
       this.$router.push(`/ee/` + (id === undefined ? '' : id))
@@ -117,12 +136,16 @@ export default {
       }
     }
   },
+  unmounted () {
+    window.removeEventListener('scroll', this.handleScroll);
+  },
   mounted() {
     if(!this.$root.isLoggedIn()) {
       this.$router.push(`/`)
       return
     }
     this.loadNextEvents()
+    window.addEventListener('scroll', this.handleScroll)
   }
 }
 </script>

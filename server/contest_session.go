@@ -7,7 +7,7 @@ import (
 
 type ContestSession struct {
 	ID                      string `gorm:"primaryKey"`
-	ContestID               string
+	ContestID               int
 	UserID                  string
 	StartTime               int64
 	EndTime                 int64

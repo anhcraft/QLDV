@@ -9,8 +9,8 @@ type Contest struct {
 	LimitSessions    uint8
 	DataSheet        string
 	Info             string
-	EventID          string `gorm:"primaryKey"`
-	Event            Event  `gorm:"constraint:OnDelete:CASCADE;"`
+	EventID          int   `gorm:"primaryKey"`
+	Event            Event `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
 func (a *Contest) serialize(showData bool) *gabs.Container {

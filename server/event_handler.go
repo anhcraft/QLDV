@@ -11,26 +11,26 @@ import (
 	"time"
 )
 
-func getEvents(limit int, older int64, fromDate int64, toDate int64) []Event {
+func getEvents(limit int, belowId int, beginDate int64, endDate int64) []Event {
 	var events []Event
-	a := db.Where("date < ?", older)
-	if fromDate != 0 {
-		a = a.Where("start_date >= ? or end_date >= ?", fromDate, fromDate)
+	a := db.Limit(limit).Order("end_date desc, begin_date desc, id desc")
+	if beginDate != 0 && endDate != 0 && beginDate <= endDate {
+		a = a.Where("begin_date >= ? or end_date <= ?", beginDate, endDate)
 	}
-	if toDate != 0 {
-		a = a.Where("start_date <= ? or end_date <= ?", toDate, toDate)
+	if belowId > 0 {
+		a = a.Where("id < ?", belowId)
 	}
-	a.Order("date desc").Limit(limit).Find(&events)
+	a.Find(&events)
 	return events
 }
 
-func removeEvent(id string) bool {
+func removeEvent(id int) bool {
 	var event Event
 	db.Where("id = ?", id).Delete(&event)
 	return true
 }
 
-func getEvent(id string) *Event {
+func getEvent(id int) *Event {
 	var event Event
 	result := db.Take(&event, "id = ?", id)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -40,29 +40,29 @@ func getEvent(id string) *Event {
 	}
 }
 
-func editOrCreateEvent(id string, title string, startDate int64, endDate int64, privacy uint8) *Event {
-	if id == "" {
-		id = GenerateLinkFromTitle(title)
-	}
+func editOrCreateEvent(id int, title string, beginDate int64, endDate int64, privacy uint8) *Event {
 	event := Event{
-		ID:        id,
 		Title:     title,
-		StartDate: startDate,
+		Link:      GenerateLinkFromTitle(title),
+		BeginDate: beginDate,
 		EndDate:   endDate,
 		Date:      time.Now().UnixMilli(),
 		Privacy:   privacy,
 	}
+	if id > 0 {
+		event.ID = id
+	}
 	_ = db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"title", "start_date", "end_date", "privacy"}),
+		DoUpdates: clause.AssignmentColumns([]string{"title", "link", "begin_date", "end_date", "privacy"}),
 	}).Create(&event)
 	return &event
 }
 
 func eventGetRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
-	id := c.Query("id", "")
-	if id == "" {
+	id, err := strconv.Atoi(c.Query("id"))
+	if err != nil {
 		_, _ = res.Set("ERR_INVALID_EVENT_ID", "error")
 		return c.SendString(res.String())
 	}
@@ -114,20 +114,20 @@ func eventListRouteHandler(c *fiber.Ctx) error {
 	} else if limit < 1 {
 		limit = 1
 	}
-	older, err2 := strconv.ParseInt(c.Query("older", ""), 10, 64)
+	belowId, err2 := strconv.Atoi(c.Query("below-id", ""))
 	if err2 != nil {
-		older = time.Now().UnixMilli()
+		belowId = 0
 	}
-	fromDate, err3 := strconv.ParseInt(c.Query("from-date", ""), 10, 64)
+	beginDate, err3 := strconv.ParseInt(c.Query("begin-date", ""), 10, 64)
 	if err3 != nil {
-		fromDate = 0
+		beginDate = 0
 	}
-	toDate, err4 := strconv.ParseInt(c.Query("to-date", ""), 10, 64)
+	endDate, err4 := strconv.ParseInt(c.Query("end-date", ""), 10, 64)
 	if err4 != nil {
-		toDate = 0
+		endDate = 0
 	}
 	_, _ = res.Array("events")
-	for _, ev := range getEvents(limit, older, fromDate, toDate) {
+	for _, ev := range getEvents(limit, belowId, beginDate, endDate) {
 		if (ev.Privacy&1) == 1 && user == nil {
 			continue
 		}
@@ -165,7 +165,11 @@ func eventRemoveRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	id := c.Get("id")
+	id, err := strconv.Atoi(c.Get("id"))
+	if err != nil {
+		_, _ = res.Set("ERR_INVALID_EVENT_ID", "error")
+		return c.SendString(res.String())
+	}
 	_, _ = res.Set(removeEvent(id), "success")
 	return c.SendString(res.String())
 }
@@ -189,9 +193,9 @@ func eventChangeRouteHandler(c *fiber.Ctx) error {
 	}
 
 	payload := struct {
-		Id        string `json:"id,omitempty"`
+		Id        int    `json:"id,omitempty"`
 		Title     string `json:"title,omitempty"`
-		StartDate int64  `json:"start_date,omitempty"`
+		BeginDate int64  `json:"begin_date,omitempty"`
 		EndDate   int64  `json:"end_date,omitempty"`
 		Privacy   uint8  `json:"privacy,omitempty"`
 	}{}
@@ -201,6 +205,7 @@ func eventChangeRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 	payload.Title = strings.TrimSpace(payload.Title)
+	payload.Title = ugcPolicy.Sanitize(payload.Title)
 
 	if len(payload.Title) < 5 {
 		_, _ = res.Set("ERR_EVENT_TITLE_MIN", "error")
@@ -210,12 +215,12 @@ func eventChangeRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	if payload.StartDate > payload.EndDate {
+	if payload.BeginDate > payload.EndDate {
 		_, _ = res.Set("ERR_DATE_RANGE", "error")
 		return c.SendString(res.String())
 	}
 
-	p := editOrCreateEvent(payload.Id, payload.Title, payload.StartDate, payload.EndDate, payload.Privacy)
+	p := editOrCreateEvent(payload.Id, payload.Title, payload.BeginDate, payload.EndDate, payload.Privacy)
 	_, _ = res.Set(true, "success")
 	_, _ = res.Set(p.ID, "id")
 	return c.SendString(res.String())
