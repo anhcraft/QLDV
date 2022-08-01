@@ -6,7 +6,10 @@
       <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model="post.title">
       <div class="mt-10 centered-horizontal">
         <span>#</span>
-        <input type="text" class="border-b-2 border-b-slate-300 w-full" placeholder="Hashtag" v-model="post.hashtag">
+        <input type="text" class="border-b-2 border-b-slate-300 w-full" placeholder="Hashtag" v-model="post.hashtag" list="hashtags">
+        <datalist id="hashtags">
+          <option v-for="v in hashtags" :value="v"/>
+        </datalist>
       </div>
       <div class="mt-10">
         <Editor
@@ -84,6 +87,7 @@ export default {
         attachments: [],
         privacy: 0
       },
+      hashtags: [],
       submittingPost: false,
       attachmentUpload: [],
       attachmentUploadQueue: 0,
@@ -173,6 +177,9 @@ export default {
       this.$router.push(`/`)
       return
     }
+    server.getHashtags().then(data => {
+      this.hashtags = data
+    })
     if(this.$route.params.id !== undefined) {
       server.loadPost(this.$route.params.id, auth.getToken()).then(s => {
         if (s.hasOwnProperty("error")) {
