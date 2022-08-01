@@ -2,7 +2,7 @@ import {createRouter, createWebHashHistory} from "vue-router";
 
 const routes = [
     { path: '/', component: () => import("./views/Home.vue") },
-    { path: '/p/', component: () => import("./views/Home.vue") }, // fallback
+    { path: '/p/', component: () => import("./views/Posts.vue") },
     { path: '/p/:id', component: () => import("./views/Post.vue") },
     { path: '/pe/', component: () => import("./views/PostEdit.vue") },
     { path: '/pe/:id', component: () => import("./views/PostEdit.vue") },

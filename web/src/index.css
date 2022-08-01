@@ -15,6 +15,9 @@
     .btn-danger {
         @apply transition-all duration-500 rounded-md bg-rose-500 hover:bg-rose-600 px-4 py-1.5 text-white text-sm cursor-pointer;
     }
+    .btn-outline-sm {
+        @apply transition-all duration-500 rounded-md bg-slate-100 px-2 py-1 border border-slate-300 hover:border-slate-500 text-sm cursor-pointer
+    }
     .centered-horizontal {
         @apply flex flex-row items-center
     }

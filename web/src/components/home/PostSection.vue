@@ -4,7 +4,7 @@
       <RssIcon class="w-8 h-8 text-rose-500"></RssIcon>
       <p class="text-3xl font-heading">Tin tức</p>
     </div>
-    <router-link class="centered-horizontal gap-1 ml-auto text-slate-500 hover:text-black transition-all duration-300" to="/posts">
+    <router-link class="centered-horizontal gap-1 ml-auto text-slate-500 hover:text-black transition-all duration-300" to="/p">
       <p class="text-sm">Xem thêm</p>
       <ArrowRightIcon class="w-3 h-3"></ArrowRightIcon>
     </router-link>
@@ -46,7 +46,7 @@ export default {
   methods: {
     loadPosts(){
       this.$refs.postLoadingState.activate()
-      server.loadPosts(3, "", "", 0, 0, auth.getToken()).then(s => {
+      server.loadPosts(3, [], "", 0, 0, auth.getToken()).then(s => {
         this.posts = s.posts
         this.$refs.postLoadingState.deactivate()
       }, (e) => {

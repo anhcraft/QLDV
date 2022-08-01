@@ -57,11 +57,11 @@ func removePost(id int) bool {
 	return true
 }
 
-func getPosts(filterHashtag string, sortBy string, lowerThan uint, belowId int, limit int) []Post {
+func getPosts(filterHashtags []string, sortBy string, lowerThan uint, belowId int, limit int) []Post {
 	var posts []Post
 	cmd := db.Limit(limit)
-	if filterHashtag != "" {
-		cmd = cmd.Where("LOWER(`hashtag`) like ?", "%"+filterHashtag+"%")
+	if len(filterHashtags) > 0 {
+		cmd = cmd.Where("hashtag IN ?", filterHashtags)
 	}
 	if belowId > 0 {
 		cmd = cmd.Where("id < ?", belowId)
@@ -235,11 +235,11 @@ func postListRouteHandler(c *fiber.Ctx) error {
 
 	res := gabs.New()
 	payload := struct {
-		Limit         int    `json:"limit,omitempty"`
-		FilterHashtag string `json:"filter_hashtag,omitempty"`
-		BelowId       int    `json:"below_id,omitempty"`
-		SortBy        string `json:"sort_by,omitempty"`
-		LowerThan     uint   `json:"lower_than,omitempty"`
+		Limit          int      `json:"limit,omitempty"`
+		FilterHashtags []string `json:"filter_hashtags,omitempty"`
+		BelowId        int      `json:"below_id,omitempty"`
+		SortBy         string   `json:"sort_by,omitempty"`
+		LowerThan      uint     `json:"lower_than,omitempty"`
 	}{}
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -252,10 +252,18 @@ func postListRouteHandler(c *fiber.Ctx) error {
 	} else if payload.Limit < 1 {
 		payload.Limit = 1
 	}
-	payload.FilterHashtag = strings.TrimSpace(payload.FilterHashtag)
+
+	hashtagFilter := make([]string, 0)
+	for i := range payload.FilterHashtags {
+		v := strings.TrimSpace(payload.FilterHashtags[i])
+		matched, err := regexp.MatchString("^[a-zA-Z\\d-_]+$", v)
+		if matched && err == nil {
+			hashtagFilter = append(hashtagFilter, v)
+		}
+	}
 
 	_, _ = res.Array("posts")
-	for _, post := range getPosts(payload.FilterHashtag, payload.SortBy, payload.LowerThan, payload.BelowId, payload.Limit) {
+	for _, post := range getPosts(hashtagFilter, payload.SortBy, payload.LowerThan, payload.BelowId, payload.Limit) {
 		if (post.Privacy&1) == 1 && user == nil {
 			continue
 		}

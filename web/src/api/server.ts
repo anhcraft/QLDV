@@ -14,7 +14,7 @@ const server = {
             })
         }).json();
     },
-    loadPosts: function (limit: number, filterHashtag: string, sortBy: string, lowerThan: number, belowId: any, token: string) {
+    loadPosts: function (limit: number, filterHashtags: string[], sortBy: string, lowerThan: number, belowId: any, token: string) {
         return ky.post(`${conf.server}/posts`, {
             method: 'post',
             headers: {
@@ -23,7 +23,7 @@ const server = {
             },
             body: JSON.stringify({
                 'limit': limit,
-                'filter_hashtag': filterHashtag,
+                'filter_hashtags': filterHashtags,
                 'below_id': parseInt(belowId),
                 'sort_by': sortBy,
                 'lower_than': lowerThan,
@@ -309,6 +309,14 @@ const server = {
             })
         }).json();
     },
+    getHashtags: async function() {
+        return ky.get(`${conf.server}/get-hashtags`, {
+            method: 'get',
+            headers: {
+                'content-type': 'application/json'
+            }
+        }).json().then((t: any) => t.hashtags);
+    }
 }
 
 export default server;

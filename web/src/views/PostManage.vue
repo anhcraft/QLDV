@@ -52,7 +52,6 @@ export default {
     return {
       posts: [],
       pagination: {
-        filterHashtag: "",
         belowId: 0,
         lowerThan: 0,
         sortBy: "",
@@ -72,11 +71,14 @@ export default {
     },
     loadNextPosts(){
       this.$refs.loadingState.activate()
-      server.loadPosts(10, this.pagination.filterHashtag, this.pagination.sortBy, this.pagination.lowerThan, this.pagination.belowId, auth.getToken()).then(s => {
+      server.loadPosts(10, [], this.pagination.sortBy, this.pagination.lowerThan, this.pagination.belowId, auth.getToken()).then(s => {
         if(s.posts.length < 10) {
           this.pagination.available = false
         }
-        this.posts = this.posts.concat(s.posts)
+        if(s.posts.length > 0) {
+          this.pagination.belowId = s.posts[s.posts.length - 1].id
+          this.posts = this.posts.concat(s.posts)
+        }
         this.$refs.loadingState.deactivate()
       }, (e) => {
         this.$notify({

@@ -7,7 +7,7 @@
         <LoadingState ref="loadingState">
           <div class="centered-horizontal gap-3 text-slate-500 mb-3">
             <div class="grow mr-10">
-              <router-link class="text-cyan-500 text-lg hover:underline" :to="'/posts?tag=' + post.hashtag">#{{ post.hashtag }}</router-link>
+              <router-link class="text-cyan-500 text-lg hover:underline" :to="'/p?tag=' + post.hashtag">#{{ post.hashtag }}</router-link>
             </div>
             <p class="text-sm">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</p>
             <div class="flex flex-row gap-1 text-xs">
