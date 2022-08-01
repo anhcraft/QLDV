@@ -38,7 +38,6 @@ import Header from "../components/Header.vue";
 import Footer from "../components/Footer.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import LoadingState from "../components/LoadingState.vue";
-import PostSection from "../components/home/PostSection.vue";
 import PostWidget from "../components/home/PostWidget.vue";
 import {CalendarIcon, EyeIcon, HeartIcon, RssIcon} from "@heroicons/vue/solid";
 import server from "../api/server";
@@ -47,7 +46,7 @@ import auth from "../api/auth";
 export default {
   name: "Posts",
   components: {
-    Header, Footer, FloatingMenu, PostSection, PostWidget, LoadingState, RssIcon, HeartIcon, EyeIcon, CalendarIcon
+    Header, Footer, FloatingMenu, PostWidget, LoadingState, RssIcon, HeartIcon, EyeIcon, CalendarIcon
   },
   data() {
     return {
