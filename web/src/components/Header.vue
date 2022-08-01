@@ -18,7 +18,7 @@
               <div class="flex flex-row gap-8 items-center">
                 <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/">Trang chủ</router-link>
                 <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/p">Tin tức</router-link>
-                <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/about">Tổ chức</router-link>
+                <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/bch">Tổ chức</router-link>
                 <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/events">Hoạt động</router-link>
                 <button v-if="!$root.isLoggedIn()" @click="logIn()" class="btn-primary ml-10">Đăng nhập</button>
                 <button v-else @click="viewProfile()" class="btn-primary ml-10">Trang cá nhân</button>
