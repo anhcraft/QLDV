@@ -11,7 +11,7 @@
           <tr>
             <th>Tên</th>
             <th>Email</th>
-            <th class="w-32">Lớp</th>
+            <th class="w-32">C.đoàn</th>
             <th>N.Sinh</th>
             <th>Giới</th>
             <th>ĐV</th>
@@ -169,11 +169,15 @@ export default {
       },
       rateOptions: [
         {text: '#', value: 0},
-        {text: 'Tốt', value: 1},
-        {text: 'Khá', value: 2}
+        {text: 'Xuất sắc', value: 1},
+        {text: 'Khá', value: 2},
+        {text: 'Trung bình', value: 3}
       ],
       achievementOption: [],
       option: {
+        textStyle: {
+          fontFamily: "sans-serif"
+        },
         title: {
           text: "Thống kê học sinh",
           left: "center"

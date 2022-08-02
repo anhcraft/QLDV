@@ -2,7 +2,7 @@ import {createRouter, createWebHashHistory} from "vue-router";
 
 const routes = [
     { path: '/', component: () => import("./views/Home.vue") },
-    { path: '/p/', component: () => import("./views/Home.vue") }, // fallback
+    { path: '/p/', component: () => import("./views/Posts.vue") },
     { path: '/p/:id', component: () => import("./views/Post.vue") },
     { path: '/pe/', component: () => import("./views/PostEdit.vue") },
     { path: '/pe/:id', component: () => import("./views/PostEdit.vue") },
@@ -10,6 +10,7 @@ const routes = [
     { path: '/um/', component: () => import("./views/UserManage.vue") },
     { path: '/u/', component: () => import("./views/Home.vue") }, // fallback
     { path: '/u/:id', component: () => import("./views/Profile.vue") },
+    { path: '/e/', component: () => import("./views/Events.vue") },
     { path: '/em/', component: () => import("./views/EventManage.vue") },
     { path: '/ee/', component: () => import("./views/EventEdit.vue") },
     { path: '/ee/:id', component: () => import("./views/EventEdit.vue") },

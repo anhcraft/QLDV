@@ -54,76 +54,49 @@ export default {
   },
   methods: {
     isLoggedIn() {
-      return auth.getToken() != null
-    },
-    loadProgression() {
-      if(this.isLoggedIn()) {
-        this.progressionLoading = true
-        server.loadProgression(auth.getToken(), "").then(s => {
-          if (s.hasOwnProperty("error")) {
-            if(s["error"] === "ERR_TOKEN_VERIFY") {
-              auth.destroySession()
-              this.$router.push("/")
-            }
-            return
-          }
-          s["achievements"].forEach((value) => {
-            this.profile.achievements.push(value["title"] + ` (${value["year"]})`)
-          });
-          s["rates"].forEach((value) => {
-            this.profile.rates[value["year"]] = value["level"]
-          })
-          this.progressionLoading = false
-          this.progressionLoaded = true
-        })
-      }
+      return auth.isLoggedIn()
     }
   },
   mounted() {
-    if(this.isLoggedIn()) {
-      const tkn = auth.getToken()
-      if(tkn === undefined || tkn === "") {
-        auth.destroySession()
-        this.$router.push("/")
-        return
-      }
-      this.loadingProfile = true
-      server.loadProfile('', tkn).then(s => {
-        if (s.hasOwnProperty("error")) {
-          this.$notify({
-            title: "Tải thông tin thất bại",
-            text: lookupErrorCode(s["error"]),
-            type: "error"
-          });
-          auth.destroySession()
-          this.$router.push("/")
-          return
-        }
-        this.profile.email = s["email"];
-        this.profile.name = s["name"];
-        this.profile.certified = s["certified"];
-        this.profile.admin = s["admin"];
-        this.profile.mod = s["mod"];
-        this.profile.gender = s["gender"];
-        this.profile.entryDate = parseInt(s["entry"]);
-        this.profile.endDate = this.profile.entryDate + 3;
-        this.profile.class = s["class"];
-        this.profile.studentId = s["sid"];
-        if (s["profileCover"].length > 0) {
-          this.profile.profileCover = conf.server + "/static/" + s["profileCover"];
-        } else {
-          this.profile.profileCover = profileCoverDefaultImg
-        }
-        this.profile.profileBoard = s["profileBoard"]
-        this.loadingProfile = false
-      }, (e) => {
+    if(!this.isLoggedIn()) {
+      return
+    }
+    this.loadingProfile = true
+    server.loadProfile('', auth.getToken()).then(s => {
+      if (s.hasOwnProperty("error")) {
         this.$notify({
           title: "Tải thông tin thất bại",
-          text: e.message,
+          text: lookupErrorCode(s["error"]),
           type: "error"
         });
+        auth.setAuthenticated(false)
+        window.location.reload();
+        return
+      }
+      this.profile.email = s["email"];
+      this.profile.name = s["name"];
+      this.profile.certified = s["certified"];
+      this.profile.admin = s["admin"];
+      this.profile.mod = s["mod"];
+      this.profile.gender = s["gender"];
+      this.profile.entryDate = parseInt(s["entry"]);
+      this.profile.endDate = this.profile.entryDate + 3;
+      this.profile.class = s["class"];
+      this.profile.studentId = s["sid"];
+      if (s["profileCover"].length > 0) {
+        this.profile.profileCover = conf.server + "/static/" + s["profileCover"];
+      } else {
+        this.profile.profileCover = profileCoverDefaultImg
+      }
+      this.profile.profileBoard = s["profileBoard"]
+      this.loadingProfile = false
+    }, (e) => {
+      this.$notify({
+        title: "Tải thông tin thất bại",
+        text: e.message,
+        type: "error"
       });
-    }
+    });
   }
 }
 </script>

@@ -1,19 +1,19 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/microcosm-cc/bluemonday"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
 
-func getPost(id string) *Post {
+func getPost(id int) *Post {
 	var post Post
 	result := db.Take(&post, "id = ?", id)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -23,40 +23,67 @@ func getPost(id string) *Post {
 	}
 }
 
-func editOrCreatePost(id string, title string, content string, privacy uint8) *Post {
-	if id == "" {
-		hash := sha256.New()
-		hash.Write([]byte(id + title + time.Now().String()))
-		md := hash.Sum(nil)
-		id = hex.EncodeToString(md)
+func maxString(s string, max int) string {
+	limit := len(s)
+	if limit > max {
+		limit = max
 	}
+	return s[:limit]
+}
+
+func editOrCreatePost(id int, title string, content string, privacy uint8, hashtag string) *Post {
 	post := Post{
-		ID:      id,
-		Title:   title,
-		Content: content,
-		Date:    time.Now().UnixMilli(),
-		Privacy: privacy,
+		Link:     GenerateLinkFromTitle(title),
+		Title:    title,
+		Content:  content,
+		Headline: maxString(bluemonday.StrictPolicy().Sanitize(content), 250),
+		Hashtag:  hashtag,
+		Date:     time.Now().UnixMilli(),
+		Privacy:  privacy,
+	}
+	if id > 0 {
+		post.ID = id
 	}
 	_ = db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"title", "content", "privacy"}),
+		DoUpdates: clause.AssignmentColumns([]string{"title", "link", "content", "privacy", "headline", "hashtag"}),
 	}).Create(&post)
 	return &post
 }
 
-func removePost(id string) bool {
+func removePost(id int) bool {
 	var post Post
 	db.Where("id = ?", id).Delete(&post)
 	return true
 }
 
-func getPosts(limit int, older int64) []Post {
+func getPosts(filterHashtags []string, sortBy string, lowerThan uint, belowId int, limit int) []Post {
 	var posts []Post
-	_ = db.Where("date < ?", older).Order("date desc").Limit(limit).Find(&posts)
+	cmd := db.Limit(limit)
+	if len(filterHashtags) > 0 {
+		cmd = cmd.Where("hashtag IN ?", filterHashtags)
+	}
+	if belowId > 0 {
+		cmd = cmd.Where("id < ?", belowId)
+	}
+	if sortBy == "view" {
+		cmd = cmd.Order("view_count DESC, id DESC")
+		if lowerThan > 0 {
+			cmd = cmd.Where("view_count < ?", lowerThan)
+		}
+	} else if sortBy == "like" {
+		cmd = cmd.Order("like_count DESC, id DESC")
+		if lowerThan > 0 {
+			cmd = cmd.Where("like_count < ?", lowerThan)
+		}
+	} else {
+		cmd = cmd.Order("id DESC")
+	}
+	_ = cmd.Find(&posts)
 	return posts
 }
 
-func setPostStat(postId string, userId string, action string) bool {
+func setPostStat(postId int, userId string, action string) bool {
 	a := db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "post_id"}, {Name: "user_id"}, {Name: "action"}},
 		DoNothing: true,
@@ -69,10 +96,18 @@ func setPostStat(postId string, userId string, action string) bool {
 	if action == "like" && a == 0 {
 		var postStat PostStat
 		db.Where("post_id = ? and user_id = ? and action = ?", postId, userId, action).Delete(&postStat)
+		db.Model(&Post{}).Where("id = ?", postId).UpdateColumn("like_count", gorm.Expr("like_count - 1"))
 		return true
-	} else {
-		return a == 1
+	} else if a == 1 {
+		if action == "like" {
+			db.Model(&Post{}).Where("id = ?", postId).UpdateColumn("like_count", gorm.Expr("like_count + 1"))
+			return true
+		} else if action == "view" {
+			db.Model(&Post{}).Where("id = ?", postId).UpdateColumn("view_count", gorm.Expr("view_count + 1"))
+			return true
+		}
 	}
+	return false
 }
 
 func postChangeRouteHandler(c *fiber.Ctx) error {
@@ -94,10 +129,11 @@ func postChangeRouteHandler(c *fiber.Ctx) error {
 	}
 
 	payload := struct {
-		Id                string   `json:"id,omitempty"`
+		Id                int      `json:"id,omitempty"`
 		Title             string   `json:"title,omitempty"`
 		Content           string   `json:"content,omitempty"`
 		Privacy           uint8    `json:"privacy,omitempty"`
+		Hashtag           string   `json:"hashtag,omitempty"`
 		RemoveAttachments []string `json:"remove_attachments,omitempty"`
 	}{}
 
@@ -107,6 +143,7 @@ func postChangeRouteHandler(c *fiber.Ctx) error {
 	}
 	payload.Title = strings.TrimSpace(payload.Title)
 	payload.Content = strings.TrimSpace(payload.Content)
+	payload.Hashtag = strings.TrimSpace(payload.Hashtag)
 
 	if len(payload.Title) < 5 {
 		_, _ = res.Set("ERR_POST_TITLE_MIN", "error")
@@ -131,9 +168,16 @@ func postChangeRouteHandler(c *fiber.Ctx) error {
 		}
 	}
 
+	matched, err := regexp.MatchString("^[a-zA-Z\\d-_]+$", payload.Hashtag)
+	if !matched || err != nil || len(payload.Hashtag) < 5 || len(payload.Hashtag) > 30 {
+		_, _ = res.Set("ERR_INVALID_HASHTAG", "error")
+		return c.SendString(res.String())
+	}
+
+	payload.Title = ugcPolicy.Sanitize(payload.Title)
 	payload.Content = ugcPolicy.Sanitize(payload.Content)
 
-	p := editOrCreatePost(payload.Id, payload.Title, payload.Content, payload.Privacy)
+	p := editOrCreatePost(payload.Id, payload.Title, payload.Content, payload.Privacy, payload.Hashtag)
 	_, _ = res.Set(true, "success")
 	_, _ = res.Set(p.ID, "id")
 	return c.SendString(res.String())
@@ -152,7 +196,12 @@ func postStatUpdateRouteHandler(c *fiber.Ctx) error {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
 	}
-	id := c.Get("id")
+
+	id, err := strconv.Atoi(c.Get("id"))
+	if err != nil {
+		_, _ = res.Set("ERR_INVALID_POST_ID", "error")
+		return c.SendString(res.String())
+	}
 	post := getPost(id)
 	if post == nil {
 		_, _ = res.Set("ERR_UNKNOWN_POST", "error")
@@ -183,19 +232,38 @@ func postListRouteHandler(c *fiber.Ctx) error {
 	if success {
 		user = getProfile(emailOrError)
 	}
+
 	res := gabs.New()
-	limit, err1 := strconv.Atoi(c.Query("limit", ""))
-	if err1 != nil || limit > 50 {
-		limit = 50
-	} else if limit < 1 {
-		limit = 1
+	payload := struct {
+		Limit          int      `json:"limit,omitempty"`
+		FilterHashtags []string `json:"filter_hashtags,omitempty"`
+		BelowId        int      `json:"below_id,omitempty"`
+		SortBy         string   `json:"sort_by,omitempty"`
+		LowerThan      uint     `json:"lower_than,omitempty"`
+	}{}
+
+	if err := c.BodyParser(&payload); err != nil {
+		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
+		return c.SendString(res.String())
 	}
-	older, err2 := strconv.ParseInt(c.Query("older", ""), 10, 64)
-	if err2 != nil {
-		older = time.Now().UnixMilli()
+
+	if payload.Limit > 50 {
+		payload.Limit = 50
+	} else if payload.Limit < 1 {
+		payload.Limit = 1
 	}
+
+	hashtagFilter := make([]string, 0)
+	for i := range payload.FilterHashtags {
+		v := strings.TrimSpace(payload.FilterHashtags[i])
+		matched, err := regexp.MatchString("^[a-zA-Z\\d-_]+$", v)
+		if matched && err == nil {
+			hashtagFilter = append(hashtagFilter, v)
+		}
+	}
+
 	_, _ = res.Array("posts")
-	for _, post := range getPosts(limit, older) {
+	for _, post := range getPosts(hashtagFilter, payload.SortBy, payload.LowerThan, payload.BelowId, payload.Limit) {
 		if (post.Privacy&1) == 1 && user == nil {
 			continue
 		}
@@ -211,15 +279,6 @@ func postListRouteHandler(c *fiber.Ctx) error {
 		for _, att := range getAttachments(post.ID) {
 			_ = p.ArrayAppend(att.serialize(), "attachments")
 		}
-
-		result := struct {
-			like int64
-			view int64
-		}{}
-		x := db.Raw("select count(if(post_id = ? and action = 'like', 1, null)) as 'like', count(if(post_id = ? and action = 'view', 1, null)) as view from post_stats", post.ID)
-		_ = x.Row().Scan(&result.like, &result.view)
-		_, _ = p.Set(result.like, "likes")
-		_, _ = p.Set(result.view, "views")
 		_ = res.ArrayAppend(p, "posts")
 	}
 	return c.SendString(res.String())
@@ -243,7 +302,11 @@ func postRemoveRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	id := c.Get("id")
+	id, err := strconv.Atoi(c.Get("id"))
+	if err != nil {
+		_, _ = res.Set("ERR_INVALID_POST_ID", "error")
+		return c.SendString(res.String())
+	}
 	_, _ = res.Set(removePost(id), "success")
 	return c.SendString(res.String())
 }
@@ -256,8 +319,8 @@ func postGetRouteHandler(c *fiber.Ctx) error {
 		// guest can view public posts
 		emailOrError = "***"
 	}
-	id := c.Query("id", "")
-	if id == "" {
+	id, err := strconv.Atoi(c.Query("id"))
+	if err != nil {
 		_, _ = res.Set("ERR_INVALID_POST_ID", "error")
 		return c.SendString(res.String())
 	}
@@ -292,16 +355,25 @@ func postGetRouteHandler(c *fiber.Ctx) error {
 	}
 
 	result := struct {
-		like      int64
 		likeCheck int64
-		view      int64
 	}{}
 
-	x := db.Raw("select count(if(post_id = ? and action = 'like', 1, null)) as 'like', count(if(post_id = ? and action = 'like' and user_id = ?, 1, null)) as likeCheck, count(if(post_id = ? and action = 'view', 1, null)) as view from post_stats", id, id, emailOrError, id)
-	_ = x.Row().Scan(&result.like, &result.likeCheck, &result.view)
-	_, _ = res.Set(result.like, "likes")
-	_, _ = res.Set(result.view, "views")
+	x := db.Raw("count(if(post_id = ? and action = 'like' and user_id = ?, 1, null)) as likeCheck", id, emailOrError)
+	_ = x.Row().Scan(&result.likeCheck)
 	_, _ = res.Set(result.likeCheck > 0, "liked")
 
+	return c.SendString(res.String())
+}
+
+func postHashtagListRouteHandler(c *fiber.Ctx) error {
+	res := gabs.New()
+	var hashtags []struct {
+		Hashtag string
+	}
+	db.Model(&Post{}).Distinct("hashtag").Find(&hashtags)
+	_, _ = res.Array("hashtags")
+	for _, t := range hashtags {
+		_ = res.ArrayAppend(t.Hashtag, "hashtags")
+	}
 	return c.SendString(res.String())
 }

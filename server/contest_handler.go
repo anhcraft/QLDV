@@ -10,11 +10,12 @@ import (
 	"gorm.io/gorm/clause"
 	"log"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 )
 
-func editOrCreateContest(eventId string, answers bool, limitQuestions uint8, limitTime uint32, limitSessions uint8, sheet string, info string) interface{} {
+func editOrCreateContest(eventId int, answers bool, limitQuestions uint8, limitTime uint32, limitSessions uint8, sheet string, info string) interface{} {
 	contest := &Contest{
 		AcceptingAnswers: answers,
 		LimitQuestions:   limitQuestions,
@@ -31,13 +32,13 @@ func editOrCreateContest(eventId string, answers bool, limitQuestions uint8, lim
 	return &contest
 }
 
-func removeContest(id string) bool {
+func removeContest(id int) bool {
 	var contest Contest
 	db.Where("event_id = ?", id).Delete(&contest)
 	return true
 }
 
-func getContest(id string) *Contest {
+func getContest(id int) *Contest {
 	var contest Contest
 	result := db.Take(&contest, "event_id = ?", id)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -56,7 +57,7 @@ func containString(s []string, e string) bool {
 	return false
 }
 
-func getContestSessions(contest string, limit int, offset int, attendant string, requireFinished bool, order []string) []ContestSession {
+func getContestSessions(contest int, limit int, offset int, attendant string, requireFinished bool, order []string) []ContestSession {
 	var contestSessions []ContestSession
 	a := db.Where("contest_id = ?", contest)
 	if len(attendant) > 0 {
@@ -78,10 +79,10 @@ func getContestSessions(contest string, limit int, offset int, attendant string,
 	return contestSessions
 }
 
-func createContestSession(user string, contest string, limitTime uint32, questionSheet string, answerSheet string, expectedAnswerSheet string) *ContestSession {
+func createContestSession(user string, contest int, limitTime uint32, questionSheet string, answerSheet string, expectedAnswerSheet string) *ContestSession {
 	t := time.Now().UnixMilli()
 	hash := sha256.New()
-	hash.Write([]byte(user + contest + time.Now().String()))
+	hash.Write([]byte(user + strconv.Itoa(contest) + time.Now().String()))
 	id := hex.EncodeToString(hash.Sum(nil))
 	c := &ContestSession{
 		ID:                      id,
@@ -167,7 +168,7 @@ func contestStatGetRouteHandler(c *fiber.Ctx) error {
 	}
 
 	payload := struct {
-		Id string `json:"id,omitempty"`
+		Id int `json:"id,omitempty"`
 	}{}
 	if err := c.BodyParser(&payload); err != nil {
 		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
@@ -176,7 +177,7 @@ func contestStatGetRouteHandler(c *fiber.Ctx) error {
 
 	var results []ContestScoreRank
 	x := db.Table("contest_sessions").Select("round(`score`, 1) as `rank`, count(round(`score`, 1)) as `count`")
-	x = x.Where("contest_id = ?", payload.Id).Group("`rank`").Order("`count` DESC").Limit(10)
+	x = x.Where("contest_id = ?", payload.Id).Group("`rank`").Order("`rank`").Limit(200)
 	_ = x.Find(&results)
 	res, _ = gabs.ParseJSON([]byte("[]"))
 	for i := 0; i < len(results); i++ {
@@ -204,7 +205,7 @@ func contestChangeRouteHandler(c *fiber.Ctx) error {
 	}
 
 	payload := struct {
-		Id               string `json:"id,omitempty"`
+		Id               int    `json:"id,omitempty"`
 		AcceptingAnswers bool   `json:"accepting_answers,omitempty"`
 		LimitQuestions   uint8  `json:"limit_questions,omitempty"`
 		LimitTime        uint32 `json:"limit_time,omitempty"`
@@ -251,7 +252,11 @@ func contestRemoveRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	id := c.Get("id")
+	id, err := strconv.Atoi(c.Get("id"))
+	if err != nil {
+		_, _ = res.Set("ERR_INVALID_EVENT_ID", "error")
+		return c.SendString(res.String())
+	}
 	_, _ = res.Set(removeContest(id), "success")
 	return c.SendString(res.String())
 }
@@ -271,7 +276,7 @@ func contestSessionListRouteHandler(c *fiber.Ctx) error {
 	}
 
 	payload := struct {
-		Contest         string   `json:"contest,omitempty"`
+		Contest         int      `json:"contest,omitempty"`
 		Limit           int      `json:"limit,omitempty"`
 		Offset          int      `json:"offset,omitempty"`
 		FilterAttendant string   `json:"filter_attendant,omitempty"`
@@ -348,7 +353,7 @@ func contestSessionJoinRouteHandler(c *fiber.Ctx) error {
 	}
 
 	payload := struct {
-		Id string `json:"id,omitempty"`
+		Id int `json:"id,omitempty"`
 	}{}
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -358,7 +363,7 @@ func contestSessionJoinRouteHandler(c *fiber.Ctx) error {
 
 	ev := getEvent(payload.Id)
 	t := time.Now().UnixMilli()
-	if ev.StartDate > t || t > ev.EndDate {
+	if ev.BeginDate > t || t > ev.EndDate {
 		_, _ = res.Set("ERR_EVENT_UNAVAILABLE", "error")
 		return c.SendString(res.String())
 	}

@@ -1,29 +1,36 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1024px] m-auto pb-16 p-5 md:px-10">
+  <div class="pt-10 pb-16 px-5 md:px-0 max-w-[1100px] m-auto">
     <Breadcrumb text="Tin tức" link="/"></Breadcrumb>
-    <LoadingState ref="loadingState">
-      <div class="flex flex-row gap-5 place-content-end place-items-center text-slate-500 mb-3">
-        <p class="text-sm">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</p>
-        <div class="flex flex-row gap-1 text-xs">
-          <EyeIcon class="w-4"></EyeIcon>
-          <p>{{ post.views }}</p>
-        </div>
-        <div class="flex flex-row gap-1 border-2 border-white rounded-md px-2 py-1 text-xs transition-all duration-300" :class="
+    <div class="grid grid-cols-1 md:grid-cols-7 md:gap-16 mt-5">
+      <div class="col-span-5">
+        <LoadingState ref="loadingState">
+          <div class="centered-horizontal gap-3 text-slate-500 mb-3">
+            <div class="grow mr-10">
+              <router-link class="text-cyan-500 text-lg hover:underline" :to="'/p?tag=' + post.hashtag">#{{ post.hashtag }}</router-link>
+            </div>
+            <p class="text-sm">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</p>
+            <div class="flex flex-row gap-1 text-xs">
+              <EyeIcon class="w-4"></EyeIcon>
+              <p>{{ post.views }}</p>
+            </div>
+            <div class="flex flex-row gap-1 border-2 border-white rounded-md px-2 py-1 text-xs transition-all duration-300" :class="
           (post.liked ? 'bg-pink-500 text-white hover:bg-pink-300': '') + ' ' +
           (this.$root.isLoggedIn() ? 'cursor-pointer border-pink-500' : '')" @click="likePost()">
-          <HeartIcon class="w-4" :class="post.liked ? 'text-white' : 'text-pink-500'"></HeartIcon>
-          <p>{{ post.likes }}</p>
-        </div>
+              <HeartIcon class="w-4" :class="post.liked ? 'text-white' : 'text-pink-500'"></HeartIcon>
+              <p>{{ post.likes }}</p>
+            </div>
+          </div>
+          <article class="border-t-2 border-t-slate-300 py-10">
+            <header class="text-3xl md:text-4xl">{{ post.title }}</header>
+            <section class="mt-5 break-words prose max-w-max" v-html="post.content"></section>
+          </article>
+          <div class="mt-10 flex flex-row flex-wrap gap-3" v-if="post.attachments.length > 0">
+            <img v-for="att in post.attachments" class="max-h-36 cursor-pointer hover:opacity-80" :src="serverBaseURL + '/static/' + att.id" alt="" @click="previewImage(att.id)" />
+          </div>
+        </LoadingState>
       </div>
-      <article class="border-y-2 border-y-slate-300 py-10">
-        <header class="text-4xl">{{ post.title }}</header>
-        <section class="mt-5 break-words prose max-w-max" v-html="post.content"></section>
-      </article>
-      <div class="mt-10 flex flex-row flex-wrap gap-3" v-if="post.attachments.length > 0">
-        <img v-for="att in post.attachments" class="max-h-36 cursor-pointer hover:opacity-80" :src="serverBaseURL + '/static/' + att.id" alt="" @click="previewImage(att.id)" />
-      </div>
-    </LoadingState>
+    </div>
   </div>
   <FloatingMenu></FloatingMenu>
   <div class="select-none" v-if="previewImageId !== undefined">
@@ -70,6 +77,12 @@ export default {
   computed: {
     serverBaseURL() {
       return conf.server
+    },
+    postId() {
+      let s = this.$route.params.id.split(".")
+      s = s[s.length - 1]
+      s = s.replace(/\D/i, s)
+      return s
     }
   },
   methods: {
@@ -83,7 +96,7 @@ export default {
     },
     likePost(){
       if(!this.$root.isLoggedIn()) return
-      server.updatePostStat(this.$route.params.id, "like", auth.getToken()).then(s => {
+      server.updatePostStat(this.postId, "like", auth.getToken()).then(s => {
         if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
           if (this.post.liked) {
             this.post.liked = false
@@ -109,7 +122,7 @@ export default {
     }
   },
   mounted() {
-    server.loadPost(this.$route.params.id, auth.getToken()).then(s => {
+    server.loadPost(this.postId, auth.getToken()).then(s => {
       if (s.hasOwnProperty("error")) {
         this.$notify({
           title: "Tải bài viết thất bại",
@@ -120,7 +133,7 @@ export default {
       }
       this.post = s;
       this.$refs.loadingState.deactivate()
-      server.updatePostStat(this.$route.params.id, "view", auth.getToken()).then(s => {
+      server.updatePostStat(this.postId, "view", auth.getToken()).then(s => {
         if (s.hasOwnProperty("error") && s["error"] !== "ERR_TOKEN_VERIFY") {
           this.$notify({
             title: "Tải bài viết thất bại",

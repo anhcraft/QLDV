@@ -14,16 +14,23 @@ const server = {
             })
         }).json();
     },
-    loadPosts: function (limit: number, olderThan: number, token: string) {
-        return ky.get(`${conf.server}/posts?limit=${limit}&older=${olderThan}`, {
-            method: 'get',
+    loadPosts: function (limit: number, filterHashtags: string[], sortBy: string, lowerThan: number, belowId: any, token: string) {
+        return ky.post(`${conf.server}/posts`, {
+            method: 'post',
             headers: {
                 'content-type': 'application/json',
                 'token': token
-            }
+            },
+            body: JSON.stringify({
+                'limit': limit,
+                'filter_hashtags': filterHashtags,
+                'below_id': parseInt(belowId),
+                'sort_by': sortBy,
+                'lower_than': lowerThan,
+            })
         }).json();
     },
-    loadPost: function (id: string, token: string) {
+    loadPost: function (id: number, token: string) {
         return ky.get(`${conf.server}/post?id=${id}`, {
             method: 'get',
             headers: {
@@ -44,7 +51,7 @@ const server = {
             })
         }).json();
     },
-    changePost: async function(id: string, title: string, content: string, privacy: number, removeAttachments: string[], token: string) {
+    changePost: async function(id: any, title: string, content: string, privacy: number, hashtag: string, removeAttachments: string[], token: string) {
         return ky.post(`${conf.server}/change-post`, {
             method: 'post',
             headers: {
@@ -52,42 +59,43 @@ const server = {
                 'token': token
             },
             body: JSON.stringify({
-                'id': id === undefined ? '' : id,
+                'id': id === undefined ? -1 : parseInt(id),
                 'title': title,
+                'hashtag': hashtag,
                 'content': content,
                 'privacy': privacy,
                 'remove_attachments': removeAttachments
             })
         }).json();
     },
-    removePost: async function(id: string, token: string) {
+    removePost: async function(id: number, token: string) {
         return ky.post(`${conf.server}/remove-post`, {
             method: 'post',
             headers: {
                 'content-type': 'application/json',
                 'token': token,
-                'id': id === undefined ? '' : id
+                'id': id.toString()
             }
         }).json();
     },
-    updatePostStat: async function(id: string, action: string, token: string) {
+    updatePostStat: async function(id: number, action: string, token: string) {
         return ky.post(`${conf.server}/update-post-stat`, {
             method: 'post',
             headers: {
                 'content-type': 'application/json',
                 'token': token,
-                'id': id === undefined ? '' : id,
+                'id': id.toString(),
                 'action': action
             }
         }).json();
     },
-    uploadPostAttachment: async function(id: string, attachment: Blob, token: string) {
+    uploadPostAttachment: async function(id: number, attachment: Blob, token: string) {
         return ky.post(`${conf.server}/upload-attachment`, {
             method: 'post',
             headers: {
                 'content-type': undefined,
                 'token': token,
-                'id': id
+                'id': id.toString()
             },
             body: attachment
         }).json();
@@ -140,8 +148,8 @@ const server = {
             }))
         }).json();
     },
-    loadEvents: function (limit: number, olderThan: number, fromDate: number, toDate: number, token: string) {
-        return ky.get(`${conf.server}/events?limit=${limit}&older=${olderThan}&from-date=${fromDate}&to-date=${toDate}`, {
+    loadEvents: function (limit: number, belowId: number, beginDate: number, endDate: number, token: string) {
+        return ky.get(`${conf.server}/events?limit=${limit}&below-id=${belowId}&begin-date=${beginDate}&end-date=${endDate}`, {
             method: 'get',
             headers: {
                 'content-type': 'application/json',
@@ -149,17 +157,17 @@ const server = {
             }
         }).json();
     },
-    removeEvent: async function(id: string, token: string) {
+    removeEvent: async function(id: number, token: string) {
         return ky.post(`${conf.server}/remove-event`, {
             method: 'post',
             headers: {
                 'content-type': 'application/json',
                 'token': token,
-                'id': id === undefined ? '' : id
+                'id': id.toString()
             }
         }).json();
     },
-    changeEvent: async function (id: string, event: { endDate: Date, title: string, startDate: Date, privacy: number }, token: string) {
+    changeEvent: async function (id: any, event: { title: string, beginDate: Date, endDate: Date, privacy: number }, token: string) {
         return ky.post(`${conf.server}/change-event`, {
             method: 'post',
             headers: {
@@ -167,15 +175,15 @@ const server = {
                 'token': token
             },
             body: JSON.stringify({
-                'id': id === undefined ? '' : id,
+                'id': parseInt(id),
                 'title': event.title,
-                'start_date': event.startDate.getTime(),
+                'begin_date': event.beginDate.getTime(),
                 'end_date': event.endDate.getTime(),
                 'privacy': event.privacy
             })
         }).json();
     },
-    loadEvent: function (id: string, token: string) {
+    loadEvent: function (id: number, token: string) {
         return ky.get(`${conf.server}/event?id=${id}`, {
             method: 'get',
             headers: {
@@ -218,7 +226,7 @@ const server = {
             })
         }).json();
     },
-    changeContest(id: string, contest: { limitTime: number; limitQuestions: number; limitSessions: number; dataSheet: []; acceptingAnswers: boolean, info: string }, token: string) {
+    changeContest(id: any, contest: { limitTime: number; limitQuestions: number; limitSessions: number; dataSheet: []; acceptingAnswers: boolean, info: string }, token: string) {
         return ky.post(`${conf.server}/change-contest`, {
             method: 'post',
             headers: {
@@ -226,7 +234,7 @@ const server = {
                 'token': token
             },
             body: JSON.stringify({
-                id: id,
+                id: parseInt(id),
                 accepting_answers: contest.acceptingAnswers,
                 limit_questions: contest.limitQuestions,
                 limit_sessions: contest.limitSessions,
@@ -236,13 +244,13 @@ const server = {
             })
         }).json();
     },
-    removeContest(id: string, token: string) {
+    removeContest(id: number, token: string) {
         return ky.post(`${conf.server}/remove-contest`, {
             method: 'post',
             headers: {
                 'content-type': 'application/json',
                 'token': token,
-                'id': id === undefined ? '' : id
+                'id': id.toString()
             }
         }).json();
     },
@@ -254,7 +262,7 @@ const server = {
                 'token': token
             },
             body: JSON.stringify({
-                id: id,
+                'id': id,
                 'answer_sheet': JSON.stringify(answerSheet),
                 'save_only': saveOnly
             })
@@ -272,7 +280,7 @@ const server = {
             })
         }).json();
     },
-    loadContestSessions: function (contest: string, limit: number, offset: number, filterAttendant: string, filterFinished: boolean, sortBy: string[], token: string) {
+    loadContestSessions: function (contest: any, limit: number, offset: number, filterAttendant: string, filterFinished: boolean, sortBy: string[], token: string) {
         return ky.post(`${conf.server}/contest-sessions`, {
             method: 'post',
             headers: {
@@ -280,7 +288,7 @@ const server = {
                 'token': token
             },
             body: JSON.stringify({
-                'contest': contest,
+                'contest': parseInt(contest),
                 'limit': limit,
                 'offset': offset,
                 'filter_attendant': filterAttendant,
@@ -289,7 +297,7 @@ const server = {
             })
         }).json();
     },
-    getContestStats: async function(contest: string, token: string) {
+    getContestStats: async function(contest: any, token: string) {
         return ky.post(`${conf.server}/get-contest-stats`, {
             method: 'post',
             headers: {
@@ -297,10 +305,18 @@ const server = {
                 'token': token
             },
             body: JSON.stringify({
-                'id': contest
+                'id': parseInt(contest)
             })
         }).json();
     },
+    getHashtags: async function() {
+        return ky.get(`${conf.server}/get-hashtags`, {
+            method: 'get',
+            headers: {
+                'content-type': 'application/json'
+            }
+        }).json().then((t: any) => t.hashtags);
+    }
 }
 
 export default server;

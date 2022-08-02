@@ -7,7 +7,7 @@
         <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tên sự kiện..." v-model="event.title">
         <div class="flex flex-row gap-5 place-items-center">
           <p>Ngày bắt đầu</p>
-          <Datepicker v-model="event.startDate" locale="vi-VN" format="dd/MM/yyyy HH:mm"></Datepicker>
+          <Datepicker v-model="event.beginDate" locale="vi-VN" format="dd/MM/yyyy HH:mm"></Datepicker>
         </div>
         <div class="flex flex-row gap-5 place-items-center">
           <p>Ngày kết thúc</p>
@@ -50,9 +50,8 @@ export default {
     return {
       event: {
         title: "",
-        startDate: null,
+        beginDate: null,
         endDate: null,
-        date: null,
         privacy: 0
       },
       submittingEvent: false
@@ -61,7 +60,8 @@ export default {
   methods: {
     submit() {
       this.submittingEvent = true
-      server.changeEvent(this.$route.params.id, this.event, auth.getToken()).then(s => {
+      const id = this.$route.params.id === undefined ? 0 : this.$route.params.id
+      server.changeEvent(id, this.event, auth.getToken()).then(s => {
         this.submittingEvent = false
         if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
           this.$router.push('/em/')
@@ -90,7 +90,7 @@ export default {
       server.loadEvent(this.$route.params.id, auth.getToken()).then(s => {
         if(!s.hasOwnProperty("error")) {
           this.event = s;
-          this.event.startDate = new Date(s.startDate);
+          this.event.beginDate = new Date(s.beginDate);
           this.event.endDate = new Date(s.endDate);
           this.$refs.loadingState.deactivate()
         } else {
@@ -109,8 +109,8 @@ export default {
       });
     } else {
       this.$refs.loadingState.deactivate()
-      this.event.startDate = new Date()
-      this.event.endDate = new Date(this.event.startDate.getTime() + 60 * 60 * 24 * 1000)
+      this.event.beginDate = new Date()
+      this.event.endDate = new Date(this.event.beginDate.getTime() + 60 * 60 * 24 * 1000)
     }
   }
 }

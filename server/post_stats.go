@@ -3,7 +3,7 @@ package main
 import "github.com/Jeffail/gabs/v2"
 
 type PostStat struct {
-	PostId string `gorm:"primaryKey"`
+	PostId int    `gorm:"primaryKey"`
 	Post   Post   `gorm:"constraint:OnDelete:CASCADE;"`
 	UserId string `gorm:"primaryKey"`
 	Action string `gorm:"primaryKey"`

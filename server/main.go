@@ -102,12 +102,13 @@ func main() {
 	app.Post("/set-profile-board", profileBoardSetRouteHandler)
 	app.Post("/set-profile-settings", profileSettingSetRouteHandler)
 
-	app.Get("/posts", postListRouteHandler)
+	app.Post("/posts", postListRouteHandler)
 	app.Get("/post", postGetRouteHandler)
 	app.Post("/change-post", postChangeRouteHandler)
 	app.Post("/remove-post", postRemoveRouteHandler)
 	app.Post("/update-post-stat", postStatUpdateRouteHandler)
 	app.Post("/upload-attachment", attachmentUploadRouteHandler)
+	app.Get("/get-hashtags", postHashtagListRouteHandler)
 
 	app.Get("/event", eventGetRouteHandler)
 	app.Get("/events", eventListRouteHandler)

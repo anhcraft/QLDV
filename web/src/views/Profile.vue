@@ -10,7 +10,7 @@
               <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">THÔNG TIN</div>
               <div class="px-5 py-3">
                 <p>Tên: {{ profile.name }}</p>
-                <p v-if="profile.hasOwnProperty('class')">Lớp: {{ profile.class }}</p>
+                <p v-if="profile.hasOwnProperty('class')">Chi đoàn: {{ profile.class }}</p>
                 <p v-if="profile.hasOwnProperty('gender')">Giới tính: {{ profile.gender ? "Nữ" : "Nam" }}</p>
                 <p v-if="profile.hasOwnProperty('certified')">Đoàn viên: {{ profile.certified ? "Đã kết nạp" : "Không" }}</p>
                 <p v-if="profile.hasOwnProperty('entry')">Niên khóa: {{ profile.entryDate }} - {{ profile.endDate }}</p>
@@ -31,7 +31,7 @@
               <div class="px-5 py-3">
                 <ul class="list-disc list-inside">
                   <li v-for="(value, name) in rates">
-                    {{ value === 1 ? "Tốt" : (value === 2 ? "Khá" : "-") }} ({{ name }} - {{ parseInt(name) + 1 }})
+                    {{ value === 1 ? "Xuất sắc" : (value === 2 ? "Khá" : (value === 3 ? "Trung bình" : "-")) }} ({{ name }} - {{ parseInt(name) + 1 }})
                   </li>
                 </ul>
               </div>
@@ -47,7 +47,7 @@
             </div>
             <div class="flex flex-row place-items-center gap-1">
               <input type="checkbox" class="w-4 h-4" v-bind:checked="isClassPublic" @input="toggleProfileSetting(2, $event.target.value)" />
-              <p>Công khai lớp</p>
+              <p>Công khai chi đoàn</p>
             </div>
             <div class="flex flex-row place-items-center gap-1">
               <input type="checkbox" class="w-4 h-4" v-bind:checked="isAchievementPublic" @input="toggleProfileSetting(4, $event.target.value)" />

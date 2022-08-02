@@ -150,6 +150,9 @@ export default {
       savingContest: false,
       endingContest: false,
       option: {
+        textStyle: {
+          fontFamily: "sans-serif"
+        },
         title: {
           text: "Thống kê kết quả",
           left: "center"
@@ -177,6 +180,12 @@ export default {
       } else {
         return this.activeContestSession
       }
+    },
+    eventId() {
+      let s = this.$route.params.id.split(".")
+      s = s[s.length - 1]
+      s = s.replace(/\D/i, s)
+      return parseInt(s)
     }
   },
   methods: {
@@ -214,7 +223,7 @@ export default {
         return
       }
       this.$refs.loadingState.activate()
-      server.joinContestSession(this.$route.params.id, auth.getToken()).then(s => {
+      server.joinContestSession(this.eventId, auth.getToken()).then(s => {
         if(s.hasOwnProperty("error")) {
           this.$notify({
             title: "Tải cuộc thi thất bại",
@@ -290,7 +299,7 @@ export default {
       return ""
     },
     loadContestStats() {
-      server.getContestStats(this.$route.params.id, auth.getToken()).then(s => {
+      server.getContestStats(this.eventId, auth.getToken()).then(s => {
         if (s.hasOwnProperty("error")) {
           this.$notify({
             title: "Tải thống kê thất bại",
@@ -312,7 +321,7 @@ export default {
       })
     },
     loadContestSessions() {
-      server.loadContestSessions(this.$route.params.id, 30, 0, this.$root.profile.email, false, [], auth.getToken()).then(s => {
+      server.loadContestSessions(this.eventId, 30, 0, this.$root.profile.email, false, [], auth.getToken()).then(s => {
         if(s.hasOwnProperty("error")) {
           this.$notify({
             title: "Tải bài thi thất bại",
@@ -384,7 +393,7 @@ export default {
       return
     }
     if(this.$route.params.id !== undefined) {
-      server.loadEvent(this.$route.params.id, auth.getToken()).then(q => {
+      server.loadEvent(this.eventId, auth.getToken()).then(q => {
         if(!q.hasOwnProperty("error")) {
           if (q.hasOwnProperty("contest")) {
             q.contest.dataSheet = JSON.parse(q.contest.dataSheet)

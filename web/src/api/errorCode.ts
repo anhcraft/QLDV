@@ -15,6 +15,8 @@ const list = {
     "ERR_CONTEST_ATTENDED_MAX": "Số lần tham gia đã đạt giới hạn",
     "ERR_DATE_RANGE": "Ngày kết thúc phải sau ngày bắt đầu",
     "ERR_UNKNOWN_POST": "Không tìm thấy bài viết",
+    "ERR_INVALID_POST_ID": "Lỗi id bài viết",
+    "ERR_INVALID_HASHTAG": "Hashtag bao gồm chữ cái, số, - và _; từ 5 - 30 kí tự",
     "ERR_POST_TITLE_MIN": "Tiêu đề bài viết phải từ 5 - 300 kí tự",
     "ERR_POST_TITLE_MAX": "Tiêu đề bài viết phải từ 5 - 300 kí tự",
     "ERR_POST_CONTENT_MIN": "Nội dung bài viết phải từ 10 - 100.000 kí tự",

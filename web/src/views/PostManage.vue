@@ -7,13 +7,26 @@
     </div>
     <div class="overflow-auto mt-10">
       <table class="w-max md:w-full">
+        <thead class="text-left">
+          <tr>
+            <th>Tên bài</th>
+            <th>Hashtag</th>
+            <th>Ngày đăng</th>
+            <th>Lượt xem</th>
+            <th>Lượt thích</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
         <tbody>
           <tr v-for="post in posts">
             <td class="max-w-xs break-words">{{ post.title }}</td>
-            <td class="float-right ml-5 flex flex-row gap-1">
+            <td class="max-w-xs break-words">#{{ post.hashtag }}</td>
+            <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</td>
+            <td class="max-w-xs break-words">{{ post.views }}</td>
+            <td class="max-w-xs break-words">{{ post.likes }}</td>
+            <td class="ml-5 flex flex-row gap-5">
               <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="editPost(post.id)"></PencilIcon>
               <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="removePost(post.id, post.title)"></TrashIcon>
-              <p class="text-gray-500">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</p>
             </td>
           </tr>
         </tbody>
@@ -21,10 +34,7 @@
     </div>
     <div class="mt-10">
       <LoadingState ref="loadingState">
-        <div v-if="postAvailable">
-          <button class="btn-info m-auto block" @click="loadNextPosts()">Xem thêm...</button>
-        </div>
-        <div v-else>Đã tải hết bài viết.</div>
+        <div v-if="!pagination.available">Đã tải hết bài viết.</div>
       </LoadingState>
     </div>
   </div>
@@ -53,21 +63,35 @@ export default {
   },
   data() {
     return {
-      postAvailable: true,
       posts: [],
-      postRemoveId: '',
+      pagination: {
+        belowId: 0,
+        lowerThan: 0,
+        sortBy: "",
+        available: true
+      },
+      postRemoveId: -1,
       postRemoveTitle: ''
     }
   },
   methods: {
+    handleScroll() {
+      if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
+        if(!this.$refs.loadingState.loading && this.pagination.available) {
+          this.loadNextPosts()
+        }
+      }
+    },
     loadNextPosts(){
       this.$refs.loadingState.activate()
-      const older = this.posts.length === 0 ? new Date().getTime() : this.posts[this.posts.length - 1].date
-      server.loadPosts(20, older, auth.getToken()).then(s => {
-        if(s.posts.length === 0) {
-          this.postAvailable = false
+      server.loadPosts(10, [], this.pagination.sortBy, this.pagination.lowerThan, this.pagination.belowId, auth.getToken()).then(s => {
+        if(s.posts.length < 10) {
+          this.pagination.available = false
         }
-        this.posts = this.posts.concat(s.posts)
+        if(s.posts.length > 0) {
+          this.pagination.belowId = s.posts[s.posts.length - 1].id
+          this.posts = this.posts.concat(s.posts)
+        }
         this.$refs.loadingState.deactivate()
       }, (e) => {
         this.$notify({
@@ -93,8 +117,8 @@ export default {
         server.removePost(this.postRemoveId, auth.getToken()).then(s => {
           if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
             this.posts = this.posts.filter(p => p.id !== this.postRemoveId)
-            this.postRemoveId = ""
-            this.postRemoveTitle = ""
+            this.postRemoveId = -1
+            this.postRemoveTitle = ''
           } else {
             this.$notify({
               title: "Xóa bài viết thất bại",
@@ -112,12 +136,16 @@ export default {
       }
     }
   },
+  unmounted () {
+    window.removeEventListener('scroll', this.handleScroll);
+  },
   mounted() {
     if(!this.$root.isLoggedIn()) {
       this.$router.push(`/`)
       return
     }
     this.loadNextPosts()
+    window.addEventListener('scroll', this.handleScroll)
   }
 }
 </script>

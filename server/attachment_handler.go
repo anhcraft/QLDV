@@ -7,13 +7,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm/clause"
 	"os"
+	"strconv"
 	"time"
 )
 
-func uploadAttachment(postId string, data []byte, ext string) bool {
+func uploadAttachment(postId int, data []byte, ext string) bool {
 	_ = os.Mkdir("public", os.ModePerm)
 	hash := sha256.New()
-	hash.Write([]byte(postId + time.Now().String()))
+	hash.Write([]byte(strconv.Itoa(postId) + time.Now().String()))
 	md := hash.Sum(nil)
 	attId := hex.EncodeToString(md)
 	att := Attachment{
@@ -29,13 +30,13 @@ func uploadAttachment(postId string, data []byte, ext string) bool {
 	return true
 }
 
-func getAttachments(postId string) []Attachment {
+func getAttachments(postId int) []Attachment {
 	var atts []Attachment
 	_ = db.Where("post_id = ?", postId).Order("date desc").Find(&atts)
 	return atts
 }
 
-func removeAttachments(postId string, atts []string) bool {
+func removeAttachments(postId int, atts []string) bool {
 	var att Attachment
 	for _, v := range atts {
 		db.Where("id = ?", v).Where("post_id = ?", postId).Delete(&att)
@@ -61,7 +62,11 @@ func attachmentUploadRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	id := c.Get("id")
+	id, err := strconv.Atoi(c.Get("id"))
+	if err != nil {
+		_, _ = res.Set("ERR_INVALID_POST_ID", "error")
+		return c.SendString(res.String())
+	}
 	post := getPost(id)
 	if post == nil {
 		_, _ = res.Set("ERR_UNKNOWN_POST", "error")
