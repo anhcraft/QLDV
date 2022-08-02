@@ -3,20 +3,20 @@
     <FireIcon class="w-8 h-8 text-rose-500"></FireIcon>
     <p class="text-3xl font-heading">Hoạt động Đoàn</p>
   </div>
-  <div class="centered-horizontal gap-24 my-10">
+  <div class="lg:centered-horizontal gap-24 my-10">
     <div class="w-[500px]">
       <ActivityGallery></ActivityGallery>
     </div>
     <div>
-      <div class="text-3xl font-heading mb-5">Sự kiện tháng {{ new Date().getMonth() }}</div>
+      <div class="text-3xl font-heading mb-5 mt-10 lg:mt-0">Sự kiện tháng {{ new Date().getMonth() }}</div>
       <LoadingState ref="loadingStateOngoing">
-        <div class="grid grid-cols-2 gap-x-5 gap-y-1">
+        <div class="grid grid-cols-2 md:grid-cols-1 xl:grid-cols-2 gap-x-5 gap-y-1">
           <EventButton v-for="data in onGoingEvents" :data="data"></EventButton>
         </div>
       </LoadingState>
     </div>
   </div>
-  <p class="text-3xl font-heading text-center mt-36">Cá nhân tiêu biểu</p>
+  <p class="text-3xl font-heading text-center mt-24 xl:mt-36">Cá nhân tiêu biểu</p>
   <div class="max-w-[600px] m-auto">
     <KeyMemberSlideshow></KeyMemberSlideshow>
   </div>

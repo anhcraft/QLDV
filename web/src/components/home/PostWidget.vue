@@ -1,6 +1,6 @@
 <template>
-  <router-link class="pw-container block cursor-pointer rounded-2xl before:rounded-2xl w-full h-full relative" :to="'/p/' + data.link">
-    <img :src="getBackground(data)" class="object-cover object-center rounded-2xl w-full h-full" />
+  <router-link class="pw-container block cursor-pointer rounded-2xl before:rounded-2xl w-full max-h-[300px] lg:max-h-full relative" :to="'/p/' + data.link">
+    <img :src="getBackground(data)" class="object-cover object-center rounded-2xl w-full max-h-[300px] lg:max-h-full" />
     <div class="absolute text-white top-3 right-5 z-10">
       <div class="flex flex-row gap-1">
         <EyeIcon class="w-4"></EyeIcon>
@@ -11,10 +11,10 @@
         <p>{{ data.likes }}</p>
       </div>
     </div>
-    <div class="w-full absolute text-white break-words z-10" :class="large ? 'bottom-10 px-10' : 'bottom-5 px-5'">
-      <p class="font-heading" :class="large ? 'text-4xl font-bold' : 'text-xl font-semibold'">{{ data.title }}</p>
+    <div class="w-full absolute text-white break-words z-10 bottom-5 px-5" :class="large ? ' md:bottom-10 lg:px-10' : ''">
+      <p class="font-heading" :class="large ? 'text-xl md:text-3xl xl:text-4xl md:font-bold' : 'text-xl font-semibold'">{{ data.title }}</p>
       <p class="font-heading">#{{ data.hashtag }}</p>
-      <p class="text-sm mt-5" v-if="large">
+      <p class="text-sm mt-5 hidden md:block" v-if="large">
         {{ data.headline }}
       </p>
     </div>

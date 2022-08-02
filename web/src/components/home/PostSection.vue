@@ -10,12 +10,12 @@
     </router-link>
   </div>
   <LoadingState ref="postLoadingState">
-    <div class="grid grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-y-5 lg:gap-x-5">
       <div class="col-span-2">
         <PostWidget :data="posts[0]" large v-if="posts.length > 0"></PostWidget>
       </div>
       <div class="col-span-1">
-        <div class="grid grid-rows-2 gap-5" v-if="posts.length > 1">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-none lg:grid-rows-2 gap-5" v-if="posts.length > 1">
           <PostWidget v-for="data in posts.slice(1)" :data="data"></PostWidget>
         </div>
       </div>

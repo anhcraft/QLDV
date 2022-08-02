@@ -1,6 +1,6 @@
 <template>
   <Header></Header>
-  <div class="pt-10 pb-16 px-5 md:px-0 max-w-[1100px] m-auto">
+  <section class="page-section px-10 py-8 lg:py-16">
     <Breadcrumb text="BCH Đoàn trường" link="/bch/"></Breadcrumb>
     <div class="grid grid-cols-1 md:grid-cols-7 md:gap-16 mt-5">
       <div class="col-span-5">
@@ -17,7 +17,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </section>
   <FloatingMenu></FloatingMenu>
 </template>
 

@@ -1,6 +1,6 @@
 <template>
   <Header></Header>
-  <section class="page-section py-16">
+  <section class="page-section px-10 py-8 lg:py-16">
     <div class="centered-horizontal mb-5 gap-3">
       <RssIcon class="w-8 h-8 text-rose-500"></RssIcon>
       <p class="text-3xl font-heading">Tin tức</p>
@@ -24,7 +24,7 @@
                    @click="this.setSortBy('like')"></HeartIcon>
       </div>
     </div>
-    <div class="grid grid-cols-3 gap-5 mt-10">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">
       <PostWidget v-for="data in posts" :data="data"></PostWidget>
     </div>
     <LoadingState ref="loadingState"></LoadingState>

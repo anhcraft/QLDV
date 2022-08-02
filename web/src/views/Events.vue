@@ -1,23 +1,23 @@
 <template>
   <Header></Header>
-  <section class="page-section py-16">
+  <section class="page-section px-10 py-8 lg:py-16">
     <div class="centered-horizontal mb-5 gap-3">
       <FireIcon class="w-8 h-8 text-rose-500"></FireIcon>
       <p class="text-3xl font-heading">Đang diễn ra</p>
     </div>
     <LoadingState ref="loadingStateOngoing">
-      <div class="grid grid-cols-4 gap-5 mt-10">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mt-10">
         <EventButton v-for="data in onGoingEvents" :data="data"></EventButton>
       </div>
     </LoadingState>
-    <div class="centered-horizontal mt-24 gap-3">
+    <div class="centered-horizontal mt-16 xl:mt-24 gap-3">
       <CollectionIcon class="w-8 h-8 text-rose-500"></CollectionIcon>
       <p class="text-3xl font-heading">Tất cả</p>
     </div>
     <div class="mt-10 flex flex-col gap-10">
       <div v-for="ent in Object.keys(scheduler)">
         <p class="text-2xl font-heading">{{ent}}</p>
-        <div class="grid grid-cols-4 gap-5 mt-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mt-5">
           <EventButton v-for="data in scheduler[ent]" :data="events[data]"></EventButton>
         </div>
       </div>
