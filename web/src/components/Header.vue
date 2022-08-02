@@ -11,7 +11,7 @@
             <img src="../assets/youth-logo.png" class="w-12 h-12"  alt=""/>
             <img src="../assets/das-logo.png" class="w-12 h-12"  alt=""/>
             <router-link to="/" class="text-4xl ml-5 font-light">
-              <span class="block md:inline">ĐOÀN THPT</span> <span>DĨ AN</span>
+              <span class="block md:inline">ĐOÀN TRƯỜNG THPT</span> <span>DĨ AN</span>
               <p class="text-sm italic">Website đang hoạt động thử nghiệm</p>
             </router-link>
             <div class="absolute right-0 hidden md:block">

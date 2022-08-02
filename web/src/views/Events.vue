@@ -102,12 +102,10 @@ export default {
       let target = new Date(ev.beginDate)
       let cursor = new Date(ev.endDate)
       if(target.getTime() > cursor.getTime()) return
-      console.log("Rendering from " + cursor+" back to "+target)
       while (true) {
         const m = cursor.getMonth()
         const y = cursor.getFullYear()
         const k = m + "/" + y
-        console.log(">"+k)
         let arr = []
         if(this.scheduler.hasOwnProperty(k)) {
           arr = this.scheduler[k]
@@ -115,7 +113,6 @@ export default {
         arr.push(index)
         this.scheduler[k] = arr
         if(m === target.getMonth() && y === target.getFullYear()) {
-          console.log("done")
           break
         }
         cursor.setMonth(cursor.getMonth() - 1)

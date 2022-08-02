@@ -150,6 +150,9 @@ export default {
       savingContest: false,
       endingContest: false,
       option: {
+        textStyle: {
+          fontFamily: "sans-serif"
+        },
         title: {
           text: "Thống kê kết quả",
           left: "center"
