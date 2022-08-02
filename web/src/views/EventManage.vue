@@ -7,10 +7,20 @@
     </div>
     <div class="overflow-auto mt-10">
       <table class="w-max md:w-full">
+        <thead class="text-left">
+          <tr>
+            <th>Tên sự kiện</th>
+            <th>Trạng thái</th>
+            <th>Thời gian</th>
+            <th>Thao tác</th>
+            <th>Ngày đăng</th>
+          </tr>
+        </thead>
         <tbody>
           <tr v-for="event in events">
             <td class="max-w-xs break-words">{{ event.title }}</td>
-            <td class="text-gray-500">
+            <td>{{ event.status === 'ongoing' ? "Đang diễn ra" : (event.status === 'finished' ? "Đã kết thúc" : "Chưa bắt đầu") }}</td>
+            <td>
               {{
                 new Intl.DateTimeFormat("vi-VN", {
                   timeStyle: "medium",
@@ -24,11 +34,13 @@
                 }).format(new Date(event.endDate))
               }}
             </td>
-            <td class="float-right ml-5 flex flex-row gap-1">
+            <td class="flex flex-row gap-1">
               <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="edit(event.id)"></PencilIcon>
               <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="remove(event.id, event.title)"></TrashIcon>
               <PuzzleIcon class="w-6 cursor-pointer text-gray-500" @click="manageContest(event.id)"></PuzzleIcon>
-              <p class="text-gray-500">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.date)) }}</p>
+            </td>
+            <td class="text-gray-500">
+              {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.date)) }}
             </td>
           </tr>
         </tbody>
