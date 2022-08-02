@@ -117,8 +117,14 @@ export default {
   mounted() {
     server.getHashtags().then(data => {
       data.forEach(e => this.pagination.hashtags[e] = false)
+      if(this.$route.query.hasOwnProperty("tag")) {
+        let tag = this.$route.query["tag"]
+        if(this.pagination.hashtags.hasOwnProperty(tag)) {
+          this.pagination.hashtags[tag] = true
+        }
+      }
+      this.loadNextPosts()
     })
-    this.loadNextPosts()
     window.addEventListener('scroll', this.handleScroll)
   }
 }
