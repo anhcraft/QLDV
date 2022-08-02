@@ -51,6 +51,5 @@ func GenerateLinkFromTitle(title string) string {
 	id = RemoveVietnameseAccents(id)
 	id = regexp.MustCompile("[^a-z0-9 ]+").ReplaceAllString(id, "")
 	id = strings.ReplaceAll(id, " ", "-")
-	id += "-" + strings.ToLower(RandStringBytes(5))
 	return id
 }
