@@ -8,7 +8,7 @@
       <ActivityGallery></ActivityGallery>
     </div>
     <div>
-      <div class="text-3xl font-heading mb-5">Sự kiện tháng 7</div>
+      <div class="text-3xl font-heading mb-5">Sự kiện tháng {{ new Date().getMonth() }}</div>
       <LoadingState ref="loadingStateOngoing">
         <div class="grid grid-cols-2 gap-x-5 gap-y-1">
           <EventButton v-for="data in onGoingEvents" :data="data"></EventButton>
