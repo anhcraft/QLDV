@@ -14,8 +14,12 @@ import (
 func getEvents(limit int, belowId int, beginDate int64, endDate int64) []Event {
 	var events []Event
 	a := db.Limit(limit).Order("end_date desc, begin_date desc, id desc")
-	if beginDate != 0 && endDate != 0 && beginDate <= endDate {
-		a = a.Where("begin_date >= ? or end_date <= ?", beginDate, endDate)
+	if beginDate > 0 && endDate > 0 && beginDate <= endDate {
+		a = a.Where("begin_date <= ? and end_date >= ?", endDate, beginDate)
+	} else if beginDate > 0 && endDate == 0 {
+		a = a.Where("begin_date > ?", beginDate)
+	} else if beginDate == 0 && endDate > 0 {
+		a = a.Where("end_date < ?", endDate)
 	}
 	if belowId > 0 {
 		a = a.Where("id < ?", belowId)

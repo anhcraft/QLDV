@@ -10,6 +10,7 @@ const routes = [
     { path: '/um/', component: () => import("./views/UserManage.vue") },
     { path: '/u/', component: () => import("./views/Home.vue") }, // fallback
     { path: '/u/:id', component: () => import("./views/Profile.vue") },
+    { path: '/e/', component: () => import("./views/Events.vue") },
     { path: '/em/', component: () => import("./views/EventManage.vue") },
     { path: '/ee/', component: () => import("./views/EventEdit.vue") },
     { path: '/ee/:id', component: () => import("./views/EventEdit.vue") },
