@@ -1,16 +1,16 @@
 <template>
   <div class="page-header relative">
     <div class="z-[10] absolute top-14" v-if="showMenu">
-      <div class="flex flex-col bg-white">
-        <router-link class="px-5 py-3 hover:bg-slate-300" to="/">Trang chủ</router-link>
-        <router-link class="px-5 py-3 hover:bg-slate-300" to="/p">Tin tức</router-link>
-        <router-link class="px-5 py-3 hover:bg-slate-300" to="/bch">Tổ chức</router-link>
-        <router-link class="px-5 py-3 hover:bg-slate-300" to="/e">Hoạt động</router-link>
+      <div class="flex flex-col bg-white border border-slate-300">
+        <router-link class="px-10 py-3 hover:bg-slate-300" to="/">Trang chủ</router-link>
+        <router-link class="px-10 py-3 hover:bg-slate-300" to="/p">Tin tức</router-link>
+        <router-link class="px-10 py-3 hover:bg-slate-300" to="/e">Hoạt động</router-link>
+        <router-link class="px-10 py-3 hover:bg-slate-300" to="/bch">Tổ chức</router-link>
       </div>
     </div>
 
     <div>
-      <div class="centered-horizontal bg-indigo-500 text-sm p-3 pr-5 shadow-md shadow-slate-500 md:hidden">
+      <div class="centered-horizontal bg-indigo-500 text-sm text-white p-3 pr-5 shadow-md shadow-slate-500 md:hidden">
         <div class="grow">
           <Bars3Icon class="w-8 h-8 cursor-pointer" @click="showMenu = !showMenu"></Bars3Icon>
         </div>
@@ -34,8 +34,8 @@
             <div class="md:centered-horizontal justify-center gap-8 mt-10 xl:mt-0 hidden">
               <router-link class="border-b-2 border-b-transparent hover:border-b-slate-500" to="/">Trang chủ</router-link>
               <router-link class="border-b-2 border-b-transparent hover:border-b-slate-500" to="/p">Tin tức</router-link>
-              <router-link class="border-b-2 border-b-transparent hover:border-b-slate-500" to="/bch">Tổ chức</router-link>
               <router-link class="border-b-2 border-b-transparent hover:border-b-slate-500" to="/e">Hoạt động</router-link>
+              <router-link class="border-b-2 border-b-transparent hover:border-b-slate-500" to="/bch">Tổ chức</router-link>
               <button v-if="!$root.isLoggedIn()" @click="logIn()" class="btn-primary ml-10">Đăng nhập</button>
               <button v-else @click="viewProfile()" class="btn-primary ml-10">Trang cá nhân</button>
             </div>
