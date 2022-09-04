@@ -8,8 +8,7 @@
 </template>
 
 <script>
-import {ChevronRightIcon} from "@heroicons/vue/outline";
-import {HomeIcon} from "@heroicons/vue/solid";
+import { HomeIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
 
 export default {
   name: "Breadcrumb",

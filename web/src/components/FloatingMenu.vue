@@ -10,7 +10,7 @@
       <UsersIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2 bg-white"></UsersIcon>
     </router-link>
     <!--<CogIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2"></CogIcon>-->
-    <LogoutIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2 bg-white" v-if="$root.isLoggedIn()" @click="logOut()"></LogoutIcon>
+    <ArrowRightOnRectangleIcon class="w-12 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-2 bg-white" v-if="$root.isLoggedIn()" @click="logOut()"></ArrowRightOnRectangleIcon>
   </div>
 </template>
 
@@ -18,16 +18,16 @@
 import {
   CalendarIcon,
   CogIcon,
-  LogoutIcon,
+  ArrowRightOnRectangleIcon,
   NewspaperIcon,
   UsersIcon
-} from "@heroicons/vue/solid";
+} from '@heroicons/vue/24/solid';
 import auth from "../api/auth";
 
 export default {
   name: "FloatingMenu",
   components: {
-    LogoutIcon,
+    ArrowRightOnRectangleIcon,
     CogIcon,
     NewspaperIcon,
     UsersIcon,

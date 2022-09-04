@@ -33,8 +33,9 @@ export default {
   data() {
     return {
       images: [
-        "https://i.imgur.com/qK6gzc0.jpg",
-        "https://i.imgur.com/CvXZJy4.jpg"
+        "https://i.ibb.co/mGfr9nL/qK6gzc0.jpg",
+        "https://i.ibb.co/Lrg51bk/290569479-3118802495116785-4269751742884278803-n.jpg",
+        "https://i.ibb.co/4tFzp6C/CvXZJy4.jpg"
       ]
     }
   },

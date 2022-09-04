@@ -12,7 +12,7 @@
     <div>
       <div class="centered-horizontal bg-indigo-500 text-sm p-3 pr-5 shadow-md shadow-slate-500 md:hidden">
         <div class="grow">
-          <MenuIcon class="w-8 h-8 cursor-pointer" @click="showMenu = !showMenu"></MenuIcon>
+          <Bars3Icon class="w-8 h-8 cursor-pointer" @click="showMenu = !showMenu"></Bars3Icon>
         </div>
         <button v-if="!$root.isLoggedIn()" @click="logIn()">Đăng nhập</button>
         <button v-else @click="viewProfile()">Trang cá nhân</button>
@@ -51,12 +51,12 @@
 import auth from "../api/auth";
 import server from "../api/server";
 import lookupErrorCode from "../api/errorCode";
-import {MenuIcon} from "@heroicons/vue/solid";
+import {Bars3Icon} from '@heroicons/vue/24/solid';
 
 export default {
   name: "Header",
   components: {
-    MenuIcon
+    Bars3Icon
   },
   data() {
     return {

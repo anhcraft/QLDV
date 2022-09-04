@@ -46,7 +46,7 @@
             <td>{{ new Intl.DateTimeFormat("vi-VN" , {dateStyle: "short"}).format(new Date(user.birth)) }}</td>
             <td class="text-center">{{ user.gender ? "Nữ" : "Nam" }}</td>
             <td>
-              <BadgeCheckIcon class="w-6 m-auto" :class="user.certified ? 'text-sky-400' : 'text-gray-400'" @click="toggleCertified(user)"></BadgeCheckIcon>
+              <CheckBadgeIcon class="w-6 m-auto" :class="user.certified ? 'text-sky-400' : 'text-gray-400'" @click="toggleCertified(user)"></CheckBadgeIcon>
             </td>
             <td>
               <StarIcon class="w-6 cursor-pointer" :class="user.mod ? 'text-emerald-500' : 'text-white'" @click="toggleMod(user)" v-if="$root.profile.admin && !user.admin"></StarIcon>
@@ -110,11 +110,11 @@
 
 <script>
 import {
-  BadgeCheckIcon,
+  CheckBadgeIcon,
   ChevronDoubleRightIcon,
   PlusCircleIcon,
   StarIcon
-} from '@heroicons/vue/solid'
+} from '@heroicons/vue/24/solid'
 import server from "../api/server";
 import auth from "../api/auth";
 import { CanvasRenderer } from "echarts/renderers";
@@ -144,7 +144,7 @@ export default {
   name: "UserManage",
   components: {
     LoadingState, Header, FloatingMenu, Breadcrumb,
-    BadgeCheckIcon, StarIcon, VChart, ChevronDoubleRightIcon, PlusCircleIcon
+    CheckBadgeIcon, StarIcon, VChart, ChevronDoubleRightIcon, PlusCircleIcon
   },
   data() {
     return {

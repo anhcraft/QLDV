@@ -39,7 +39,7 @@ import Footer from "../components/Footer.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import LoadingState from "../components/LoadingState.vue";
 import PostWidget from "../components/home/PostWidget.vue";
-import {CalendarIcon, EyeIcon, HeartIcon, RssIcon} from "@heroicons/vue/solid";
+import {CalendarIcon, EyeIcon, HeartIcon, RssIcon} from "@heroicons/vue/24/solid";
 import server from "../api/server";
 import auth from "../api/auth";
 

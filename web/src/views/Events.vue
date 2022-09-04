@@ -11,7 +11,7 @@
       </div>
     </LoadingState>
     <div class="centered-horizontal mt-16 xl:mt-24 gap-3">
-      <CollectionIcon class="w-8 h-8 text-rose-500"></CollectionIcon>
+      <CircleStackIcon class="w-8 h-8 text-rose-500"></CircleStackIcon>
       <p class="text-3xl font-heading">Tất cả</p>
     </div>
     <div class="mt-10 flex flex-col gap-10">
@@ -34,14 +34,14 @@ import Footer from "../components/Footer.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import EventButton from "../components/EventButton.vue";
 import LoadingState from "../components/LoadingState.vue";
-import {CollectionIcon, FireIcon} from "@heroicons/vue/solid";
+import {CircleStackIcon, FireIcon} from '@heroicons/vue/24/solid';
 import server from "../api/server";
 import auth from "../api/auth";
 
 export default {
   name: "Events",
   components: {
-    Header, Footer, FloatingMenu, LoadingState, FireIcon, EventButton, CollectionIcon
+    Header, Footer, FloatingMenu, LoadingState, FireIcon, EventButton, CircleStackIcon
   },
   data() {
     return {

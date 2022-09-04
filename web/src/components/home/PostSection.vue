@@ -28,7 +28,7 @@ import PostWidget from "./PostWidget.vue";
 import LoadingState from "../LoadingState.vue";
 import server from "../../api/server";
 import auth from "../../api/auth";
-import {ArrowRightIcon, RssIcon} from "@heroicons/vue/solid";
+import { RssIcon, ArrowRightIcon } from '@heroicons/vue/24/solid';
 
 export default {
   name: "PostSection",
