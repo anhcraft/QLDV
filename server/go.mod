@@ -1,4 +1,4 @@
-module main
+module das
 
 go 1.17
 
@@ -7,6 +7,7 @@ require (
 	github.com/Jeffail/gabs/v2 v2.6.1
 	github.com/gofiber/fiber/v2 v2.24.0
 	github.com/microcosm-cc/bluemonday v1.0.18
+	github.com/stretchr/testify v1.6.1
 	gorm.io/driver/mysql v1.2.2
 	gorm.io/gorm v1.22.4
 )
@@ -21,6 +22,7 @@ require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403 // indirect
 	github.com/cncf/xds/go v0.0.0-20210312221358-fbca930ec8ed // indirect
+	github.com/davecgh/go-spew v1.1.0 // indirect
 	github.com/envoyproxy/go-control-plane v0.9.9-0.20210512163311-63b5d3c536b0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v0.1.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
@@ -32,6 +34,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.4 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.31.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
@@ -46,4 +49,5 @@ require (
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
 	google.golang.org/grpc v1.40.1 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
