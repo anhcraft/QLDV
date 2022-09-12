@@ -6,7 +6,7 @@ import (
 )
 
 type Post struct {
-	ID        int `gorm:"autoIncrement,primaryKey"`
+	ID        int `gorm:"autoIncrement;primaryKey"`
 	Link      string
 	Title     string
 	Headline  string
