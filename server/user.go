@@ -69,26 +69,36 @@ func (u *User) hasPrivilegeOver(who *User, mode uint8) bool {
 //    (*) At least one requirement met to gain access:
 //      + Be the user himself
 //      + The profile is unlocked
-//      + If the profile is locked, the requester must be in the manager group
+//        However, with "class", there is an additional requirement is "class" being public
+//      + The requester is in the manager group
 // - Secret information: email, birthday, phone
 //    (*) At least one requirement met to gain access:
 //      + Be the user himself
-//      + The requester must be in the manager group
+//      + The requester is in the manager group
 func (u *User) serialize(requester *User) *gabs.Container {
 	res := gabs.New()
 	_, _ = res.Set(u.ID, "id")
-	_, _ = res.Set(u.ProfileSettings, "profileSettings")
-	_, _ = res.Set(u.ProfileCover, "profileCover")
-	_, _ = res.Set(u.ProfileBoard, "profileBoard")
+	_, _ = res.Set(u.isProfileLocked(), "profile.settings.profileLocked")
+	_, _ = res.Set(u.isClassPublic(), "profile.settings.classPublic")
+	_, _ = res.Set(u.isAchievementPublic(), "profile.settings.achievementPublic")
+	_, _ = res.Set(u.isRatePublic(), "profile.settings.ratePublic")
+	_, _ = res.Set(u.ProfileCover, "profile.cover")
+	_, _ = res.Set(u.ProfileBoard, "profile.board")
 
 	// Group-distinct check
 	accessLocked := requester.hasPrivilegeOver(u, 0)
 	// Personal information
 	if accessLocked || !u.isProfileLocked() {
 		_, _ = res.Set(u.Name, "name")
-		_, _ = res.Set(u.Gender, "gender")
+		if u.Gender == GenderMale {
+			_, _ = res.Set("male", "gender")
+		} else {
+			_, _ = res.Set("female", "gender")
+		}
 		_, _ = res.Set(u.EntryYear, "entryYear")
-		_, _ = res.Set(u.Class, "class")
+		if accessLocked || u.isClassPublic() {
+			_, _ = res.Set(u.Class, "class")
+		}
 		_, _ = res.Set(u.Role, "role")
 	}
 	// Secret information
