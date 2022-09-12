@@ -16,6 +16,10 @@ func IsLoggedIn(role int) bool {
 	return role != RoleGuest
 }
 
+func IsCertified(role int) bool {
+	return role != RoleGuest && role != RoleRegularMember
+}
+
 // CheckPrivilegeInGroup Checks whether the given "role" has the same or higher rank than "required" in the same group.
 // - Class group: Class Secretary > Class Deputy Secretary > Certified Member > Regular Member
 // - Global group: Secretary > Deputy Secretary

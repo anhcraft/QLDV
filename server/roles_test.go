@@ -12,6 +12,10 @@ func TestRoleFunc(t *testing.T) {
 	assert.True(t, IsMember(RoleCertifiedMember), "Certified Member is a member")
 	assert.False(t, IsLoggedIn(RoleGuest), "Guest must have not been logged in")
 	assert.True(t, IsLoggedIn(RoleRegularMember), "Regular Member must have been logged in")
+	assert.False(t, IsCertified(RoleGuest), "Guest is not certified")
+	assert.False(t, IsCertified(RoleRegularMember), "Regular Member is not certified")
+	assert.True(t, IsCertified(RoleCertifiedMember), "Certified Member is certified")
+	assert.True(t, IsCertified(RoleSecretary), "Secretary is certified")
 }
 
 func TestRoleCheck(t *testing.T) {
