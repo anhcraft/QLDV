@@ -20,7 +20,7 @@ func TestRoleFunc(t *testing.T) {
 
 func TestRoleCheck(t *testing.T) {
 	// role required true? T = 1; F = 0
-	table := [][3]int{
+	table := [][3]uint8{
 		{RoleGuest, RoleGuest, 1},
 		{RoleGuest, RoleRegularMember, 0},
 		{RoleGuest, RoleClassSecretary, 0},
