@@ -9,6 +9,10 @@ const RoleSecretary uint8 = 5
 const RoleDeputySecretary uint8 = 6
 
 func IsMember(role uint8) bool {
+	return role == RoleRegularMember || role == RoleCertifiedMember
+}
+
+func IsClassRole(role uint8) bool {
 	return role == RoleRegularMember || role == RoleCertifiedMember || role == RoleClassSecretary || role == RoleClassDeputySecretary
 }
 
