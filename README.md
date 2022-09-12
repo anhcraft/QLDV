@@ -23,14 +23,16 @@
   - Having full access to all features related to the relevant class
 - `Class Deputy Secretary` = Phó bí thư chi đoàn
   - Having full access to certain features related to the relevant class
-- `Regular Member` = Đoàn viên
+- `Regular Member` = Thành viên (chưa gia nhập)
+  - Having access to personal data and other (limited) features
+- `Certified Member` = Đoàn viên
   - Having access to personal data, activities and other related features
 - `Guest`
   - Read-only mode with limited access
 
 In addition, there are shorthand terms to refer multiple roles:
 - `User`: who has been logged in; in other words, are who belong to any roles except `Guest`
-- `Member`: who belong to `Class`; in other words, are who in the group `Class Secretary`, `Class Deputy Secretary`, `Regular Member`
+- `Member`: who belong to `Class`; in other words, are who in the group `Class Secretary`, `Class Deputy Secretary`, `Regular Member`, `Certified Member`
 
 ### III. Features
 

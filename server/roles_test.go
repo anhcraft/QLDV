@@ -9,6 +9,7 @@ func TestRoleFunc(t *testing.T) {
 	assert.False(t, IsMember(RoleGuest), "Guest is not a member")
 	assert.False(t, IsMember(RoleSecretary), "Secretary is not a member")
 	assert.True(t, IsMember(RoleRegularMember), "Regular Member is a member")
+	assert.True(t, IsMember(RoleCertifiedMember), "Certified Member is a member")
 	assert.False(t, IsLoggedIn(RoleGuest), "Guest must have not been logged in")
 	assert.True(t, IsLoggedIn(RoleRegularMember), "Regular Member must have been logged in")
 }
@@ -35,6 +36,10 @@ func TestRoleCheck(t *testing.T) {
 		{RoleSecretary, RoleClassDeputySecretary, 0},
 		{RoleDeputySecretary, RoleClassSecretary, 0},
 		{RoleDeputySecretary, RoleClassDeputySecretary, 0},
+		{RoleClassSecretary, RoleCertifiedMember, 1},
+		{RoleClassDeputySecretary, RoleCertifiedMember, 1},
+		{RoleCertifiedMember, RoleCertifiedMember, 1},
+		{RoleRegularMember, RoleCertifiedMember, 0},
 	}
 
 	for _, v := range table {
