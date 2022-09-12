@@ -20,6 +20,23 @@ func TestRoleFunc(t *testing.T) {
 	assert.False(t, IsMember(RoleClassSecretary), "Class Secretary is not a member")
 }
 
+func TestRoleGroup(t *testing.T) {
+	// role group
+	table := [][2]uint8{
+		{RoleGuest, RoleGroupGuest},
+		{RoleCertifiedMember, RoleGroupMember},
+		{RoleRegularMember, RoleGroupMember},
+		{RoleClassSecretary, RoleGroupClassManager},
+		{RoleClassDeputySecretary, RoleGroupClassManager},
+		{RoleSecretary, RoleGroupGlobalManager},
+		{RoleDeputySecretary, RoleGroupGlobalManager},
+	}
+
+	for _, v := range table {
+		assert.Equalf(t, v[1], v[0], "%v belongs to group %v", v[0], v[1])
+	}
+}
+
 func TestRoleCheck(t *testing.T) {
 	// role required true? T = 1; F = 0
 	table := [][3]uint8{

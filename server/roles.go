@@ -8,6 +8,25 @@ const RoleClassDeputySecretary uint8 = 4
 const RoleSecretary uint8 = 5
 const RoleDeputySecretary uint8 = 6
 
+const RoleGroupGuest uint8 = 0
+const RoleGroupMember uint8 = 1
+const RoleGroupClassManager uint8 = 2
+const RoleGroupGlobalManager uint8 = 3
+
+func GetRoleGroup(role uint8) uint8 {
+	switch role {
+	case RoleGuest:
+		return RoleGroupGuest
+	case RoleCertifiedMember, RoleRegularMember:
+		return RoleGroupMember
+	case RoleClassSecretary, RoleClassDeputySecretary:
+		return RoleGroupClassManager
+	case RoleSecretary, RoleDeputySecretary:
+		return RoleGroupGlobalManager
+	}
+	return RoleGuest
+}
+
 func IsMember(role uint8) bool {
 	return role == RoleRegularMember || role == RoleCertifiedMember
 }
