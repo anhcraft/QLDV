@@ -16,16 +16,20 @@ func IsLoggedIn(role int) bool {
 	return role != RoleGuest
 }
 
-func CheckRole(role int, expected int) bool {
-	if expected == RoleRegularMember {
+// CheckPrivilegeInGroup Checks whether the given "role" has the same or higher rank than "required" in the same group.
+// - Class group: Class Secretary > Class Deputy Secretary > Certified Member > Regular Member
+// - Global group: Secretary > Deputy Secretary
+// Note: mixed ranks in different groups are considered invalid.
+func CheckPrivilegeInGroup(role int, required int) bool {
+	if required == RoleRegularMember {
 		return role == RoleRegularMember || role == RoleCertifiedMember || role == RoleClassSecretary || role == RoleClassDeputySecretary
-	} else if expected == RoleCertifiedMember {
+	} else if required == RoleCertifiedMember {
 		return role == RoleCertifiedMember || role == RoleClassSecretary || role == RoleClassDeputySecretary
-	} else if expected == RoleClassDeputySecretary {
+	} else if required == RoleClassDeputySecretary {
 		return role == RoleClassSecretary || role == RoleClassDeputySecretary
-	} else if expected == RoleDeputySecretary {
+	} else if required == RoleDeputySecretary {
 		return role == RoleSecretary || role == RoleDeputySecretary
 	} else {
-		return role == expected
+		return role == required
 	}
 }

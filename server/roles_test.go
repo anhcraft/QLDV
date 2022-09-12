@@ -15,7 +15,7 @@ func TestRoleFunc(t *testing.T) {
 }
 
 func TestRoleCheck(t *testing.T) {
-	// role expected true? T = 1; F = 0
+	// role required true? T = 1; F = 0
 	table := [][3]int{
 		{RoleGuest, RoleGuest, 1},
 		{RoleGuest, RoleRegularMember, 0},
@@ -44,9 +44,9 @@ func TestRoleCheck(t *testing.T) {
 
 	for _, v := range table {
 		if v[2] == 1 {
-			assert.Truef(t, CheckRole(v[0], v[1]), "%v is not equivalent or inherited from %v", v[0], v[1])
+			assert.Truef(t, CheckPrivilegeInGroup(v[0], v[1]), "%v is not equivalent or inherited from %v", v[0], v[1])
 		} else if v[2] == 0 {
-			assert.Falsef(t, CheckRole(v[0], v[1]), "%v is not equivalent or inherited from %v", v[0], v[1])
+			assert.Falsef(t, CheckPrivilegeInGroup(v[0], v[1]), "%v is not equivalent or inherited from %v", v[0], v[1])
 		}
 	}
 }
