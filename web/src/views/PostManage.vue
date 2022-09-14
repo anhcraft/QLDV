@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import {PencilIcon, TrashIcon} from '@heroicons/vue/solid'
+import {PencilIcon, TrashIcon} from '@heroicons/vue/24/solid'
 import server from "../api/server";
 import Prompt from "../components/Prompt.vue";
 import auth from "../api/auth";

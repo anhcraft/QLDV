@@ -38,8 +38,8 @@ import auth from "../api/auth";
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
-import Datepicker from 'vue3-date-time-picker';
-import 'vue3-date-time-picker/dist/main.css'
+import Datepicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
 import LoadingState from "../components/LoadingState.vue";
 import lookupErrorCode from "../api/errorCode";
 

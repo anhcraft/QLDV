@@ -1,26 +1,26 @@
 <template>
-  <div class="page-header relative" style="background-image: url('https://i.imgur.com/qK6gzc0.jpg')">
+  <div class="page-header relative">
     <div class="z-[10] absolute top-14" v-if="showMenu">
-      <div class="flex flex-col bg-white">
-        <router-link class="px-5 py-3 hover:bg-slate-300" to="/">Trang chủ</router-link>
-        <router-link class="px-5 py-3 hover:bg-slate-300" to="/p">Tin tức</router-link>
-        <router-link class="px-5 py-3 hover:bg-slate-300" to="/bch">Tổ chức</router-link>
-        <router-link class="px-5 py-3 hover:bg-slate-300" to="/e">Hoạt động</router-link>
+      <div class="flex flex-col bg-white border border-slate-300">
+        <router-link class="px-10 py-3 hover:bg-slate-300" to="/">Trang chủ</router-link>
+        <router-link class="px-10 py-3 hover:bg-slate-300" to="/p">Tin tức</router-link>
+        <router-link class="px-10 py-3 hover:bg-slate-300" to="/e">Hoạt động</router-link>
+        <router-link class="px-10 py-3 hover:bg-slate-300" to="/bch">Tổ chức</router-link>
       </div>
     </div>
 
-    <div class="z-[5] relative text-white">
-      <div class="centered-horizontal bg-indigo-500 text-sm p-3 pr-5 shadow-md shadow-slate-500 md:hidden">
+    <div>
+      <div class="centered-horizontal bg-indigo-500 text-sm text-white p-3 pr-5 shadow-md shadow-slate-500 md:hidden">
         <div class="grow">
-          <MenuIcon class="w-8 h-8 cursor-pointer" @click="showMenu = !showMenu"></MenuIcon>
+          <Bars3Icon class="w-8 h-8 cursor-pointer" @click="showMenu = !showMenu"></Bars3Icon>
         </div>
         <button v-if="!$root.isLoggedIn()" @click="logIn()">Đăng nhập</button>
         <button v-else @click="viewProfile()">Trang cá nhân</button>
       </div>
 
-      <div class="pt-16 pb-10 relative">
+      <div class="pt-24 pb-10 relative">
         <div class="page-section w-fit md:w-full relative">
-          <div class="xl:centered-horizontal gap-3 xl:px-10 xl:py-10">
+          <div class="xl:centered-horizontal gap-3 xl:px-10">
 
             <div class="grow centered-horizontal justify-center xl:justify-start gap-3">
               <img src="../assets/youth-logo.png" class="w-12 h-12"  alt=""/>
@@ -32,10 +32,10 @@
             </div>
 
             <div class="md:centered-horizontal justify-center gap-8 mt-10 xl:mt-0 hidden">
-              <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/">Trang chủ</router-link>
-              <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/p">Tin tức</router-link>
-              <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/bch">Tổ chức</router-link>
-              <router-link class="border-b-2 border-b-transparent hover:border-b-white" to="/e">Hoạt động</router-link>
+              <router-link class="border-b-2 border-b-transparent hover:border-b-slate-500" to="/">Trang chủ</router-link>
+              <router-link class="border-b-2 border-b-transparent hover:border-b-slate-500" to="/p">Tin tức</router-link>
+              <router-link class="border-b-2 border-b-transparent hover:border-b-slate-500" to="/e">Hoạt động</router-link>
+              <router-link class="border-b-2 border-b-transparent hover:border-b-slate-500" to="/bch">Tổ chức</router-link>
               <button v-if="!$root.isLoggedIn()" @click="logIn()" class="btn-primary ml-10">Đăng nhập</button>
               <button v-else @click="viewProfile()" class="btn-primary ml-10">Trang cá nhân</button>
             </div>
@@ -51,12 +51,12 @@
 import auth from "../api/auth";
 import server from "../api/server";
 import lookupErrorCode from "../api/errorCode";
-import {MenuIcon} from "@heroicons/vue/solid";
+import {Bars3Icon} from '@heroicons/vue/24/solid';
 
 export default {
   name: "Header",
   components: {
-    MenuIcon
+    Bars3Icon
   },
   data() {
     return {
@@ -113,17 +113,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.page-header:before {
-  content: "";
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-image: linear-gradient(0deg, transparent, #222);
-  z-index: 1;
-}
-</style>

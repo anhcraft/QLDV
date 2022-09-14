@@ -112,13 +112,12 @@ import auth from "../api/auth";
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
-import 'vue3-date-time-picker/dist/main.css'
 import LoadingState from "../components/LoadingState.vue";
-import {ClockIcon, QuestionMarkCircleIcon, UsersIcon} from "@heroicons/vue/solid";
+import {ClockIcon, QuestionMarkCircleIcon, UsersIcon} from '@heroicons/vue/24/solid';
+import {ChevronLeftIcon, ChevronRightIcon} from "@heroicons/vue/24/outline";
 import Prompt from "../components/Prompt.vue";
 import lookupErrorCode from "../api/errorCode";
 import utils from "../api/utils"
-import {ChevronLeftIcon, ChevronRightIcon} from "@heroicons/vue/outline";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 import {LineChart} from "echarts/charts";

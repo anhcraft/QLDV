@@ -23,7 +23,7 @@
 
 <script>
 import conf from "../../conf";
-import {EyeIcon, HeartIcon} from "@heroicons/vue/solid";
+import { HeartIcon, EyeIcon } from '@heroicons/vue/24/solid';
 
 export default {
   name: "PostWidget",
@@ -42,7 +42,7 @@ export default {
           return conf.server + '/static/' + data.attachments[0].id
         }
       }
-      return "https://i.imgur.com/aH4g7pj.jpg";
+      return "https://i.ibb.co/WFJ07mW/aH4g7pj.jpg";
     }
   }
 }

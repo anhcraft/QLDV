@@ -7,7 +7,7 @@ import (
 )
 
 type Event struct {
-	ID        int `gorm:"autoIncrement,primaryKey"`
+	ID        int `gorm:"autoIncrement;primaryKey"`
 	Title     string
 	Link      string
 	BeginDate int64

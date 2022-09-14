@@ -41,8 +41,8 @@
     <div class="hidden md:block">
       <img :style="`width: ${this.previewImageSize}%`" v-on:mouseenter="zoomControlShow = true" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 m-auto transition-all duration-300" :src="serverBaseURL + '/static/' + previewImageId" alt="" />
       <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-row justify-center mt-1" v-if="zoomControlShow">
-        <ZoomInIcon class="w-7 cursor-pointer p-1 bg-gray-300 hover:bg-gray-400" @click="zoomPreviewImg(1)"></ZoomInIcon>
-        <ZoomOutIcon class="w-7 cursor-pointer p-1 bg-gray-300 hover:bg-gray-400" @click="zoomPreviewImg(-1)"></ZoomOutIcon>
+        <MagnifyingGlassPlusIcon class="w-7 cursor-pointer p-1 bg-gray-300 hover:bg-gray-400" @click="zoomPreviewImg(1)"></MagnifyingGlassPlusIcon>
+        <MagnifyingGlassMinusIcon class="w-7 cursor-pointer p-1 bg-gray-300 hover:bg-gray-400" @click="zoomPreviewImg(-1)"></MagnifyingGlassMinusIcon>
       </div>
     </div>
   </div>
@@ -52,10 +52,10 @@
 import server from "../api/server";
 import conf from "../conf";
 import Header from "../components/Header.vue";
-import {ZoomInIcon, ZoomOutIcon} from "@heroicons/vue/outline";
+import {MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon} from "@heroicons/vue/24/outline";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
-import {EyeIcon, HeartIcon} from "@heroicons/vue/solid";
+import {EyeIcon, HeartIcon} from '@heroicons/vue/24/solid';
 import auth from "../api/auth";
 import LoadingState from "../components/LoadingState.vue";
 import lookupErrorCode from "../api/errorCode";
@@ -64,7 +64,7 @@ export default {
   name: "Post",
   components: {
     LoadingState, Header, FloatingMenu, Breadcrumb,
-    ZoomInIcon, ZoomOutIcon, EyeIcon, HeartIcon
+    MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon, EyeIcon, HeartIcon
   },
   data() {
     return {

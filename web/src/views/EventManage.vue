@@ -37,7 +37,7 @@
             <td class="flex flex-row gap-1">
               <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="edit(event.id)"></PencilIcon>
               <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="remove(event.id, event.title)"></TrashIcon>
-              <PuzzleIcon class="w-6 cursor-pointer text-gray-500" @click="manageContest(event.id)"></PuzzleIcon>
+              <PuzzlePieceIcon class="w-6 cursor-pointer text-gray-500" @click="manageContest(event.id)"></PuzzlePieceIcon>
             </td>
             <td class="text-gray-500">
               {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.date)) }}
@@ -59,7 +59,7 @@
 </template>
 
 <script>
-import {PencilIcon, PuzzleIcon, TrashIcon} from '@heroicons/vue/solid'
+import {PencilIcon, PuzzlePieceIcon, TrashIcon} from '@heroicons/vue/24/solid';
 import server from "../api/server";
 import Prompt from "../components/Prompt.vue";
 import auth from "../api/auth";
@@ -73,7 +73,7 @@ export default {
   name: "EventManage",
   components: {
     LoadingState, Header, FloatingMenu, Breadcrumb,
-    PencilIcon, TrashIcon, PuzzleIcon, Prompt
+    PencilIcon, TrashIcon, PuzzlePieceIcon, Prompt
   },
   data() {
     return {

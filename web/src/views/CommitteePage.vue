@@ -1,10 +1,12 @@
 <template>
   <Header></Header>
   <section class="page-section px-10 py-8 lg:py-16">
-    <Breadcrumb text="BCH Đoàn trường" link="/bch/"></Breadcrumb>
+    <div class="centered-horizontal mb-5 gap-3">
+      <UserGroupIcon class="w-8 h-8 text-rose-500"></UserGroupIcon>
+      <p class="text-3xl font-heading">Ban chấp hành</p>
+    </div>
     <div class="grid grid-cols-1 md:grid-cols-7 md:gap-16 mt-5">
       <div class="col-span-5">
-        <div class="border-l-4 border-l-emerald-400 font-light text-xl px-4">BAN CHẤP HÀNH ĐOÀN</div>
         <div class="flex flex-col gap-5 mt-5">
           <div v-for="i in committees">
             <div class="float-left w-32 h-32 bg-cover bg-center mr-5" :style="`background-image: url(${i.avatar})`"></div>
@@ -18,6 +20,7 @@
       </div>
     </div>
   </section>
+  <Footer></Footer>
   <FloatingMenu></FloatingMenu>
 </template>
 
@@ -25,11 +28,13 @@
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
+import {UserGroupIcon} from "@heroicons/vue/24/solid";
+import Footer from "../components/Footer.vue";
 
 export default {
   name: "CommitteePage",
   components: {
-    Header, FloatingMenu, Breadcrumb
+    Header, Footer, FloatingMenu, Breadcrumb, UserGroupIcon
   },
   data() {
     return {
