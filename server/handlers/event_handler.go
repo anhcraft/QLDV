@@ -1,6 +1,9 @@
-package main
+package handlers
 
 import (
+	"das"
+	"das/models"
+	"das/utils"
 	"errors"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gofiber/fiber/v2"
@@ -11,9 +14,9 @@ import (
 	"time"
 )
 
-func getEvents(limit int, belowId int, beginDate int64, endDate int64) []Event {
-	var events []Event
-	a := db.Limit(limit).Order("end_date desc, begin_date desc, id desc")
+func getEvents(limit int, belowId int, beginDate int64, endDate int64) []models.Event {
+	var events []models.Event
+	a := main.db.Limit(limit).Order("end_date desc, begin_date desc, id desc")
 	if beginDate > 0 && endDate > 0 && beginDate <= endDate {
 		a = a.Where("begin_date <= ? and end_date >= ?", endDate, beginDate)
 	} else if beginDate > 0 && endDate == 0 {
@@ -29,14 +32,14 @@ func getEvents(limit int, belowId int, beginDate int64, endDate int64) []Event {
 }
 
 func removeEvent(id int) bool {
-	var event Event
-	db.Where("id = ?", id).Delete(&event)
+	var event models.Event
+	main.db.Where("id = ?", id).Delete(&event)
 	return true
 }
 
-func getEvent(id int) *Event {
-	var event Event
-	result := db.Take(&event, "id = ?", id)
+func getEvent(id int) *models.Event {
+	var event models.Event
+	result := main.db.Take(&event, "id = ?", id)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil
 	} else {
@@ -44,10 +47,10 @@ func getEvent(id int) *Event {
 	}
 }
 
-func editOrCreateEvent(id int, title string, beginDate int64, endDate int64, privacy uint8) *Event {
-	event := Event{
+func editOrCreateEvent(id int, title string, beginDate int64, endDate int64, privacy uint8) *models.Event {
+	event := models.Event{
 		Title:     title,
-		Link:      GenerateLinkFromTitle(title),
+		Link:      utils.GenerateLinkFromTitle(title),
 		BeginDate: beginDate,
 		EndDate:   endDate,
 		Date:      time.Now().UnixMilli(),
@@ -56,14 +59,14 @@ func editOrCreateEvent(id int, title string, beginDate int64, endDate int64, pri
 	if id > 0 {
 		event.ID = id
 	}
-	_ = db.Clauses(clause.OnConflict{
+	_ = main.db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"title", "link", "begin_date", "end_date", "privacy"}),
 	}).Create(&event)
 	return &event
 }
 
-func eventGetRouteHandler(c *fiber.Ctx) error {
+func EventGetRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	id, err := strconv.Atoi(c.Query("id"))
 	if err != nil {
@@ -77,10 +80,10 @@ func eventGetRouteHandler(c *fiber.Ctx) error {
 	}
 
 	token := c.Get("token")
-	success, emailOrError := getEmailFromToken(token, c.UserContext())
-	var user *User = nil
+	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
+	var user *models.User = nil
 	if success {
-		user = getProfile(emailOrError)
+		user = getUserByEmail(emailOrError)
 	}
 	if (event.Privacy&1) == 1 && user == nil {
 		_, _ = res.Set("ERR_NO_PERMISSION", "error")
@@ -103,12 +106,12 @@ func eventGetRouteHandler(c *fiber.Ctx) error {
 	return c.SendString(res.String())
 }
 
-func eventListRouteHandler(c *fiber.Ctx) error {
+func EventListRouteHandler(c *fiber.Ctx) error {
 	token := c.Get("token")
-	success, emailOrError := getEmailFromToken(token, c.UserContext())
-	var user *User = nil
+	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
+	var user *models.User = nil
 	if success {
-		user = getProfile(emailOrError)
+		user = getUserByEmail(emailOrError)
 	}
 
 	res := gabs.New()
@@ -151,15 +154,15 @@ func eventListRouteHandler(c *fiber.Ctx) error {
 	return c.SendString(res.String())
 }
 
-func eventRemoveRouteHandler(c *fiber.Ctx) error {
+func EventRemoveRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, emailOrError := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
 	if !success {
 		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(emailOrError)
+	user := getUserByEmail(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -178,15 +181,15 @@ func eventRemoveRouteHandler(c *fiber.Ctx) error {
 	return c.SendString(res.String())
 }
 
-func eventChangeRouteHandler(c *fiber.Ctx) error {
+func EventChangeRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, emailOrError := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
 	if !success {
 		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(emailOrError)
+	user := getUserByEmail(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -209,7 +212,7 @@ func eventChangeRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 	payload.Title = strings.TrimSpace(payload.Title)
-	payload.Title = ugcPolicy.Sanitize(payload.Title)
+	payload.Title = main.ugcPolicy.Sanitize(payload.Title)
 
 	if len(payload.Title) < 5 {
 		_, _ = res.Set("ERR_EVENT_TITLE_MIN", "error")

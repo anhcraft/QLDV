@@ -1,4 +1,4 @@
-package main
+package utils
 
 const RoleGuest uint8 = 0
 const RoleRegularMember uint8 = 1
@@ -31,8 +31,12 @@ func IsMember(role uint8) bool {
 	return role == RoleRegularMember || role == RoleCertifiedMember
 }
 
+func IsManager(role uint8) bool {
+	return GetRoleGroup(role) == RoleGroupClassManager || GetRoleGroup(role) == RoleGroupGlobalManager
+}
+
 func IsClassRole(role uint8) bool {
-	return role == RoleRegularMember || role == RoleCertifiedMember || role == RoleClassSecretary || role == RoleClassDeputySecretary
+	return IsMember(role) || GetRoleGroup(role) == RoleGroupClassManager
 }
 
 func IsLoggedIn(role uint8) bool {

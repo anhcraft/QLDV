@@ -1,6 +1,9 @@
-package main
+package handlers
 
 import (
+	"das"
+	"das/models"
+	"das/utils"
 	"errors"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gofiber/fiber/v2"
@@ -13,9 +16,9 @@ import (
 	"time"
 )
 
-func getPost(id int) *Post {
-	var post Post
-	result := db.Take(&post, "id = ?", id)
+func getPost(id int) *models.Post {
+	var post models.Post
+	result := main.db.Take(&post, "id = ?", id)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil
 	} else {
@@ -31,9 +34,9 @@ func maxString(s string, max int) string {
 	return s[:limit]
 }
 
-func editOrCreatePost(id int, title string, content string, privacy uint8, hashtag string) *Post {
-	post := Post{
-		Link:     GenerateLinkFromTitle(title),
+func editOrCreatePost(id int, title string, content string, privacy uint8, hashtag string) *models.Post {
+	post := models.Post{
+		Link:     utils.GenerateLinkFromTitle(title),
 		Title:    title,
 		Content:  content,
 		Headline: maxString(bluemonday.StrictPolicy().Sanitize(content), 250),
@@ -44,7 +47,7 @@ func editOrCreatePost(id int, title string, content string, privacy uint8, hasht
 	if id > 0 {
 		post.ID = id
 	}
-	_ = db.Clauses(clause.OnConflict{
+	_ = main.db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"title", "link", "content", "privacy", "headline", "hashtag"}),
 	}).Create(&post)
@@ -52,14 +55,14 @@ func editOrCreatePost(id int, title string, content string, privacy uint8, hasht
 }
 
 func removePost(id int) bool {
-	var post Post
-	db.Where("id = ?", id).Delete(&post)
+	var post models.Post
+	main.db.Where("id = ?", id).Delete(&post)
 	return true
 }
 
-func getPosts(filterHashtags []string, sortBy string, lowerThan uint, belowId int, limit int) []Post {
-	var posts []Post
-	cmd := db.Limit(limit)
+func getPosts(filterHashtags []string, sortBy string, lowerThan uint, belowId int, limit int) []models.Post {
+	var posts []models.Post
+	cmd := main.db.Limit(limit)
 	if len(filterHashtags) > 0 {
 		cmd = cmd.Where("hashtag IN ?", filterHashtags)
 	}
@@ -84,41 +87,41 @@ func getPosts(filterHashtags []string, sortBy string, lowerThan uint, belowId in
 }
 
 func setPostStat(postId int, userId string, action string) bool {
-	a := db.Clauses(clause.OnConflict{
+	a := main.db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "post_id"}, {Name: "user_id"}, {Name: "action"}},
 		DoNothing: true,
-	}).Create(PostStat{
+	}).Create(models.PostStat{
 		PostId: postId,
 		UserId: userId,
 		Action: action,
 		Date:   time.Now().UnixMilli(),
 	}).RowsAffected
 	if action == "like" && a == 0 {
-		var postStat PostStat
-		db.Where("post_id = ? and user_id = ? and action = ?", postId, userId, action).Delete(&postStat)
-		db.Model(&Post{}).Where("id = ?", postId).UpdateColumn("like_count", gorm.Expr("like_count - 1"))
+		var postStat models.PostStat
+		main.db.Where("post_id = ? and user_id = ? and action = ?", postId, userId, action).Delete(&postStat)
+		main.db.Model(&models.Post{}).Where("id = ?", postId).UpdateColumn("like_count", gorm.Expr("like_count - 1"))
 		return true
 	} else if a == 1 {
 		if action == "like" {
-			db.Model(&Post{}).Where("id = ?", postId).UpdateColumn("like_count", gorm.Expr("like_count + 1"))
+			main.db.Model(&models.Post{}).Where("id = ?", postId).UpdateColumn("like_count", gorm.Expr("like_count + 1"))
 			return true
 		} else if action == "view" {
-			db.Model(&Post{}).Where("id = ?", postId).UpdateColumn("view_count", gorm.Expr("view_count + 1"))
+			main.db.Model(&models.Post{}).Where("id = ?", postId).UpdateColumn("view_count", gorm.Expr("view_count + 1"))
 			return true
 		}
 	}
 	return false
 }
 
-func postChangeRouteHandler(c *fiber.Ctx) error {
+func PostUpdateRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, emailOrError := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
 	if !success {
 		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(emailOrError)
+	user := getUserByEmail(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -174,8 +177,8 @@ func postChangeRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	payload.Title = ugcPolicy.Sanitize(payload.Title)
-	payload.Content = ugcPolicy.Sanitize(payload.Content)
+	payload.Title = main.ugcPolicy.Sanitize(payload.Title)
+	payload.Content = main.ugcPolicy.Sanitize(payload.Content)
 
 	p := editOrCreatePost(payload.Id, payload.Title, payload.Content, payload.Privacy, payload.Hashtag)
 	_, _ = res.Set(true, "success")
@@ -183,15 +186,15 @@ func postChangeRouteHandler(c *fiber.Ctx) error {
 	return c.SendString(res.String())
 }
 
-func postStatUpdateRouteHandler(c *fiber.Ctx) error {
+func PostStatUpdateRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, emailOrError := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
 	if !success {
 		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(emailOrError)
+	user := getUserByEmail(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -225,12 +228,12 @@ func postStatUpdateRouteHandler(c *fiber.Ctx) error {
 	return c.SendString(res.String())
 }
 
-func postListRouteHandler(c *fiber.Ctx) error {
+func PostListRouteHandler(c *fiber.Ctx) error {
 	token := c.Get("token")
-	success, emailOrError := getEmailFromToken(token, c.UserContext())
-	var user *User = nil
+	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
+	var user *models.User = nil
 	if success {
-		user = getProfile(emailOrError)
+		user = getUserByEmail(emailOrError)
 	}
 
 	res := gabs.New()
@@ -284,15 +287,15 @@ func postListRouteHandler(c *fiber.Ctx) error {
 	return c.SendString(res.String())
 }
 
-func postRemoveRouteHandler(c *fiber.Ctx) error {
+func PostRemoveRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, emailOrError := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
 	if !success {
 		_, _ = res.Set(emailOrError, "error")
 		return c.SendString(res.String())
 	}
-	user := getProfile(emailOrError)
+	user := getUserByEmail(emailOrError)
 	if user == nil {
 		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
 		return c.SendString(res.String())
@@ -311,10 +314,10 @@ func postRemoveRouteHandler(c *fiber.Ctx) error {
 	return c.SendString(res.String())
 }
 
-func postGetRouteHandler(c *fiber.Ctx) error {
+func PostGetRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	token := c.Get("token")
-	success, emailOrError := getEmailFromToken(token, c.UserContext())
+	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
 	if !success {
 		// guest can view public posts
 		emailOrError = "***"
@@ -330,9 +333,9 @@ func postGetRouteHandler(c *fiber.Ctx) error {
 		return c.SendString(res.String())
 	}
 
-	var user *User = nil
+	var user *models.User = nil
 	if success {
-		user = getProfile(emailOrError)
+		user = getUserByEmail(emailOrError)
 	}
 	if (post.Privacy&1) == 1 && user == nil {
 		_, _ = res.Set("ERR_NO_PERMISSION", "error")
@@ -358,19 +361,19 @@ func postGetRouteHandler(c *fiber.Ctx) error {
 		likeCheck int64
 	}{}
 
-	x := db.Raw("count(if(post_id = ? and action = 'like' and user_id = ?, 1, null)) as likeCheck", id, emailOrError)
+	x := main.db.Raw("count(if(post_id = ? and action = 'like' and user_id = ?, 1, null)) as likeCheck", id, emailOrError)
 	_ = x.Row().Scan(&result.likeCheck)
 	_, _ = res.Set(result.likeCheck > 0, "liked")
 
 	return c.SendString(res.String())
 }
 
-func postHashtagListRouteHandler(c *fiber.Ctx) error {
+func PostHashtagListRouteHandler(c *fiber.Ctx) error {
 	res := gabs.New()
 	var hashtags []struct {
 		Hashtag string
 	}
-	db.Model(&Post{}).Distinct("hashtag").Find(&hashtags)
+	main.db.Model(&models.Post{}).Distinct("hashtag").Find(&hashtags)
 	_, _ = res.Array("hashtags")
 	for _, t := range hashtags {
 		_ = res.ArrayAppend(t.Hashtag, "hashtags")

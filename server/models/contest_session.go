@@ -1,4 +1,4 @@
-package main
+package models
 
 import (
 	"github.com/Jeffail/gabs/v2"

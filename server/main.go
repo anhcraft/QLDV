@@ -1,88 +1,15 @@
 package main
 
 import (
-	"context"
-	firebase "firebase.google.com/go"
-	"firebase.google.com/go/auth"
-	"fmt"
+	"das/handlers"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	recover2 "github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/microcosm-cc/bluemonday"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"log"
-	"os"
-	"regexp"
-	"strings"
 )
 
-var client *auth.Client
-var db *gorm.DB
-var ugcPolicy *bluemonday.Policy
-
-func setupFirebase() {
-	ctx := context.Background()
-	app, err := firebase.NewApp(ctx, nil)
-	if err != nil {
-		_ = fmt.Errorf("error initializing app: %v", err)
-		return
-	}
-	client_, err := app.Auth(ctx)
-	if err != nil {
-		log.Fatalf("error getting Auth client: %v\n", err)
-	}
-	client = client_
-}
-
-func setupDB() {
-	dsn := os.Getenv("sql")
-	db_, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		log.Fatalf("error connecting database: %v\n", err)
-	}
-	err = db_.AutoMigrate(&User{}, &Rate{}, &Achievement{}, &Post{}, &Attachment{}, &Event{}, &PostStat{}, &Contest{}, &ContestSession{})
-	if err != nil {
-		log.Fatalf("error migrating: %v\n", err)
-	}
-	db = db_
-}
-
-func getEmailFromToken(token string, c context.Context) (bool, string) {
-	token = strings.TrimSpace(token)
-	if len(token) == 0 {
-		return false, "ERR_TOKEN_VERIFY"
-	}
-	tkn, err := client.VerifyIDToken(c, token)
-	if err != nil {
-		log.Printf("error verifying ID token: %v\n", err)
-		return false, "ERR_TOKEN_VERIFY_BACKEND"
-	}
-	u, err := client.GetUser(c, tkn.UID)
-	if err != nil {
-		log.Printf("error getting user %s: %v\n", tkn.UID, err)
-		return false, "ERR_USER_GET_BACKEND"
-	}
-	return true, u.Email
-}
-
 func main() {
-	ugcPolicy = bluemonday.UGCPolicy()
-	ugcPolicy.AllowStyles("color", "background-color", "text-align", "width", "height", "font-size", "font-weight", "padding-left").Globally()
-	ugcPolicy.AddTargetBlankToFullyQualifiedLinks(true)
-	ugcPolicy.AllowElements("iframe")
-	ugcPolicy.AllowAttrs("width").Matching(bluemonday.Number).OnElements("iframe")
-	ugcPolicy.AllowAttrs("height").Matching(bluemonday.Number).OnElements("iframe")
-	ugcPolicy.AllowAttrs("src").OnElements("iframe")
-	ugcPolicy.AllowAttrs("frameborder").Matching(bluemonday.Number).OnElements("iframe")
-	ugcPolicy.AllowAttrs("allow").Matching(regexp.MustCompile(`[a-z; -]*`)).OnElements("iframe")
-	ugcPolicy.AllowAttrs("allowfullscreen").OnElements("iframe")
-
-	setupFirebase()
-	setupDB()
-
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
@@ -92,35 +19,31 @@ func main() {
 		Level: compress.LevelBestCompression,
 	}))
 
-	app.Post("/profile", profileGetRouteHandler)
-	app.Post("/progression", progressionGetRouteHandler)
-	app.Post("/change-progression", progressionChangeRouteHandler)
-	app.Post("/users", userListRouteHandler)
-	app.Post("/change-users", userChangeRouteHandler)
-	app.Post("/get-user-stats", userStatGetRouteHandler)
-	app.Post("/set-profile-cover", profileCoverSetRouteHandler)
-	app.Post("/set-profile-board", profileBoardSetRouteHandler)
-	app.Post("/set-profile-settings", profileSettingSetRouteHandler)
+	app.Get("/user/:id?", handlers.UserGetRouteHandler)
+	app.Post("/user/:id?", handlers.UserUpdateRouteHandler)
+	app.Post("/users/", handlers.UserListRouteHandler)
+	app.Get("/user-stats/", handlers.UserStatGetRouteHandler)
+	app.Post("/user-profile-cover/", handlers.ProfileCoverUploadRouteHandler)
 
-	app.Post("/posts", postListRouteHandler)
-	app.Get("/post", postGetRouteHandler)
-	app.Post("/change-post", postChangeRouteHandler)
-	app.Post("/remove-post", postRemoveRouteHandler)
-	app.Post("/update-post-stat", postStatUpdateRouteHandler)
-	app.Post("/upload-attachment", attachmentUploadRouteHandler)
-	app.Get("/get-hashtags", postHashtagListRouteHandler)
+	app.Get("/post/:id", handlers.PostGetRouteHandler)
+	app.Post("/post/:id", handlers.PostUpdateRouteHandler)
+	app.Delete("/post/:id", handlers.PostRemoveRouteHandler)
+	app.Get("/posts/", handlers.PostListRouteHandler)
+	app.Post("/post-stat/:id", handlers.PostStatUpdateRouteHandler)
+	app.Post("/post-attachment/:id", handlers.AttachmentUploadRouteHandler)
+	app.Get("/post-hashtags/", handlers.PostHashtagListRouteHandler)
 
-	app.Get("/event", eventGetRouteHandler)
-	app.Get("/events", eventListRouteHandler)
-	app.Post("/remove-event", eventRemoveRouteHandler)
-	app.Post("/change-event", eventChangeRouteHandler)
+	app.Get("/event", handlers.EventGetRouteHandler)
+	app.Get("/events", handlers.EventListRouteHandler)
+	app.Post("/remove-event", handlers.EventRemoveRouteHandler)
+	app.Post("/change-event", handlers.EventChangeRouteHandler)
 	//app.Post("/contest", contestGetRouteHandler)
-	app.Post("/change-contest", contestChangeRouteHandler)
-	app.Post("/remove-contest", contestRemoveRouteHandler)
-	app.Post("/contest-sessions", contestSessionListRouteHandler)
-	app.Post("/get-contest-stats", contestStatGetRouteHandler)
-	app.Post("/submit-contest-session", contestSessionSubmitRouteHandler)
-	app.Post("/join-contest-session", contestSessionJoinRouteHandler)
+	app.Post("/change-contest", handlers.ContestChangeRouteHandler)
+	app.Post("/remove-contest", handlers.ContestRemoveRouteHandler)
+	app.Post("/contest-sessions", handlers.ContestSessionListRouteHandler)
+	app.Post("/get-contest-stats", handlers.ContestStatGetRouteHandler)
+	app.Post("/submit-contest-session", handlers.ContestSessionSubmitRouteHandler)
+	app.Post("/join-contest-session", handlers.ContestSessionJoinRouteHandler)
 
 	app.Static("/static/", "./public")
 	app.Get("/status", monitor.New())

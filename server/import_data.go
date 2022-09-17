@@ -1,6 +1,7 @@
 package main
 
 import (
+	"das/models"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -25,9 +26,9 @@ func importData() {
 
 	_ = json.Unmarshal(content, &usersD)
 
-	users := make([]User, 0)
+	users := make([]models.User, 0)
 	for i, v := range usersD {
-		users = append(users, User{
+		users = append(users, models.User{
 			Email:     v.Email,
 			StudentId: fmt.Sprintf("%016d", 9099_0012_1922_0000+i+1),
 			Name:      v.Name,
@@ -41,5 +42,5 @@ func importData() {
 		})
 	}
 
-	db.CreateInBatches(users, 20)
+	Db.CreateInBatches(users, 20)
 }
