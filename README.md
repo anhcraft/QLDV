@@ -8,6 +8,10 @@
 - `server`: backend code
 - `web`: frontend code
 
+## Project documentation
+- [API Specification](API.md)
+- [Data Specification](Data.md)
+
 ## Project overview
 
 ### I. Structure
@@ -33,6 +37,9 @@
 In addition, there are shorthand terms to refer multiple roles:
 - `User`: who has been logged in; in other words, are who belong to any roles except `Guest`
 - `Member`: who belong to `Class`; in other words, are who in the group `Class Secretary`, `Class Deputy Secretary`, `Regular Member`, `Certified Member`
+- `Class Manager`: who are in the following groups `Class Secretary`, `Class Deputy Secretary`
+- `Global Manager`: who are in the following groups `Secretary`, `Deputy Secretary`
+- `Manager`: who are either `Class Manager` or `Global Manager`
 
 ### III. Features
 

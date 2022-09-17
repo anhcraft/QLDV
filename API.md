@@ -196,6 +196,7 @@ Every response will be based on the following format:
 - Gets the given post's data
 - Optional authentication
 - Note:
+  + In addition to fields specified in the Post Data specification, there will be statistics included in the response: `views`, `likes`
   + When the requester is logged in, there will be additional fields related to post statistics: `viewed`, `liked`
   + An error may occur if the post is hidden due to privacy settings
 - Example response:
@@ -204,7 +205,10 @@ Every response will be based on the following format:
   "result": {
     "id": 1,
     "title": "Test post",
-    "viewed": true
+    "viewed": true,
+    "liked": true,
+    "views": 3,
+    "likes": 4
   },
   "success": true
 }
@@ -214,7 +218,10 @@ Every response will be based on the following format:
 - Updates or creates a post
 - Authentication required
 - Note:
-  + For now, only global managers can make request to this endpoint
+  + In order to execute the request, the requester must meet following requirements:
+    + The role group is Global Manager
+    + The role of the requester must be higher or equal to the `privacy` level
+    + As a consequence, only global managers can participate in editing posts, and who is secretary can hide a specific post from deputy secretary
   + When the `id` param is absent, this means "creating"; otherwise it means "updating"
 - Example request:
 ```json
@@ -237,7 +244,9 @@ Every response will be based on the following format:
 - Deletes a post
 - Authentication required
 - Note:
-  + For now, only global managers can make request to this endpoint
+  + In order to execute the request, the requester must meet following requirements:
+    + The role group is Global Manager
+    + The role of the requester must be higher or equal to the `privacy` level
 - Example response:
 ```json
 {
@@ -247,7 +256,7 @@ Every response will be based on the following format:
 
 ### GET /posts/
 - Lists and filters posts
-- Authentication required
+- Optional authentication
 - Example request:
 ```json
 {
@@ -262,6 +271,7 @@ Every response will be based on the following format:
 ```
 - Note:
   + Certain posts may be hidden due to privacy settings
+  + Post content will be excluded from the response in order to save resource
   + The system will determine which fields are included in the response, which is the same as `GET /post/:id`
 - Example response:
 ```json
@@ -278,26 +288,81 @@ Every response will be based on the following format:
 }
 ```
 
-### POST /post-like/:id
-- Switches
+### POST /post-stat/:id
+- Updates the post statistic counter per user
 - Authentication required
-- Supported statistic types:
-  + `like` - the state is switched for e
+- Note:
+  + This will update the counter of the requester himself
+  + Supported statistic types: `like`, `view`
+    + `like` is a boolean-typed statistic
+    + `view` is a boolean-typed statistic. However, once the value is set to `true`, it is fixed and unchangeable
+  + The returned response will include the latest statistic counter of which were previously defined in the request
+- Example request:
+```json
+{
+  "view": true,
+  "like": true
+}
+```
 - Example response:
 ```json
 {
-  "result": [
-    {
-      "id": 0
-    },
-    {
-      "id": 1
-    }
-  ],
+  "result": {
+    "views": 3,
+    "likes": 5
+  },
   "success": true
 }
 ```
 
 ### POST /post-attachment/:id
+- Uploads the given attachment to a post
+- Authentication required
+- Note:
+  + The `id` param is the post's ID
+  + The `id` in the response is the attachment's ID
+  + In order to execute the request, the requester must meet following requirements:
+    + The role group is Global Manager
+    + The role of the requester must be higher or equal to the `privacy` level
+- Example response:
+```json
+{
+  "result": {
+    "id": 101
+  },
+  "success": true
+}
+```
+
+### DELETE /post-attachment/:id
+- Deletes an attachment
+- Authentication required
+- Note:
+  + The `id` param is the attachment's ID
+  + In order to execute the request, the requester must meet following requirements:
+    + The role group is Global Manager
+    + The role of the requester must be higher or equal to the `privacy` level
+- Example response:
+```json
+{
+  "success": true
+}
+```
 
 ### GET /post-hashtags/
+- Fetches all existing hashtags
+- Optional authentication
+- Note:
+  + This will list all hashtags regardless of privacy settings (even hashtags of hidden posts are returned)
+- Example response
+```json
+{
+  "result": {
+    "hashtags": [
+      "news",
+      "updates"
+    ]
+  },
+  "success": true
+}
+```
