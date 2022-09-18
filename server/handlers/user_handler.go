@@ -188,12 +188,12 @@ func UserGetRouteHandler(c *fiber.Ctx) error {
 		who = requester
 	} else {
 		if !utils.ValidateNonNegativeInteger(whoParam) {
-			return ReturnError(c, ErrTokenInvalid)
+			return ReturnError(c, ErrInvalidToken)
 		}
 		who = getUserById(whoParam)
 	}
 	if who == nil || who.Role == utils.RoleGuest {
-		return ReturnError(c, ErrUserNotExist)
+		return ReturnError(c, ErrUnknownUser)
 	}
 
 	data := gabs.New()
@@ -226,12 +226,12 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 		who = requester
 	} else {
 		if !utils.ValidateNonNegativeInteger(whoParam) {
-			return ReturnError(c, ErrTokenInvalid)
+			return ReturnError(c, ErrInvalidToken)
 		}
 		who = getUserById(whoParam)
 	}
 	if who == nil || who.Role == utils.RoleGuest {
-		return ReturnError(c, ErrUserNotExist)
+		return ReturnError(c, ErrUnknownUser)
 	}
 	if !requester.HasPrivilegeOver(who, 0) {
 		return ReturnError(c, ErrNoPermission)

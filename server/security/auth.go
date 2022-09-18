@@ -2,11 +2,10 @@ package security
 
 import (
 	"context"
+	"das/handlers"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
-	"fmt"
-	"log"
-	"strings"
+	"github.com/rs/zerolog/log"
 )
 
 var client *auth.Client
@@ -15,30 +14,30 @@ func init() {
 	ctx := context.Background()
 	app, err := firebase.NewApp(ctx, nil)
 	if err != nil {
-		_ = fmt.Errorf("error initializing app: %v", err)
+		log.Error().Err(err).Msg("An error occurred while initializing Firebase (1)")
 		return
 	}
 	client_, err := app.Auth(ctx)
 	if err != nil {
-		log.Fatalf("error getting Auth client: %v\n", err)
+		log.Error().Err(err).Msg("An error occurred while initializing Firebase (2)")
+		return
 	}
 	client = client_
 }
 
-func GetEmailFromToken(token string, c context.Context) (bool, string) {
-	token = strings.TrimSpace(token)
-	if len(token) == 0 {
-		return false, "ERR_TOKEN_VERIFY"
-	}
+// GetEmailFromToken Returns email by token relevant to a user
+// - 1st return value: true if success
+// - 2nd return value: the email (when success), or the error code
+func GetEmailFromToken(c context.Context, token string) (bool, string) {
 	tkn, err := client.VerifyIDToken(c, token)
 	if err != nil {
-		log.Printf("error verifying ID token: %v\n", err)
-		return false, "ERR_TOKEN_VERIFY_BACKEND"
+		log.Error().Err(err).Msg("An error occurred while validating Firebase ID token")
+		return false, handlers.ErrTokenVerify
 	}
 	u, err := client.GetUser(c, tkn.UID)
 	if err != nil {
-		log.Printf("error getting user %s: %v\n", tkn.UID, err)
-		return false, "ERR_USER_GET_BACKEND"
+		log.Error().Err(err).Msg("An error occurred while getting Firebase user")
+		return false, handlers.ErrUnknownTokenOwner
 	}
 	return true, u.Email
 }
