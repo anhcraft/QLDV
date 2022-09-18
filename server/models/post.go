@@ -19,7 +19,7 @@ type Post struct {
 	CreateDate uint64 `gorm:"autoCreateTime:milli"`
 }
 
-func (p *Post) serialize() *gabs.Container {
+func (p *Post) Serialize() *gabs.Container {
 	res := gabs.New()
 	_, _ = res.Set(p.ID, "id")
 	_, _ = res.Set(p.Link+"."+strconv.FormatUint(uint64(p.ID), 10), "link")

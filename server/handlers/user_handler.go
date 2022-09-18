@@ -22,7 +22,7 @@ import (
 
 const MaxProfileBoardLength = 10000
 const MinProfileBoardLength = 10
-const MaxUserListLimit = 50
+const UserListLimit = 50
 const MaxProfileCoverSize = 500000 // 500KB
 
 func getUserByEmail(email string) *models.User {
@@ -108,7 +108,7 @@ func setAchievements(id interface{}, achievements []models.Achievement) bool {
 		log.Error().Err(tx.Error).Msg("An error occurred at #setAchievements while processing DB transaction (2)")
 		return false
 	}
-	return true
+	return tx.RowsAffected > 0
 }
 
 func setAnnualRanks(id interface{}, annualRanks []models.AnnualRank) bool {
@@ -123,10 +123,10 @@ func setAnnualRanks(id interface{}, annualRanks []models.AnnualRank) bool {
 		log.Error().Err(tx.Error).Msg("An error occurred at #setAnnualRanks while processing DB transaction (2)")
 		return false
 	}
-	return true
+	return tx.RowsAffected > 0
 }
 
-func getUsers(req request.UserListModel) []models.User {
+func getUsers(req *request.UserListModel) []models.User {
 	var users []models.User
 	cmd := storage.Db.Limit(int(req.Limit))
 	if req.BelowId > 0 {
@@ -145,6 +145,9 @@ func getUsers(req request.UserListModel) []models.User {
 		cmd = cmd.Where("role = ?", req.FilterRole)
 	}
 	cmd = cmd.Find(&users)
+	if cmd.Error != nil {
+		log.Error().Err(cmd.Error).Msg("An error occurred at #getUsers while processing DB transaction")
+	}
 	return users
 }
 
@@ -392,10 +395,10 @@ func UserListRouteHandler(c *fiber.Ctx) error {
 	if utils.GetRoleGroup(requester.Role) == utils.RoleGroupClassManager {
 		req.FilterClass = requester.Class
 	}
-	req.Limit = utils.ClampUint8(req.Limit, 0, MaxUserListLimit)
+	req.Limit = utils.ClampUint8(req.Limit, 0, UserListLimit)
 	users := gabs.New()
 	_, _ = users.Array("users")
-	for _, user := range getUsers(req) {
+	for _, user := range getUsers(&req) {
 		_ = users.ArrayAppend(user.Serialize(requester), "users")
 	}
 	return ReturnJSON(c, users)

@@ -93,7 +93,7 @@ Every response will be based on the following format:
       "rank": 0,
       "year": 2020
     }
-  ],
+  ]
 }
 ```
 - Note:
@@ -138,14 +138,16 @@ Every response will be based on the following format:
 
 ```json
 {
-  "result": [
-    {
-      "id": 0
-    },
-    {
-      "id": 1
-    }
-  ],
+  "result": {
+    "users": [
+      {
+        "id": 0
+      },
+      {
+        "id": 1
+      }
+    ]
+  },
   "success": true
 }
 ```
@@ -196,8 +198,7 @@ Every response will be based on the following format:
 - Gets the given post's data
 - Optional authentication
 - Note:
-  + In addition to fields specified in the Post Data specification, there will be statistics included in the response: `views`, `likes`
-  + When the requester is logged in, there will be additional fields related to post statistics: `viewed`, `liked`
+  + When the requester is logged in, there will be additional fields related to post statistics: `stats.viewed`, `stats.liked`
   + An error may occur if the post is hidden due to privacy settings
 - Example response:
 ```json
@@ -205,10 +206,12 @@ Every response will be based on the following format:
   "result": {
     "id": 1,
     "title": "Test post",
-    "viewed": true,
-    "liked": true,
-    "views": 3,
-    "likes": 4
+    "stats": {
+      "viewed": true,
+      "liked": true,
+      "views": 3,
+      "likes": 4
+    }
   },
   "success": true
 }
@@ -272,18 +275,21 @@ Every response will be based on the following format:
 - Note:
   + Certain posts may be hidden due to privacy settings
   + Post content will be excluded from the response in order to save resource
+  + Supported sort types: `like`, `view`
   + The system will determine which fields are included in the response, which is the same as `GET /post/:id`
 - Example response:
 ```json
 {
-  "result": [
-    {
-      "id": 0
-    },
-    {
-      "id": 1
-    }
-  ],
+  "result": {
+    "posts": [
+      {
+        "id": 0
+      },
+      {
+        "id": 1
+      }
+    ]
+  },
   "success": true
 }
 ```
@@ -292,11 +298,12 @@ Every response will be based on the following format:
 - Updates the post statistic counter per user
 - Authentication required
 - Note:
+  + The requester must have the right permission to access the post
   + This will update the counter of the requester himself
   + Supported statistic types: `like`, `view`
     + `like` is a boolean-typed statistic
     + `view` is a boolean-typed statistic. However, once the value is set to `true`, it is fixed and unchangeable
-  + The returned response will include the latest statistic counter of which were previously defined in the request
+  + The returned response will include the latest statistic counter of what were previously defined in the request
 - Example request:
 ```json
 {

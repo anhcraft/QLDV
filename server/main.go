@@ -26,8 +26,8 @@ func main() {
 	app.Post("/user-profile-cover/", handlers.ProfileCoverUploadRouteHandler)
 
 	app.Get("/post/:id", handlers.PostGetRouteHandler)
-	app.Post("/post/:id", handlers.PostUpdateRouteHandler)
-	app.Delete("/post/:id", handlers.PostRemoveRouteHandler)
+	app.Post("/post/:id?", handlers.PostUpdateRouteHandler)
+	app.Delete("/post/:id", handlers.PostDeleteRouteHandler)
 	app.Get("/posts/", handlers.PostListRouteHandler)
 	app.Post("/post-stat/:id", handlers.PostStatUpdateRouteHandler)
 	app.Post("/post-attachment/:id", handlers.AttachmentUploadRouteHandler)

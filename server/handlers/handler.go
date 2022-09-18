@@ -46,3 +46,9 @@ func ReturnJSON(c *fiber.Ctx, container *gabs.Container) error {
 	_, _ = res.Set(true, "success")
 	return c.Status(fiber.StatusOK).SendString(res.String())
 }
+
+func ReturnEmpty(c *fiber.Ctx) error {
+	res := gabs.New()
+	_, _ = res.Set(true, "success")
+	return c.Status(fiber.StatusOK).SendString(res.String())
+}

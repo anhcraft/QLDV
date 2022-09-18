@@ -74,3 +74,11 @@ func ClampUint8(v uint8, min uint8, max uint8) uint8 {
 		return v
 	}
 }
+
+func LimitString(str string, max int) string {
+	limit := len(str)
+	if limit > max {
+		limit = max
+	}
+	return str[:limit]
+}
