@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-row gap-1 place-items-center">
-    <HomeIcon class="w-4 cursor-pointer" @click="this.$router.push('/')"></HomeIcon>
+    <HomeIcon class="w-4 cursor-pointer" @click="this.$router.push({ name: 'home' })"></HomeIcon>
     <ChevronRightIcon class="w-4"></ChevronRightIcon>
     <div class="cursor-pointer" @click="this.$router.push(link).then(() => {this.$router.go(0)})">{{ text }}</div>
     <ChevronRightIcon class="w-4"></ChevronRightIcon>

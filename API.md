@@ -59,7 +59,7 @@ Every response will be based on the following format:
         "year": 2021
       }
     ],
-    "annual-ranks": [
+    "annualRanks": [
       {
         "year": 2020,
         "level": 0
@@ -88,7 +88,7 @@ Every response will be based on the following format:
       "year": 2021
     }
   ],
-  "annual-ranks": [
+  "annualRanks": [
     {
       "rank": 0,
       "year": 2020
@@ -98,7 +98,7 @@ Every response will be based on the following format:
 ```
 - Note:
   + Only fields which were specified in the request are considered. However, not all of them are editable because of various reasons mentioned above. Some profile fields are modifiable if and only if certain requirements met. For example, the requester must be the user himself or has special permissions. In addition, a few fields are open to the managers only and members are prohibited to edit them. Besides, there are fields reserved and under read-only mode such as ID, Email, etc **(See the Data document for further information)**
-  + "achievements" and "annual-ranks" must be present with empty values to reset the corresponding field; otherwise, there is no effect if they are absent in the response.
+  + "achievements" and "annualRanks" must be present with empty values to reset the corresponding field; otherwise, there is no effect if they are absent in the response.
   + If the id is present, this API acts like "getting someone profile" which "someone" can be "self" or "another"
 - Example response:
 ```json

@@ -385,9 +385,9 @@ func UserListRouteHandler(c *fiber.Ctx) error {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 	req := request.UserListModel{}
-	if err := c.BodyParser(req); err != nil {
+	if err := c.QueryParser(&req); err != nil {
 		log.Error().Err(err).Msg("There was an error occurred while parsing body at #UserListRouteHandler")
-		return ReturnError(c, utils.ErrInvalidRequestBody)
+		return ReturnError(c, utils.ErrInvalidRequestQuery)
 	}
 	req.FilterName = strings.ToLower(utils.RemoveVietnameseAccents(strings.TrimSpace(req.FilterName)))
 	req.FilterClass = strings.ToLower(utils.RemoveVietnameseAccents(strings.TrimSpace(req.FilterClass)))

@@ -1,10 +1,10 @@
 package request
 
 type UserListModel struct {
-	Limit       uint8  `json:"limit,omitempty"`
-	FilterName  string `json:"filterName,omitempty"`
-	FilterClass string `json:"filterClass,omitempty"`
-	FilterEmail string `json:"filterEmail,omitempty"`
-	FilterRole  uint8  `json:"filterRole,omitempty"`
-	BelowId     uint16 `json:"belowId,omitempty"`
+	Limit       uint8  `query:"limit,omitempty"`
+	FilterName  string `query:"filter-name,omitempty"`
+	FilterClass string `query:"filter-class,omitempty"`
+	FilterEmail string `query:"filter-email,omitempty"`
+	FilterRole  uint8  `query:"filter-role,omitempty"`
+	BelowId     uint16 `query:"below-id,omitempty"`
 }

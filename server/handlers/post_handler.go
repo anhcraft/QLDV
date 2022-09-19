@@ -304,9 +304,9 @@ func PostDeleteRouteHandler(c *fiber.Ctx) error {
 
 func PostListRouteHandler(c *fiber.Ctx) error {
 	req := request.PostListModel{}
-	if err := c.BodyParser(req); err != nil {
+	if err := c.QueryParser(&req); err != nil {
 		log.Error().Err(err).Msg("There was an error occurred while parsing body at #PostListRouteHandler")
-		return ReturnError(c, utils.ErrInvalidRequestBody)
+		return ReturnError(c, utils.ErrInvalidRequestQuery)
 	}
 	requester, err := GetRequester(c)
 	if err != "" {

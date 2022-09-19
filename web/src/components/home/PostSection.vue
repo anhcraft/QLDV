@@ -26,9 +26,8 @@
 <script>
 import PostWidget from "./PostWidget.vue";
 import LoadingState from "../LoadingState.vue";
-import server from "../../api/server";
-import auth from "../../auth/auth";
 import { RssIcon, ArrowRightIcon } from '@heroicons/vue/24/solid';
+import PostAPI from "../../api/post-api";
 
 export default {
   name: "PostSection",
@@ -46,15 +45,17 @@ export default {
   methods: {
     loadPosts(){
       this.$refs.postLoadingState.activate()
-      server.loadPosts(3, [], "", 0, 0, auth.getToken()).then(s => {
-        this.posts = s.posts
+      PostAPI.listPosts({
+        limit: 3,
+        "below-id": 0,
+        "filter-hashtags": [],
+        "sort-by": "date",
+        "lower-than": 0
+      }).then((posts) => {
+        this.posts = posts
         this.$refs.postLoadingState.deactivate()
-      }, (e) => {
-        this.$notify({
-          title: "Tải bài viết thất bại",
-          text: e.message,
-          type: "error"
-        });
+      }).catch((e) => {
+        this.$root.popupError(e)
       })
     }
   },

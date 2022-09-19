@@ -19,10 +19,10 @@ export default {
     data: Object
   },
   methods: {
-    openEvent(ev){
+    openEvent(ev){/*
       if(ev.status === 'ongoing' && ev.hasOwnProperty("contest")) {
         this.$router.push(`/c/` + ev.link)
-      }
+      }*/
     }
   }
 }

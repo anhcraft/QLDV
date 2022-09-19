@@ -56,9 +56,8 @@ import EventButton from "../EventButton.vue";
 import ActivityGallery from "./ActivityGallery.vue";
 import KeyMemberSlideshow from "./KeyMemberSlideshow.vue";
 import { FireIcon } from '@heroicons/vue/24/solid';
-import server from "../../api/server";
-import auth from "../../auth/auth";
 import LoadingState from "../LoadingState.vue";
+import EventAPI from "../../api/event-api";
 
 export default {
   name: "ActivitySection",
@@ -78,15 +77,16 @@ export default {
     loadOngoingEvents(){
       this.$refs.loadingStateOngoing.activate()
       const t = new Date().getTime()
-      server.loadEvents(8, 0, t, t, auth.getToken()).then(s => {
-        this.onGoingEvents = s.events
+      EventAPI.listEvents({
+        limit: 8,
+        "below-id": 0,
+        "begin-date": t,
+        "end-date": t,
+      }).then((events) => {
+        this.onGoingEvents = events
         this.$refs.loadingStateOngoing.deactivate()
-      }, (e) => {
-        this.$notify({
-          title: "Tải sự kiện thất bại",
-          text: e.message,
-          type: "error"
-        });
+      }).catch((e) => {
+        this.$root.popupError(e)
       })
     },
   },

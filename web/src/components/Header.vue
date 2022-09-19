@@ -2,10 +2,10 @@
   <div class="page-header relative">
     <div class="z-[10] absolute top-14" v-if="showMenu">
       <div class="flex flex-col bg-white border border-slate-300">
-        <router-link class="px-10 py-3 hover:bg-slate-300" to="/">Trang chủ</router-link>
-        <router-link class="px-10 py-3 hover:bg-slate-300" to="/p">Tin tức</router-link>
-        <router-link class="px-10 py-3 hover:bg-slate-300" to="/e">Hoạt động</router-link>
-        <router-link class="px-10 py-3 hover:bg-slate-300" to="/bch">Tổ chức</router-link>
+        <router-link class="px-10 py-3 hover:bg-slate-300" :to="{name: 'home'}">Trang chủ</router-link>
+        <router-link class="px-10 py-3 hover:bg-slate-300" :to="{name: 'listPosts'}">Tin tức</router-link>
+        <router-link class="px-10 py-3 hover:bg-slate-300" :to="{name: 'listEvents'}">Hoạt động</router-link>
+        <router-link class="px-10 py-3 hover:bg-slate-300" :to="{name: 'committeePage'}">Tổ chức</router-link>
       </div>
     </div>
 
@@ -49,8 +49,6 @@
 
 <script>
 import auth from "../auth/auth";
-import server from "../api/server";
-import lookupErrorCode from "../api/errorCode";
 import {Bars3Icon} from '@heroicons/vue/24/solid';
 
 export default {
@@ -64,49 +62,15 @@ export default {
     }
   },
   methods: {
-    postLogIn() {
-      server.loadProfile('', auth.getToken()).then((s) => {
-        if(s.hasOwnProperty("error")) {
-          this.$notify({
-            title: "Đăng nhập thất bại",
-            text: lookupErrorCode(s["error"]),
-            type: "error"
-          });
-          return
-        }
-        auth.setAuthenticated(true)
-        window.location.reload();
-      }, (e) => {
-        this.$notify({
-          title: "Đăng nhập thất bại",
-          text: e.message,
-          type: "error"
-        });
-      })
-    },
     logIn() {
-      auth.requestAuth((result) => {
-        if(result === null){
-          return
-        }
-        if(!result.user.email?.endsWith("@dian.sgdbinhduong.edu.vn")) {
-          this.$notify({
-            title: "Đăng nhập thất bại",
-            text: "Tài khoản không thuộc nội bộ nhà trường",
-            type: "error"
-          });
-        }
-        setTimeout(this.postLogIn, 1000) // delay a little so #getToken can work later
+      auth.requestAuth(() => {
+        window.location.reload()
       }, (e) => {
-        this.$notify({
-          title: "Đăng nhập thất bại",
-          text: e.message,
-          type: "error"
-        });
+        this.$root.popupError(e)
       })
     },
     viewProfile() {
-      this.$router.push("/u/" + this.$root.profile.email.substring(0, this.$root.profile.email.search("@"))).then(() => {
+      this.$router.push("/u/" + this.$root.user.profile.id).then(() => {
         this.$router.go(0)
       })
     }

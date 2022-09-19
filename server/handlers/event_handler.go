@@ -185,9 +185,9 @@ func EventUpdateRouteHandler(c *fiber.Ctx) error {
 
 func EventListRouteHandler(c *fiber.Ctx) error {
 	req := request.EventListModel{}
-	if err := c.BodyParser(req); err != nil {
+	if err := c.QueryParser(&req); err != nil {
 		log.Error().Err(err).Msg("There was an error occurred while parsing body at #EventListRouteHandler")
-		return ReturnError(c, utils.ErrInvalidRequestBody)
+		return ReturnError(c, utils.ErrInvalidRequestQuery)
 	}
 	requester, err := GetRequester(c)
 	if err != "" {

@@ -1,59 +1,49 @@
-import {getAuth, GoogleAuthProvider, signInWithPopup, User} from "firebase/auth";
+import {getAuth, GoogleAuthProvider, signInWithPopup} from "firebase/auth";
 import Cookies from "js-cookie";
+import {ClientError} from "../api/client-error";
 
 const provider = new GoogleAuthProvider();
 provider.addScope('https://www.googleapis.com/auth/userinfo.email');
 
-let currentUser: User | undefined = undefined
-let userToken: string | undefined = undefined
-let initialized = false
-
 const auth = {
-    init: function (callback: any) {
-        getAuth().onIdTokenChanged(function(user) {
-            if (user !== null) {
-                getAuth().currentUser?.getIdToken().then((token: string) => {
-                    currentUser = user
-                    userToken = token
-                    if (!initialized) {
-                        callback.call(null)
-                        initialized = true
-                    }
-                }, () => {
-                    if (!initialized) {
-                        callback.call(null)
-                        initialized = true
-                    }
-                });
-            } else {
-                currentUser = undefined
-                if (!initialized) {
-                    callback.call(null)
-                    initialized = true
-                }
+    init: function () {
+        getAuth().onIdTokenChanged((user) => {
+            if (user !== null && Cookies.get('qldvauth') === undefined) {
+                return auth.logout()
             }
         })
     },
-    requestAuth: function (onSuccess: any, onError: any) {
+    requestAuth: function (onSuccess: () => {}, onError: (e: string | ClientError) => {}) {
         signInWithPopup(getAuth(), provider)
             .then((result) => {
-                onSuccess.call(null, result)
+                if(result === null){
+                    onError.call(null, new ClientError("LOGIN_FAILED"))
+                    return
+                }
+                if(!result.user.email?.endsWith("@dian.sgdbinhduong.edu.vn")) {
+                    onError.call(null, new ClientError("USER_ILLEGAL_EMAIL"))
+                    return
+                }
+                Cookies.set('qldvauth', "meow", {expires: 7})
+                onSuccess.call(null)
             }, (e) => {
-                onError.call(null, e)
+                console.error(e)
+                onError.call(null, new ClientError("LOGIN_FAILED"))
             })
     },
-    getToken: function (): string | undefined {
-        return userToken
-    },
-    setAuthenticated: function (b: boolean) {
-        if(b) {
-            Cookies.set('qldvauth', "2022", {expires: 7})
-        } else {
-            Cookies.remove('qldvauth')
+    getToken: function (): Promise<string> | undefined {
+        if(Cookies.get('qldvauth') === undefined) {
+            return undefined
         }
+        return getAuth().currentUser?.getIdToken()
     },
-    isLoggedIn: function () {
-        return Cookies.get('qldvauth') !== undefined && currentUser !== undefined && userToken !== undefined
+    logout: function (): Promise<void> {
+        Cookies.remove('qldvauth')
+        return getAuth().signOut()
+    },
+    isLoggedIn: function (): boolean {
+        const user = getAuth().currentUser
+        return user != null && !user.isAnonymous && Cookies.get('qldvauth') !== undefined
     }
 };
 
