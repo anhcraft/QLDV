@@ -348,7 +348,7 @@ Every response will be based on the following format:
   + The `id` param is the attachment's ID
   + In order to execute the request, the requester must meet following requirements:
     + The role group is Global Manager
-    + The role of the requester must be higher or equal to the `privacy` level
+    + The role of the requester must be higher or equal to the `privacy` level of the associated post
 - Example response:
 ```json
 {
@@ -368,6 +368,95 @@ Every response will be based on the following format:
     "hashtags": [
       "news",
       "updates"
+    ]
+  },
+  "success": true
+}
+```
+
+---
+
+### GET /event/:id
+- Gets the given event's data
+- Optional authentication
+- Note:
+  + An error may occur if the event is hidden due to privacy settings
+- Example response:
+```json
+{
+  "result": {
+    "id": 1,
+    "title": "Test event"
+  },
+  "success": true
+}
+```
+
+### POST /event/:id?
+- Updates or creates an event
+- Authentication required
+- Note:
+  + In order to execute the request, the requester must meet following requirements:
+    + The role group is Global Manager
+    + The role of the requester must be higher or equal to the `privacy` level
+    + As a consequence, only global managers can participate in editing events, and who is secretary can hide a specific event from deputy secretary
+  + When the `id` param is absent, this means "creating"; otherwise it means "updating"
+- Example request:
+```json
+{
+  "title": "Test event"
+}
+```
+- Example response:
+```json
+{
+  "result": {
+    "id": 1
+  },
+  "success": true
+}
+```
+
+### DELETE /event/:id
+- Deletes a event
+- Authentication required
+- Note:
+  + In order to execute the request, the requester must meet following requirements:
+    + The role group is Global Manager
+    + The role of the requester must be higher or equal to the `privacy` level
+- Example response:
+```json
+{
+  "success": true
+}
+```
+
+### GET /events/
+- Lists and filters events
+- Optional authentication
+- Example request:
+```json
+{
+  "limit": 50,
+  "belowId": 0,
+  "beginDate": 17003000,
+  "endDate": 18003000
+}
+```
+- Note:
+  + Certain events may be hidden due to privacy settings
+  + The system will determine which fields are included in the response, which is the same as `GET /event/:id`
+- Example response:
+```json
+{
+  "result": {
+    "events": [
+      {
+        "id": 0
+      },
+      {
+        "id": 1
+      }
     ]
   },
   "success": true

@@ -27,8 +27,8 @@ func TestHasPrivilegeOver(t *testing.T) {
 		ID:   5,
 		Role: utils.RoleSecretary,
 	}
-	assert.False(t, user1.HasPrivilegeOver(user1, 0), "user1 = user1; m = 0")
-	assert.False(t, user1.HasPrivilegeOver(user1, 1), "user1 = user1; m = 1")
+	assert.True(t, user1.HasPrivilegeOver(user1, 0), "user1 = user1; m = 0")
+	assert.True(t, user1.HasPrivilegeOver(user1, 1), "user1 = user1; m = 1")
 	assert.False(t, user1.HasPrivilegeOver(user2, 0), "user1 < user2; m = 0")
 	assert.False(t, user1.HasPrivilegeOver(user2, 1), "user1 < user2; m = 1")
 	assert.False(t, user1.HasPrivilegeOver(user4, 0), "user1 < user4; m = 0")

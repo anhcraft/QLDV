@@ -31,22 +31,24 @@ func main() {
 	app.Get("/posts/", handlers.PostListRouteHandler)
 	app.Post("/post-stat/:id", handlers.PostStatUpdateRouteHandler)
 	app.Post("/post-attachment/:id", handlers.AttachmentUploadRouteHandler)
+	app.Delete("/post-attachment/:id", handlers.AttachmentDeleteRouteHandler)
 	app.Get("/post-hashtags/", handlers.PostHashtagListRouteHandler)
 
-	app.Get("/event", handlers.EventGetRouteHandler)
-	app.Get("/events", handlers.EventListRouteHandler)
-	app.Post("/remove-event", handlers.EventRemoveRouteHandler)
-	app.Post("/change-event", handlers.EventChangeRouteHandler)
-	//app.Post("/contest", contestGetRouteHandler)
-	app.Post("/change-contest", handlers.ContestChangeRouteHandler)
-	app.Post("/remove-contest", handlers.ContestRemoveRouteHandler)
-	app.Post("/contest-sessions", handlers.ContestSessionListRouteHandler)
-	app.Post("/get-contest-stats", handlers.ContestStatGetRouteHandler)
-	app.Post("/submit-contest-session", handlers.ContestSessionSubmitRouteHandler)
-	app.Post("/join-contest-session", handlers.ContestSessionJoinRouteHandler)
+	app.Get("/event/:id", handlers.EventGetRouteHandler)
+	app.Post("/event/:id?", handlers.EventUpdateRouteHandler)
+	app.Delete("/event/:id", handlers.EventRemoveRouteHandler)
+	app.Get("/events/", handlers.EventListRouteHandler)
+	/*
+		//app.Post("/contest", contestGetRouteHandler)
+		app.Post("/change-contest", handlers.ContestChangeRouteHandler)
+		app.Post("/remove-contest", handlers.ContestRemoveRouteHandler)
+		app.Post("/contest-sessions", handlers.ContestSessionListRouteHandler)
+		app.Post("/get-contest-stats", handlers.ContestStatGetRouteHandler)
+		app.Post("/submit-contest-session", handlers.ContestSessionSubmitRouteHandler)
+		app.Post("/join-contest-session", handlers.ContestSessionJoinRouteHandler)*/
 
 	app.Static("/static/", "./public")
-	app.Get("/status", monitor.New())
+	app.Get("/status/", monitor.New())
 
 	err := app.Listen(":3002")
 	if err != nil {

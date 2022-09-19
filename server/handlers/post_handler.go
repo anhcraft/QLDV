@@ -41,8 +41,8 @@ func getPost(id interface{}) *models.Post {
 	}
 }
 
-func serializePost(post *models.Post, requester *models.User) *gabs.Container {
-	response := post.Serialize()
+func serializePost(post *models.Post, requester *models.User, withContent bool) *gabs.Container {
+	response := post.Serialize(withContent)
 	if requester != nil && utils.IsLoggedIn(requester.Role) {
 		result := struct {
 			likeCheck int64
@@ -195,7 +195,7 @@ func PostGetRouteHandler(c *fiber.Ctx) error {
 	if post.Privacy > requester.Role {
 		return ReturnError(c, ErrNoPermission)
 	}
-	return ReturnJSON(c, serializePost(post, requester))
+	return ReturnJSON(c, serializePost(post, requester, true))
 }
 
 func PostUpdateRouteHandler(c *fiber.Ctx) error {
@@ -326,7 +326,7 @@ func PostListRouteHandler(c *fiber.Ctx) error {
 	posts := gabs.New()
 	_, _ = posts.Array("posts")
 	for _, post := range getPosts(&req, requester) {
-		_ = posts.ArrayAppend(serializePost(&post, requester), "posts")
+		_ = posts.ArrayAppend(serializePost(&post, requester, false), "posts")
 	}
 	return ReturnJSON(c, posts)
 }

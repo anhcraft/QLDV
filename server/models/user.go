@@ -60,7 +60,7 @@ func (u *User) HasPrivilegeOver(who *User, mode uint8) bool {
 	if u.ID == who.ID {
 		return true
 	}
-	distinctGroupTest := utils.GetRoleGroup(u.Role)-utils.GetRoleGroup(who.Role) > 0
+	distinctGroupTest := utils.GetRoleGroup(u.Role) > utils.GetRoleGroup(who.Role)
 	if mode == 1 {
 		return distinctGroupTest && utils.GetRoleGroup(u.Role) == utils.RoleGroupGlobalManager
 	} else {

@@ -2,89 +2,122 @@ package handlers
 
 import (
 	"crypto/sha256"
-	"das"
 	"das/models"
+	"das/storage"
+	"das/utils"
 	"encoding/hex"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog/log"
 	"gorm.io/gorm/clause"
 	"os"
 	"strconv"
 	"time"
 )
 
-func uploadAttachment(postId int, data []byte, ext string) bool {
+const MaxAttachmentSize = 2000000 // 2MB
+
+func uploadAttachment(postId uint32, data []byte, ext string) (bool, string, string) {
 	_ = os.Mkdir("public", os.ModePerm)
 	hash := sha256.New()
-	hash.Write([]byte(strconv.Itoa(postId) + time.Now().String()))
-	md := hash.Sum(nil)
-	attId := hex.EncodeToString(md)
-	att := models.Attachment{
-		ID:     attId + ext,
-		PostId: postId,
-		Date:   time.Now().UnixMilli(),
-	}
-	err := os.WriteFile("./public/"+attId+ext, data, os.ModePerm)
+	hash.Write([]byte(strconv.FormatUint(uint64(postId), 10) + time.Now().String() + ext))
+	id := hex.EncodeToString(hash.Sum(nil))
+	fileName := id + ext
+	err := os.WriteFile("./public/"+fileName, data, os.ModePerm)
 	if err != nil {
-		return false
+		log.Error().Err(err).Msg("An error occurred at #uploadAttachment while writing file")
+		return false, "", ""
 	}
-	_ = main.Db.Clauses(clause.OnConflict{DoNothing: true}).Create(&att)
-	return true
+	att := models.Attachment{
+		ID:     id,
+		PostId: postId,
+	}
+	tx := storage.Db.Clauses(clause.OnConflict{DoNothing: true}).Create(&att)
+	if tx.Error != nil {
+		log.Error().Err(tx.Error).Msg("An error occurred at #uploadAttachment while processing DB transaction")
+		return false, "", ""
+	}
+	return tx.RowsAffected > 0, id, fileName
 }
 
 func getAttachments(postId int) []models.Attachment {
 	var atts []models.Attachment
-	_ = main.Db.Where("post_id = ?", postId).Order("date desc").Find(&atts)
+	cmd := storage.Db.Where("post_id = ?", postId).Order("date desc").Find(&atts)
+	if cmd.Error != nil {
+		log.Error().Err(cmd.Error).Msg("An error occurred at #getAttachments while processing DB transaction")
+	}
 	return atts
 }
 
-func removeAttachments(postId int, atts []string) bool {
+func removeAttachment(attId string, privacy uint8) bool {
 	var att models.Attachment
-	for _, v := range atts {
-		main.Db.Where("id = ?", v).Where("post_id = ?", postId).Delete(&att)
+	cmd := storage.Db.Joins("right join posts on attachments.post_id = posts.id").Where("attachments.id = ?", attId).Where("posts.privacy <= ?", privacy).Delete(&att)
+	if cmd.Error != nil {
+		log.Error().Err(cmd.Error).Msg("An error occurred at #removeAttachment while processing DB transaction")
 	}
-	return true
+	return cmd.RowsAffected > 0
 }
 
 func AttachmentUploadRouteHandler(c *fiber.Ctx) error {
-	res := gabs.New()
-	token := c.Get("token")
-	success, emailOrError := main.GetEmailFromToken(token, c.UserContext())
-	if !success {
-		_, _ = res.Set(emailOrError, "error")
-		return c.SendString(res.String())
-	}
-	user := getUserByEmail(emailOrError)
-	if user == nil {
-		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
-		return c.SendString(res.String())
-	}
-	if !user.Admin {
-		_, _ = res.Set("ERR_NO_PERMISSION", "error")
-		return c.SendString(res.String())
+	if len(c.Body()) > MaxAttachmentSize {
+		return ReturnError(c, ErrAttachmentTooLarge)
 	}
 
-	id, err := strconv.Atoi(c.Get("id"))
-	if err != nil {
-		_, _ = res.Set("ERR_INVALID_POST_ID", "error")
-		return c.SendString(res.String())
+	id := c.Params("id")
+	if id == "" || !utils.ValidateNonNegativeInteger(id) {
+		return ReturnError(c, ErrUnknownPost)
 	}
-	post := main.getPost(id)
+	requester, err := GetRequester(c)
+	if err != "" {
+		return ReturnError(c, err)
+	}
+	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
+		return ReturnError(c, ErrNoPermission)
+	}
+
+	post := getPost(id)
 	if post == nil {
-		_, _ = res.Set("ERR_UNKNOWN_POST", "error")
-		return c.SendString(res.String())
+		return ReturnError(c, ErrUnknownPost)
+	}
+	if post.Privacy > requester.Role {
+		return ReturnError(c, ErrNoPermission)
 	}
 
 	t := c.Get("content-type")
 
+	ok := false
+	attId := ""
+	fn := ""
+	// TODO Check the file content rather than the given content-type since it is inaccurate
 	if t == "image/png" {
-		_, _ = res.Set(uploadAttachment(id, c.Body(), ".png"), "success")
+		ok, attId, fn = uploadAttachment(post.ID, c.Body(), ".png")
 	} else if t == "image/jpeg" {
-		_, _ = res.Set(uploadAttachment(id, c.Body(), ".jpeg"), "success")
-	} else {
-		_, _ = res.Set("ERR_ILLEGAL_ATTACHMENT", "error")
-		return c.SendString(res.String())
+		ok, attId, fn = uploadAttachment(post.ID, c.Body(), ".jpeg")
 	}
 
-	return c.SendString(res.String())
+	if !ok {
+		return ReturnError(c, ErrUnsupportedAttachment)
+	}
+
+	response := gabs.New()
+	_, _ = response.Set(fn, "name")
+	_, _ = response.Set(attId, "id")
+	return ReturnJSON(c, response)
+}
+
+func AttachmentDeleteRouteHandler(c *fiber.Ctx) error {
+	id := c.Params("id") // attachment ID
+	requester, err := GetRequester(c)
+	if err != "" {
+		return ReturnError(c, err)
+	}
+	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
+		return ReturnError(c, ErrNoPermission)
+	}
+
+	if removeAttachment(id, requester.Role) {
+		return ReturnEmpty(c)
+	} else {
+		return ReturnError(c, ErrAttachmentDeleteFailed)
+	}
 }

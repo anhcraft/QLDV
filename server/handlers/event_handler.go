@@ -1,234 +1,204 @@
 package handlers
 
 import (
-	"das"
 	"das/models"
+	"das/models/request"
+	"das/security"
+	"das/storage"
 	"das/utils"
 	"errors"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
-	"strconv"
 	"strings"
-	"time"
 )
 
-func getEvents(limit int, belowId int, beginDate int64, endDate int64) []models.Event {
+const MaxEventTitleLength = 300
+const MinEventTitleLength = 10
+const EventListLimit = 50
+
+func getEvents(req *request.EventListModel, requester *models.User) []models.Event {
 	var events []models.Event
-	a := main.db.Limit(limit).Order("end_date desc, begin_date desc, id desc")
-	if beginDate > 0 && endDate > 0 && beginDate <= endDate {
-		a = a.Where("begin_date <= ? and end_date >= ?", endDate, beginDate)
-	} else if beginDate > 0 && endDate == 0 {
-		a = a.Where("begin_date > ?", beginDate)
-	} else if beginDate == 0 && endDate > 0 {
-		a = a.Where("end_date < ?", endDate)
+	a := storage.Db.Limit(int(req.Limit)).Order("end_date desc, begin_date desc, id desc")
+	a = a.Where("privacy <= ?", requester.Role)
+	if req.BeginDate > 0 && req.EndDate > 0 && req.BeginDate <= req.EndDate {
+		a = a.Where("begin_date <= ? and end_date >= ?", req.EndDate, req.BeginDate)
+	} else if req.BeginDate > 0 && req.EndDate == 0 {
+		a = a.Where("begin_date > ?", req.BeginDate)
+	} else if req.BeginDate == 0 && req.EndDate > 0 {
+		a = a.Where("end_date < ?", req.EndDate)
 	}
-	if belowId > 0 {
-		a = a.Where("id < ?", belowId)
+	if req.BelowId > 0 {
+		a = a.Where("id < ?", req.BeginDate)
 	}
-	a.Find(&events)
+	a = a.Find(&events)
+	if a.Error != nil {
+		log.Error().Err(a.Error).Msg("An error occurred at #getEvents while processing DB transaction")
+	}
 	return events
 }
 
-func removeEvent(id int) bool {
+func removeEvent(id interface{}) bool {
 	var event models.Event
-	main.db.Where("id = ?", id).Delete(&event)
-	return true
+	tx := storage.Db.Where("id = ?", id).Delete(&event)
+	if tx.Error != nil {
+		log.Error().Err(tx.Error).Msg("An error occurred at #removeEvent while processing DB transaction")
+		return false
+	}
+	return tx.RowsAffected > 0
 }
 
-func getEvent(id int) *models.Event {
+func getEvent(id interface{}) *models.Event {
 	var event models.Event
-	result := main.db.Take(&event, "id = ?", id)
+	result := storage.Db.Take(&event, "id = ?", id)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil
+	} else if result.Error != nil {
+		log.Error().Err(result.Error).Msg("An error occurred at #getEvent while processing DB transaction")
 		return nil
 	} else {
 		return &event
 	}
 }
 
-func editOrCreateEvent(id int, title string, beginDate int64, endDate int64, privacy uint8) *models.Event {
+func updateOrCreateEvent(id uint32, req *request.EventUpdateModel) *models.Event {
 	event := models.Event{
-		Title:     title,
-		Link:      utils.GenerateLinkFromTitle(title),
-		BeginDate: beginDate,
-		EndDate:   endDate,
-		Date:      time.Now().UnixMilli(),
-		Privacy:   privacy,
+		Link:      utils.GenerateLinkFromTitle(req.Title),
+		Title:     req.Title,
+		BeginDate: req.BeginDate,
+		EndDate:   req.EndDate,
+		Privacy:   req.Privacy,
 	}
 	if id > 0 {
 		event.ID = id
 	}
-	_ = main.db.Clauses(clause.OnConflict{
+	tx := storage.Db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"title", "link", "begin_date", "end_date", "privacy"}),
 	}).Create(&event)
-	return &event
+	if tx.Error != nil {
+		log.Error().Err(tx.Error).Msg("An error occurred at #updateOrCreateEvent while processing DB transaction")
+	} else if tx.RowsAffected > 0 {
+		return &event
+	}
+	return nil
 }
 
 func EventGetRouteHandler(c *fiber.Ctx) error {
-	res := gabs.New()
-	id, err := strconv.Atoi(c.Query("id"))
-	if err != nil {
-		_, _ = res.Set("ERR_INVALID_EVENT_ID", "error")
-		return c.SendString(res.String())
+	id := c.Params("id")
+	if id == "" || !utils.ValidateNonNegativeInteger(id) {
+		return ReturnError(c, ErrUnknownEvent)
 	}
+	requester, err := GetRequester(c)
+	if err != "" {
+		return ReturnError(c, err)
+	}
+
 	event := getEvent(id)
 	if event == nil {
-		_, _ = res.Set("ERR_UNKNOWN_EVENT", "error")
-		return c.SendString(res.String())
+		return ReturnError(c, ErrUnknownEvent)
 	}
-
-	token := c.Get("token")
-	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
-	var user *models.User = nil
-	if success {
-		user = getUserByEmail(emailOrError)
+	if event.Privacy > requester.Role {
+		return ReturnError(c, ErrNoPermission)
 	}
-	if (event.Privacy&1) == 1 && user == nil {
-		_, _ = res.Set("ERR_NO_PERMISSION", "error")
-		return c.SendString(res.String())
-	}
-	if (event.Privacy&2) == 2 && (user == nil || !(user.Mod || user.Admin)) {
-		_, _ = res.Set("ERR_NO_PERMISSION", "error")
-		return c.SendString(res.String())
-	}
-	if (event.Privacy&4) == 4 && (user == nil || !user.Admin) {
-		_, _ = res.Set("ERR_NO_PERMISSION", "error")
-		return c.SendString(res.String())
-	}
-
-	res = event.serialize()
-	contest := getContest(id)
-	if contest != nil && ((user != nil && user.Admin) || contest.AcceptingAnswers) {
-		_, _ = res.Set(contest.serialize(user != nil && user.Admin), "contest")
-	}
-	return c.SendString(res.String())
-}
-
-func EventListRouteHandler(c *fiber.Ctx) error {
-	token := c.Get("token")
-	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
-	var user *models.User = nil
-	if success {
-		user = getUserByEmail(emailOrError)
-	}
-
-	res := gabs.New()
-	limit, err1 := strconv.Atoi(c.Query("limit", ""))
-	if err1 != nil || limit > 50 {
-		limit = 50
-	} else if limit < 1 {
-		limit = 1
-	}
-	belowId, err2 := strconv.Atoi(c.Query("below-id", ""))
-	if err2 != nil {
-		belowId = 0
-	}
-	beginDate, err3 := strconv.ParseInt(c.Query("begin-date", ""), 10, 64)
-	if err3 != nil {
-		beginDate = 0
-	}
-	endDate, err4 := strconv.ParseInt(c.Query("end-date", ""), 10, 64)
-	if err4 != nil {
-		endDate = 0
-	}
-	_, _ = res.Array("events")
-	for _, ev := range getEvents(limit, belowId, beginDate, endDate) {
-		if (ev.Privacy&1) == 1 && user == nil {
-			continue
-		}
-		if (ev.Privacy&2) == 2 && (user == nil || !(user.Mod || user.Admin)) {
-			continue
-		}
-		if (ev.Privacy&4) == 4 && (user == nil || !user.Admin) {
-			continue
-		}
-		cont := ev.serialize()
-		contest := getContest(ev.ID)
-		if contest != nil && ((user != nil && user.Admin) || contest.AcceptingAnswers) {
-			_, _ = cont.Set(contest.serialize(user != nil && user.Admin), "contest")
-		}
-		_ = res.ArrayAppend(cont, "events")
-	}
-	return c.SendString(res.String())
+	return ReturnJSON(c, event.Serialize())
 }
 
 func EventRemoveRouteHandler(c *fiber.Ctx) error {
-	res := gabs.New()
-	token := c.Get("token")
-	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
-	if !success {
-		_, _ = res.Set(emailOrError, "error")
-		return c.SendString(res.String())
+	id := c.Params("id")
+	if id == "" || !utils.ValidateNonNegativeInteger(id) {
+		return ReturnError(c, ErrUnknownEvent)
 	}
-	user := getUserByEmail(emailOrError)
-	if user == nil {
-		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
-		return c.SendString(res.String())
+	requester, err := GetRequester(c)
+	if err != "" {
+		return ReturnError(c, err)
 	}
-	if !user.Admin {
-		_, _ = res.Set("ERR_NO_PERMISSION", "error")
-		return c.SendString(res.String())
+	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
+		return ReturnError(c, ErrNoPermission)
 	}
 
-	id, err := strconv.Atoi(c.Get("id"))
-	if err != nil {
-		_, _ = res.Set("ERR_INVALID_EVENT_ID", "error")
-		return c.SendString(res.String())
+	event := getEvent(id)
+	if event == nil {
+		return ReturnError(c, ErrUnknownEvent)
 	}
-	_, _ = res.Set(removeEvent(id), "success")
-	return c.SendString(res.String())
+	if event.Privacy > requester.Role {
+		return ReturnError(c, ErrNoPermission)
+	}
+	if removeEvent(event.ID) {
+		return ReturnEmpty(c)
+	} else {
+		return ReturnError(c, ErrEventDeleteFailed)
+	}
 }
 
-func EventChangeRouteHandler(c *fiber.Ctx) error {
-	res := gabs.New()
-	token := c.Get("token")
-	success, emailOrError := main.getEmailFromToken(token, c.UserContext())
-	if !success {
-		_, _ = res.Set(emailOrError, "error")
-		return c.SendString(res.String())
+func EventUpdateRouteHandler(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id != "" && !utils.ValidateNonNegativeInteger(id) {
+		return ReturnError(c, ErrUnknownEvent)
 	}
-	user := getUserByEmail(emailOrError)
-	if user == nil {
-		_, _ = res.Set("ERR_UNKNOWN_USER", "error")
-		return c.SendString(res.String())
+	requester, err := GetRequester(c)
+	if err != "" {
+		return ReturnError(c, err)
 	}
-	if !user.Admin {
-		_, _ = res.Set("ERR_NO_PERMISSION", "error")
-		return c.SendString(res.String())
+	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
+		return ReturnError(c, ErrNoPermission)
 	}
-
-	payload := struct {
-		Id        int    `json:"id,omitempty"`
-		Title     string `json:"title,omitempty"`
-		BeginDate int64  `json:"begin_date,omitempty"`
-		EndDate   int64  `json:"end_date,omitempty"`
-		Privacy   uint8  `json:"privacy,omitempty"`
-	}{}
-
-	if err := c.BodyParser(&payload); err != nil {
-		_, _ = res.Set("ERR_PARSE_BODY: "+err.Error(), "error")
-		return c.SendString(res.String())
-	}
-	payload.Title = strings.TrimSpace(payload.Title)
-	payload.Title = main.ugcPolicy.Sanitize(payload.Title)
-
-	if len(payload.Title) < 5 {
-		_, _ = res.Set("ERR_EVENT_TITLE_MIN", "error")
-		return c.SendString(res.String())
-	} else if len(payload.Title) > 300 {
-		_, _ = res.Set("ERR_EVENT_TITLE_MAX", "error")
-		return c.SendString(res.String())
+	eventId := uint32(0)
+	if id != "" {
+		event := getEvent(id)
+		if event == nil {
+			return ReturnError(c, ErrUnknownEvent)
+		}
+		if event.Privacy > requester.Role {
+			return ReturnError(c, ErrNoPermission)
+		}
+		eventId = event.ID
 	}
 
-	if payload.BeginDate > payload.EndDate {
-		_, _ = res.Set("ERR_DATE_RANGE", "error")
-		return c.SendString(res.String())
+	req := &request.EventUpdateModel{}
+	if err2 := c.BodyParser(&req); err2 != nil {
+		log.Error().Err(err2).Msg("There was an error occurred while parsing body at #EventUpdateRouteHandler")
+		return ReturnError(c, ErrInvalidRequestBody)
+	}
+	req.Title = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Title))
+
+	if len(req.Title) < MinEventTitleLength {
+		return ReturnError(c, ErrEventTitleTooShort)
+	} else if len(req.Title) > MaxEventTitleLength {
+		return ReturnError(c, ErrEventTitleTooLong)
 	}
 
-	p := editOrCreateEvent(payload.Id, payload.Title, payload.BeginDate, payload.EndDate, payload.Privacy)
-	_, _ = res.Set(true, "success")
-	_, _ = res.Set(p.ID, "id")
-	return c.SendString(res.String())
+	event := updateOrCreateEvent(eventId, req)
+	if event == nil {
+		if eventId == 0 {
+			return ReturnError(c, ErrEventCreateFailed)
+		} else {
+			return ReturnError(c, ErrEventUpdateFailed)
+		}
+	}
+	response := gabs.New()
+	_, _ = response.Set(event.ID, "id")
+	return ReturnJSON(c, response)
+}
+
+func EventListRouteHandler(c *fiber.Ctx) error {
+	req := request.EventListModel{}
+	if err := c.BodyParser(req); err != nil {
+		log.Error().Err(err).Msg("There was an error occurred while parsing body at #EventListRouteHandler")
+		return ReturnError(c, ErrInvalidRequestBody)
+	}
+	requester, err := GetRequester(c)
+	if err != "" {
+		return ReturnError(c, err)
+	}
+	req.Limit = utils.ClampUint8(req.Limit, 0, EventListLimit)
+
+	events := gabs.New()
+	_, _ = events.Array("events")
+	for _, event := range getEvents(&req, requester) {
+		_ = events.ArrayAppend(event.Serialize(), "events")
+	}
+	return ReturnJSON(c, events)
 }

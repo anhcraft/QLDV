@@ -33,7 +33,7 @@ func TestRoleGroup(t *testing.T) {
 	}
 
 	for _, v := range table {
-		assert.Equalf(t, v[1], v[0], "%v belongs to group %v", v[0], v[1])
+		assert.Equalf(t, v[1], GetRoleGroup(v[0]), "%v belongs to group %v", v[0], v[1])
 	}
 }
 

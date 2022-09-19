@@ -19,12 +19,14 @@ type Post struct {
 	CreateDate uint64 `gorm:"autoCreateTime:milli"`
 }
 
-func (p *Post) Serialize() *gabs.Container {
+func (p *Post) Serialize(withContent bool) *gabs.Container {
 	res := gabs.New()
 	_, _ = res.Set(p.ID, "id")
 	_, _ = res.Set(p.Link+"."+strconv.FormatUint(uint64(p.ID), 10), "link")
 	_, _ = res.Set(p.Title, "title")
-	//_, _ = res.Set(p.Content, "content")
+	if withContent {
+		_, _ = res.Set(p.Content, "content")
+	}
 	_, _ = res.Set(p.Privacy, "privacy")
 	_, _ = res.Set(p.Headline, "headline")
 	_, _ = res.Set(p.Hashtag, "hashtag")

@@ -2,8 +2,9 @@ package main
 
 import (
 	"das/models"
+	"das/storage"
+	"das/utils"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 )
 
@@ -18,8 +19,6 @@ type UserD struct {
 }
 
 func importData() {
-	setupDB()
-
 	usersD := make([]*UserD, 0)
 
 	content, _ := ioutil.ReadFile("12.json")
@@ -27,20 +26,22 @@ func importData() {
 	_ = json.Unmarshal(content, &usersD)
 
 	users := make([]models.User, 0)
-	for i, v := range usersD {
+	for _, v := range usersD {
+		r := utils.RoleRegularMember
+		if v.Certified {
+			r = utils.RoleCertifiedMember
+		}
 		users = append(users, models.User{
 			Email:     v.Email,
-			StudentId: fmt.Sprintf("%016d", 9099_0012_1922_0000+i+1),
 			Name:      v.Name,
 			Gender:    v.Gender,
-			Birthday:  v.Birth,
+			Birthday:  uint64(v.Birth),
 			EntryYear: 2019,
 			Phone:     "",
-			Certified: v.Certified,
+			Role:      r,
 			Class:     v.Class,
-			Admin:     false,
 		})
 	}
 
-	Db.CreateInBatches(users, 20)
+	storage.Db.CreateInBatches(users, 20)
 }

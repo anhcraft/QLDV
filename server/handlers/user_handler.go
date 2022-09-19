@@ -450,13 +450,13 @@ func UserStatGetRouteHandler(c *fiber.Ctx) error {
 }
 
 func ProfileCoverUploadRouteHandler(c *fiber.Ctx) error {
+	if len(c.Body()) > MaxProfileCoverSize {
+		return ReturnError(c, ErrProfileCoverTooLarge)
+	}
+
 	requester, err := GetRequester(c)
 	if err != "" || !utils.IsLoggedIn(requester.Role) {
 		return ReturnError(c, err)
-	}
-
-	if len(c.Body()) > MaxProfileCoverSize {
-		return ReturnError(c, ErrProfileCoverTooLarge)
 	}
 
 	t := c.Get("content-type")
