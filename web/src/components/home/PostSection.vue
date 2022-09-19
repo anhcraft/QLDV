@@ -28,6 +28,7 @@ import PostWidget from "./PostWidget.vue";
 import LoadingState from "../LoadingState.vue";
 import { RssIcon, ArrowRightIcon } from '@heroicons/vue/24/solid';
 import PostAPI from "../../api/post-api";
+import {ServerError} from "../../api/server-error";
 
 export default {
   name: "PostSection",
@@ -51,11 +52,12 @@ export default {
         "filter-hashtags": [],
         "sort-by": "date",
         "lower-than": 0
-      }).then((posts) => {
-        this.posts = posts
+      }).then((res) => {
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+        }
+        this.posts = res
         this.$refs.postLoadingState.deactivate()
-      }).catch((e) => {
-        this.$root.popupError(e)
       })
     }
   },

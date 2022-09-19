@@ -6,7 +6,6 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
-	recover2 "github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 func main() {
@@ -14,7 +13,7 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 	}))
-	app.Use(recover2.New())
+	//app.Use(recover2.New())
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestCompression,
 	}))

@@ -16,6 +16,7 @@
 import auth from "./auth/auth";
 import profileCoverDefaultImg from "./assets/profile-cover.jpg"
 import UserAPI from "./api/user-api";
+import {ServerError} from "./api/server-error";
 
 export default {
   data() {
@@ -69,15 +70,16 @@ export default {
       profile: true,
       achievements: false,
       "annual-ranks": false
-    }).then((user) => {
-      if(user.profile.profileCover === undefined) {
-        user.profile.profileCover = profileCoverDefaultImg
+    }).then((res) => {
+      if(res instanceof ServerError) {
+        this.$root.popupError(res)
       }
-      Object.assign(this.user, user)
+      if(res.profile.profileCover === undefined) {
+        res.profile.profileCover = profileCoverDefaultImg
+      }
+      Object.assign(this.user, res)
       this.$forceUpdate()
       this.loadingProfile = false
-    }).catch((e) => {
-      this.popupError(e)
     })
   }
 }

@@ -58,6 +58,7 @@ import KeyMemberSlideshow from "./KeyMemberSlideshow.vue";
 import { FireIcon } from '@heroicons/vue/24/solid';
 import LoadingState from "../LoadingState.vue";
 import EventAPI from "../../api/event-api";
+import {ServerError} from "../../api/server-error";
 
 export default {
   name: "ActivitySection",
@@ -82,11 +83,12 @@ export default {
         "below-id": 0,
         "begin-date": t,
         "end-date": t,
-      }).then((events) => {
-        this.onGoingEvents = events
+      }).then((res) => {
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+        }
+        this.onGoingEvents = res
         this.$refs.loadingStateOngoing.deactivate()
-      }).catch((e) => {
-        this.$root.popupError(e)
       })
     },
   },

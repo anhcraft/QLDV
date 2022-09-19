@@ -170,13 +170,8 @@ func setProfileCover(id uint16, data []byte, ext string) (bool, string) {
 }
 
 func UserGetRouteHandler(c *fiber.Ctx) error {
-	queryTable := struct {
-		profile      bool `query:"profile"`
-		achievements bool `query:"achievements"`
-		annualRanks  bool `query:"annual-ranks"`
-	}{}
-
-	if err := c.QueryParser(&queryTable); err != nil {
+	req := request.UserGetModel{}
+	if err := c.QueryParser(&req); err != nil {
 		log.Error().Err(err).Msg("There was an error occurred while parsing queries at #UserGetRouteHandler")
 		return ReturnError(c, utils.ErrInvalidRequestQuery)
 	}
@@ -200,16 +195,16 @@ func UserGetRouteHandler(c *fiber.Ctx) error {
 	}
 
 	data := gabs.New()
-	if queryTable.profile {
+	if req.Profile {
 		_, _ = data.Set(who.Serialize(requester), "profile")
 	}
-	if queryTable.achievements && (requester.HasPrivilegeOver(who, 0) || who.IsAchievementPublic()) {
+	if req.Achievements && (requester.HasPrivilegeOver(who, 0) || who.IsAchievementPublic()) {
 		_, _ = data.Array("achievements")
 		for _, v := range getAchievementById(who.ID) {
 			_ = data.ArrayAppend(v.Serialize(), "achievements")
 		}
 	}
-	if queryTable.annualRanks && (requester.HasPrivilegeOver(who, 0) || who.IsAnnualRankPublic()) {
+	if req.AnnualRanks && (requester.HasPrivilegeOver(who, 0) || who.IsAnnualRankPublic()) {
 		_, _ = data.Array("annualRanks")
 		for _, v := range getAnnualRankById(who.ID) {
 			_ = data.ArrayAppend(v.Serialize(), "annualRanks")

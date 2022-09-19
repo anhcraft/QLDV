@@ -1,4 +1,4 @@
-import ky from "ky";
+import ky, {HTTPError} from "ky";
 import conf from "../conf";
 import auth from "../auth/auth";
 import {ServerError} from "./server-error";
@@ -76,6 +76,16 @@ const API = {
                     return res["result"]
                 } else {
                     return new ServerError(res["error"])
+                }
+            }, (e) => {
+                if(e instanceof HTTPError) {
+                    return e.response.json().then(res => {
+                        if(res["success"]) {
+                            return res["result"]
+                        } else {
+                            return new ServerError(res["error"])
+                        }
+                    })
                 }
             })
         }

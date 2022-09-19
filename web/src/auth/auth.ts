@@ -6,12 +6,21 @@ const provider = new GoogleAuthProvider();
 provider.addScope('https://www.googleapis.com/auth/userinfo.email');
 
 const auth = {
-    init: function () {
-        getAuth().onIdTokenChanged((user) => {
-            if (user !== null && Cookies.get('qldvauth') === undefined) {
-                return auth.logout()
+    init: function (callback: () => void) {
+        getAuth().onAuthStateChanged(function(user) {
+            if (user) {
+                if(Cookies.get('qldvauth') === undefined) {
+                    auth.logout().then(() => callback())
+                    return
+                }
+            } else {
+                if(Cookies.get('qldvauth') !== undefined) {
+                    auth.logout().then(() => callback())
+                    return
+                }
             }
-        })
+            callback()
+        });
     },
     requestAuth: function (onSuccess: () => {}, onError: (e: string | ClientError) => {}) {
         signInWithPopup(getAuth(), provider)
@@ -43,6 +52,7 @@ const auth = {
     },
     isLoggedIn: function (): boolean {
         const user = getAuth().currentUser
+        console.log(user)
         return user != null && !user.isAnonymous && Cookies.get('qldvauth') !== undefined
     }
 };
