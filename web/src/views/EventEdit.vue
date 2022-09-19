@@ -34,7 +34,7 @@
 
 <script>
 import server from "../api/server";
-import auth from "../api/auth";
+import auth from "../auth/auth";
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";

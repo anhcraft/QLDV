@@ -60,27 +60,27 @@ func removeAttachment(attId string, privacy uint8) bool {
 
 func AttachmentUploadRouteHandler(c *fiber.Ctx) error {
 	if len(c.Body()) > MaxAttachmentSize {
-		return ReturnError(c, ErrAttachmentTooLarge)
+		return ReturnError(c, utils.ErrAttachmentTooLarge)
 	}
 
 	id := c.Params("id")
 	if id == "" || !utils.ValidateNonNegativeInteger(id) {
-		return ReturnError(c, ErrUnknownPost)
+		return ReturnError(c, utils.ErrUnknownPost)
 	}
 	requester, err := GetRequester(c)
 	if err != "" {
 		return ReturnError(c, err)
 	}
 	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 
 	post := getPost(id)
 	if post == nil {
-		return ReturnError(c, ErrUnknownPost)
+		return ReturnError(c, utils.ErrUnknownPost)
 	}
 	if post.Privacy > requester.Role {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 
 	t := c.Get("content-type")
@@ -93,10 +93,12 @@ func AttachmentUploadRouteHandler(c *fiber.Ctx) error {
 		ok, attId, fn = uploadAttachment(post.ID, c.Body(), ".png")
 	} else if t == "image/jpeg" {
 		ok, attId, fn = uploadAttachment(post.ID, c.Body(), ".jpeg")
+	} else {
+		return ReturnError(c, utils.ErrUnsupportedAttachment)
 	}
 
 	if !ok {
-		return ReturnError(c, ErrUnsupportedAttachment)
+		return ReturnError(c, utils.ErrAttachmentUploadFailed)
 	}
 
 	response := gabs.New()
@@ -112,12 +114,12 @@ func AttachmentDeleteRouteHandler(c *fiber.Ctx) error {
 		return ReturnError(c, err)
 	}
 	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 
 	if removeAttachment(id, requester.Role) {
 		return ReturnEmpty(c)
 	} else {
-		return ReturnError(c, ErrAttachmentDeleteFailed)
+		return ReturnError(c, utils.ErrAttachmentDeleteFailed)
 	}
 }

@@ -13,7 +13,7 @@
 </style>
 
 <script>
-import auth from "./api/auth";
+import auth from "./auth/auth";
 import server from "./api/server";
 import profileCoverDefaultImg from "./assets/profile-cover.jpg"
 import conf from "./conf";

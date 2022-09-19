@@ -2,7 +2,7 @@ package security
 
 import (
 	"context"
-	"das/handlers"
+	"das/utils"
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
 	"github.com/rs/zerolog/log"
@@ -32,12 +32,12 @@ func GetEmailFromToken(c context.Context, token string) (bool, string) {
 	tkn, err := client.VerifyIDToken(c, token)
 	if err != nil {
 		log.Error().Err(err).Msg("An error occurred while validating Firebase ID token")
-		return false, handlers.ErrTokenVerify
+		return false, utils.ErrTokenVerify
 	}
 	u, err := client.GetUser(c, tkn.UID)
 	if err != nil {
 		log.Error().Err(err).Msg("An error occurred while getting Firebase user")
-		return false, handlers.ErrUnknownTokenOwner
+		return false, utils.ErrUnknownTokenOwner
 	}
 	return true, u.Email
 }

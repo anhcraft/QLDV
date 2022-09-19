@@ -27,7 +27,7 @@
 import PostWidget from "./PostWidget.vue";
 import LoadingState from "../LoadingState.vue";
 import server from "../../api/server";
-import auth from "../../api/auth";
+import auth from "../../auth/auth";
 import { RssIcon, ArrowRightIcon } from '@heroicons/vue/24/solid';
 
 export default {

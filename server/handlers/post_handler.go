@@ -181,7 +181,7 @@ func setPostStat(postId uint32, userId uint16, action string) uint {
 func PostGetRouteHandler(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" || !utils.ValidateNonNegativeInteger(id) {
-		return ReturnError(c, ErrUnknownPost)
+		return ReturnError(c, utils.ErrUnknownPost)
 	}
 	requester, err := GetRequester(c)
 	if err != "" {
@@ -190,10 +190,10 @@ func PostGetRouteHandler(c *fiber.Ctx) error {
 
 	post := getPost(id)
 	if post == nil {
-		return ReturnError(c, ErrUnknownPost)
+		return ReturnError(c, utils.ErrUnknownPost)
 	}
 	if post.Privacy > requester.Role {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 	return ReturnJSON(c, serializePost(post, requester, true))
 }
@@ -201,23 +201,23 @@ func PostGetRouteHandler(c *fiber.Ctx) error {
 func PostUpdateRouteHandler(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id != "" && !utils.ValidateNonNegativeInteger(id) {
-		return ReturnError(c, ErrUnknownPost)
+		return ReturnError(c, utils.ErrUnknownPost)
 	}
 	requester, err := GetRequester(c)
 	if err != "" {
 		return ReturnError(c, err)
 	}
 	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 	postId := uint32(0)
 	if id != "" {
 		post := getPost(id)
 		if post == nil {
-			return ReturnError(c, ErrUnknownPost)
+			return ReturnError(c, utils.ErrUnknownPost)
 		}
 		if post.Privacy > requester.Role {
-			return ReturnError(c, ErrNoPermission)
+			return ReturnError(c, utils.ErrNoPermission)
 		}
 		postId = post.ID
 	}
@@ -225,49 +225,49 @@ func PostUpdateRouteHandler(c *fiber.Ctx) error {
 	req := &request.PostUpdateModel{}
 	if err2 := c.BodyParser(&req); err2 != nil {
 		log.Error().Err(err2).Msg("There was an error occurred while parsing body at #PostUpdateRouteHandler")
-		return ReturnError(c, ErrInvalidRequestBody)
+		return ReturnError(c, utils.ErrInvalidRequestBody)
 	}
 	req.Title = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Title))
 	req.Headline = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Headline))
 	req.Content = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Content))
 
 	if len(req.Title) < MinPostTitleLength {
-		return ReturnError(c, ErrPostTitleTooShort)
+		return ReturnError(c, utils.ErrPostTitleTooShort)
 	} else if len(req.Title) > MaxPostTitleLength {
-		return ReturnError(c, ErrPostTitleTooLong)
+		return ReturnError(c, utils.ErrPostTitleTooLong)
 	}
 
 	if req.Headline == "" {
 		req.Headline = utils.LimitString(bluemonday.StrictPolicy().Sanitize(req.Content), MaxPostHeadlineLength)
 	} else if len(req.Headline) < MinPostHeadlineLength {
-		return ReturnError(c, ErrPostHeadlineTooShort)
+		return ReturnError(c, utils.ErrPostHeadlineTooShort)
 	} else if len(req.Headline) > MaxPostHeadlineLength {
-		return ReturnError(c, ErrPostHeadlineTooLong)
+		return ReturnError(c, utils.ErrPostHeadlineTooLong)
 	}
 
 	if len(req.Content) < MinPostContentLength {
-		return ReturnError(c, ErrPostContentTooShort)
+		return ReturnError(c, utils.ErrPostContentTooShort)
 	} else if len(req.Content) > MaxPostContentLength {
-		return ReturnError(c, ErrPostContentTooLong)
+		return ReturnError(c, utils.ErrPostContentTooLong)
 	}
 
 	req.Hashtag = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Hashtag))
 	if len(req.Hashtag) < MinPostHashtagLength {
-		return ReturnError(c, ErrPostHashtagTooShort)
+		return ReturnError(c, utils.ErrPostHashtagTooShort)
 	} else if len(req.Hashtag) > MaxPostHashtagLength {
-		return ReturnError(c, ErrPostHashtagTooLong)
+		return ReturnError(c, utils.ErrPostHashtagTooLong)
 	}
 	matched, err3 := regexp.MatchString("^[a-zA-Z\\d-_]+$", req.Hashtag)
 	if !matched || err3 != nil {
-		return ReturnError(c, ErrInvalidPostHashtag)
+		return ReturnError(c, utils.ErrInvalidPostHashtag)
 	}
 
 	post := updateOrCreatePost(postId, req)
 	if post == nil {
 		if postId == 0 {
-			return ReturnError(c, ErrPostCreateFailed)
+			return ReturnError(c, utils.ErrPostCreateFailed)
 		} else {
-			return ReturnError(c, ErrPostUpdateFailed)
+			return ReturnError(c, utils.ErrPostUpdateFailed)
 		}
 	}
 	response := gabs.New()
@@ -278,27 +278,27 @@ func PostUpdateRouteHandler(c *fiber.Ctx) error {
 func PostDeleteRouteHandler(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" || !utils.ValidateNonNegativeInteger(id) {
-		return ReturnError(c, ErrUnknownPost)
+		return ReturnError(c, utils.ErrUnknownPost)
 	}
 	requester, err := GetRequester(c)
 	if err != "" {
 		return ReturnError(c, err)
 	}
 	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 
 	post := getPost(id)
 	if post == nil {
-		return ReturnError(c, ErrUnknownPost)
+		return ReturnError(c, utils.ErrUnknownPost)
 	}
 	if post.Privacy > requester.Role {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 	if removePost(post.ID) {
 		return ReturnEmpty(c)
 	} else {
-		return ReturnError(c, ErrPostDeleteFailed)
+		return ReturnError(c, utils.ErrPostDeleteFailed)
 	}
 }
 
@@ -306,7 +306,7 @@ func PostListRouteHandler(c *fiber.Ctx) error {
 	req := request.PostListModel{}
 	if err := c.BodyParser(req); err != nil {
 		log.Error().Err(err).Msg("There was an error occurred while parsing body at #PostListRouteHandler")
-		return ReturnError(c, ErrInvalidRequestBody)
+		return ReturnError(c, utils.ErrInvalidRequestBody)
 	}
 	requester, err := GetRequester(c)
 	if err != "" {
@@ -334,52 +334,52 @@ func PostListRouteHandler(c *fiber.Ctx) error {
 func PostStatUpdateRouteHandler(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" || !utils.ValidateNonNegativeInteger(id) {
-		return ReturnError(c, ErrUnknownPost)
+		return ReturnError(c, utils.ErrUnknownPost)
 	}
 	json, err2 := gabs.ParseJSON(c.Body())
 	if err2 != nil {
-		return ReturnError(c, ErrInvalidRequestBody)
+		return ReturnError(c, utils.ErrInvalidRequestBody)
 	}
 	requester, err := GetRequester(c)
 	if err != "" {
 		return ReturnError(c, err)
 	}
 	if !utils.IsLoggedIn(requester.Role) {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 
 	post := getPost(id)
 	if post == nil {
-		return ReturnError(c, ErrUnknownPost)
+		return ReturnError(c, utils.ErrUnknownPost)
 	}
 	if post.Privacy > requester.Role {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 	response := gabs.New()
 	if json.Exists("view") && json.Path("view").Data().(bool) {
 		q := setPostStat(post.ID, requester.ID, "view")
 		if q == 0 {
-			return ReturnError(c, ErrPostStatUpdateFailed)
+			return ReturnError(c, utils.ErrPostStatUpdateFailed)
 		}
 		v := getPostStat(post.ID, "view")
 		if v == -1 {
-			return ReturnError(c, ErrPostStatUpdateFailed)
+			return ReturnError(c, utils.ErrPostStatUpdateFailed)
 		}
 		_, _ = response.Set(v, "views")
 	}
 	if json.Exists("like") && json.Path("like").Data().(bool) {
 		q := setPostStat(post.ID, requester.ID, "like")
 		if q == 0 {
-			return ReturnError(c, ErrPostStatUpdateFailed)
+			return ReturnError(c, utils.ErrPostStatUpdateFailed)
 		} else if q == 1 { // existed: like: true -> false
 			ok := deletePostStat(post.ID, requester.ID, "like")
 			if !ok {
-				return ReturnError(c, ErrPostStatUpdateFailed)
+				return ReturnError(c, utils.ErrPostStatUpdateFailed)
 			}
 		}
 		v := getPostStat(post.ID, "like")
 		if v == -1 {
-			return ReturnError(c, ErrPostStatUpdateFailed)
+			return ReturnError(c, utils.ErrPostStatUpdateFailed)
 		}
 		_, _ = response.Set(v, "likes")
 	}
@@ -393,7 +393,7 @@ func PostHashtagListRouteHandler(c *fiber.Ctx) error {
 	tx := storage.Db.Model(&models.Post{}).Distinct("hashtag").Find(&hashtags)
 	if tx.Error != nil {
 		log.Error().Err(tx.Error).Msg("An error occurred at #PostHashtagListRouteHandler while processing DB transaction")
-		return ReturnError(c, ErrPostHashtagListFailed)
+		return ReturnError(c, utils.ErrPostHashtagListFailed)
 	}
 	res := gabs.New()
 	_, _ = res.Array("hashtags")

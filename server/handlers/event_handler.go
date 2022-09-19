@@ -89,7 +89,7 @@ func updateOrCreateEvent(id uint32, req *request.EventUpdateModel) *models.Event
 func EventGetRouteHandler(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" || !utils.ValidateNonNegativeInteger(id) {
-		return ReturnError(c, ErrUnknownEvent)
+		return ReturnError(c, utils.ErrUnknownEvent)
 	}
 	requester, err := GetRequester(c)
 	if err != "" {
@@ -98,10 +98,10 @@ func EventGetRouteHandler(c *fiber.Ctx) error {
 
 	event := getEvent(id)
 	if event == nil {
-		return ReturnError(c, ErrUnknownEvent)
+		return ReturnError(c, utils.ErrUnknownEvent)
 	}
 	if event.Privacy > requester.Role {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 	return ReturnJSON(c, event.Serialize())
 }
@@ -109,50 +109,50 @@ func EventGetRouteHandler(c *fiber.Ctx) error {
 func EventRemoveRouteHandler(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id == "" || !utils.ValidateNonNegativeInteger(id) {
-		return ReturnError(c, ErrUnknownEvent)
+		return ReturnError(c, utils.ErrUnknownEvent)
 	}
 	requester, err := GetRequester(c)
 	if err != "" {
 		return ReturnError(c, err)
 	}
 	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 
 	event := getEvent(id)
 	if event == nil {
-		return ReturnError(c, ErrUnknownEvent)
+		return ReturnError(c, utils.ErrUnknownEvent)
 	}
 	if event.Privacy > requester.Role {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 	if removeEvent(event.ID) {
 		return ReturnEmpty(c)
 	} else {
-		return ReturnError(c, ErrEventDeleteFailed)
+		return ReturnError(c, utils.ErrEventDeleteFailed)
 	}
 }
 
 func EventUpdateRouteHandler(c *fiber.Ctx) error {
 	id := c.Params("id")
 	if id != "" && !utils.ValidateNonNegativeInteger(id) {
-		return ReturnError(c, ErrUnknownEvent)
+		return ReturnError(c, utils.ErrUnknownEvent)
 	}
 	requester, err := GetRequester(c)
 	if err != "" {
 		return ReturnError(c, err)
 	}
 	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 	eventId := uint32(0)
 	if id != "" {
 		event := getEvent(id)
 		if event == nil {
-			return ReturnError(c, ErrUnknownEvent)
+			return ReturnError(c, utils.ErrUnknownEvent)
 		}
 		if event.Privacy > requester.Role {
-			return ReturnError(c, ErrNoPermission)
+			return ReturnError(c, utils.ErrNoPermission)
 		}
 		eventId = event.ID
 	}
@@ -160,22 +160,22 @@ func EventUpdateRouteHandler(c *fiber.Ctx) error {
 	req := &request.EventUpdateModel{}
 	if err2 := c.BodyParser(&req); err2 != nil {
 		log.Error().Err(err2).Msg("There was an error occurred while parsing body at #EventUpdateRouteHandler")
-		return ReturnError(c, ErrInvalidRequestBody)
+		return ReturnError(c, utils.ErrInvalidRequestBody)
 	}
 	req.Title = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Title))
 
 	if len(req.Title) < MinEventTitleLength {
-		return ReturnError(c, ErrEventTitleTooShort)
+		return ReturnError(c, utils.ErrEventTitleTooShort)
 	} else if len(req.Title) > MaxEventTitleLength {
-		return ReturnError(c, ErrEventTitleTooLong)
+		return ReturnError(c, utils.ErrEventTitleTooLong)
 	}
 
 	event := updateOrCreateEvent(eventId, req)
 	if event == nil {
 		if eventId == 0 {
-			return ReturnError(c, ErrEventCreateFailed)
+			return ReturnError(c, utils.ErrEventCreateFailed)
 		} else {
-			return ReturnError(c, ErrEventUpdateFailed)
+			return ReturnError(c, utils.ErrEventUpdateFailed)
 		}
 	}
 	response := gabs.New()
@@ -187,7 +187,7 @@ func EventListRouteHandler(c *fiber.Ctx) error {
 	req := request.EventListModel{}
 	if err := c.BodyParser(req); err != nil {
 		log.Error().Err(err).Msg("There was an error occurred while parsing body at #EventListRouteHandler")
-		return ReturnError(c, ErrInvalidRequestBody)
+		return ReturnError(c, utils.ErrInvalidRequestBody)
 	}
 	requester, err := GetRequester(c)
 	if err != "" {

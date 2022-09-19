@@ -178,7 +178,7 @@ func UserGetRouteHandler(c *fiber.Ctx) error {
 
 	if err := c.QueryParser(&queryTable); err != nil {
 		log.Error().Err(err).Msg("There was an error occurred while parsing queries at #UserGetRouteHandler")
-		return ReturnError(c, ErrInvalidRequestQuery)
+		return ReturnError(c, utils.ErrInvalidRequestQuery)
 	}
 
 	requester, err := GetRequester(c)
@@ -191,12 +191,12 @@ func UserGetRouteHandler(c *fiber.Ctx) error {
 		who = requester
 	} else {
 		if !utils.ValidateNonNegativeInteger(whoParam) {
-			return ReturnError(c, ErrInvalidToken)
+			return ReturnError(c, utils.ErrInvalidToken)
 		}
 		who = getUserById(whoParam)
 	}
 	if who == nil || who.Role == utils.RoleGuest {
-		return ReturnError(c, ErrUnknownUser)
+		return ReturnError(c, utils.ErrUnknownUser)
 	}
 
 	data := gabs.New()
@@ -229,20 +229,20 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 		who = requester
 	} else {
 		if !utils.ValidateNonNegativeInteger(whoParam) {
-			return ReturnError(c, ErrInvalidToken)
+			return ReturnError(c, utils.ErrInvalidToken)
 		}
 		who = getUserById(whoParam)
 	}
 	if who == nil || who.Role == utils.RoleGuest {
-		return ReturnError(c, ErrUnknownUser)
+		return ReturnError(c, utils.ErrUnknownUser)
 	}
 	if !requester.HasPrivilegeOver(who, 0) {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 
 	json, err2 := gabs.ParseJSON(c.Body())
 	if err2 != nil {
-		return ReturnError(c, ErrInvalidRequestBody)
+		return ReturnError(c, utils.ErrInvalidRequestBody)
 	}
 	if requester.ID == who.ID {
 		response := gabs.New()
@@ -295,9 +295,9 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 			who.ProfileBoard = security.SafeHTMLPolicy.Sanitize(who.ProfileBoard)
 
 			if len(who.ProfileBoard) < MinProfileBoardLength {
-				return ReturnError(c, ErrProfileBoardTooShort)
+				return ReturnError(c, utils.ErrProfileBoardTooShort)
 			} else if len(who.ProfileBoard) > MaxProfileBoardLength {
-				return ReturnError(c, ErrProfileBoardTooLong)
+				return ReturnError(c, utils.ErrProfileBoardTooLong)
 			}
 
 			_, _ = response.Set(setProfileBoard(who.ID, who.ProfileBoard), "profile.profileBoard")
@@ -315,14 +315,14 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 				if who.Class != requester.Class ||
 					utils.GetRoleGroup(who.Role) != utils.RoleGroupMember ||
 					utils.GetRoleGroup(role) != utils.RoleGroupMember {
-					return ReturnError(c, ErrNoPermission)
+					return ReturnError(c, utils.ErrNoPermission)
 				}
 			} else {
 				if (utils.GetRoleGroup(who.Role) != utils.RoleGroupMember &&
 					utils.GetRoleGroup(who.Role) != utils.RoleGroupClassManager) ||
 					(utils.GetRoleGroup(role) != utils.RoleGroupMember &&
 						utils.GetRoleGroup(role) != utils.RoleGroupClassManager) {
-					return ReturnError(c, ErrNoPermission)
+					return ReturnError(c, utils.ErrNoPermission)
 				}
 			}
 			_, _ = response.Set(setRole(who.ID, role), "profile.role")
@@ -372,7 +372,7 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 
 		return ReturnJSON(c, response)
 	} else {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 }
 
@@ -382,12 +382,12 @@ func UserListRouteHandler(c *fiber.Ctx) error {
 		return ReturnError(c, err)
 	}
 	if !utils.IsManager(requester.Role) {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 	req := request.UserListModel{}
 	if err := c.BodyParser(req); err != nil {
 		log.Error().Err(err).Msg("There was an error occurred while parsing body at #UserListRouteHandler")
-		return ReturnError(c, ErrInvalidRequestBody)
+		return ReturnError(c, utils.ErrInvalidRequestBody)
 	}
 	req.FilterName = strings.ToLower(utils.RemoveVietnameseAccents(strings.TrimSpace(req.FilterName)))
 	req.FilterClass = strings.ToLower(utils.RemoveVietnameseAccents(strings.TrimSpace(req.FilterClass)))
@@ -410,7 +410,7 @@ func UserStatGetRouteHandler(c *fiber.Ctx) error {
 		return ReturnError(c, err)
 	}
 	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
-		return ReturnError(c, ErrNoPermission)
+		return ReturnError(c, utils.ErrNoPermission)
 	}
 
 	result := struct {
@@ -451,7 +451,7 @@ func UserStatGetRouteHandler(c *fiber.Ctx) error {
 
 func ProfileCoverUploadRouteHandler(c *fiber.Ctx) error {
 	if len(c.Body()) > MaxProfileCoverSize {
-		return ReturnError(c, ErrProfileCoverTooLarge)
+		return ReturnError(c, utils.ErrProfileCoverTooLarge)
 	}
 
 	requester, err := GetRequester(c)
@@ -468,10 +468,12 @@ func ProfileCoverUploadRouteHandler(c *fiber.Ctx) error {
 		ok, fn = setProfileCover(requester.ID, c.Body(), ".png")
 	} else if t == "image/jpeg" {
 		ok, fn = setProfileCover(requester.ID, c.Body(), ".jpeg")
+	} else {
+		return ReturnError(c, utils.ErrUnsupportedProfileCover)
 	}
 
 	if !ok {
-		return ReturnError(c, ErrUnsupportedProfileCover)
+		return ReturnError(c, utils.ErrProfileCoverUploadFailed)
 	}
 
 	response := gabs.New()

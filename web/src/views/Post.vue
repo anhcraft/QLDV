@@ -56,7 +56,7 @@ import {MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon} from "@heroicons/vue/
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import {EyeIcon, HeartIcon} from '@heroicons/vue/24/solid';
-import auth from "../api/auth";
+import auth from "../auth/auth";
 import LoadingState from "../components/LoadingState.vue";
 import lookupErrorCode from "../api/errorCode";
 

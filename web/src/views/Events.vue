@@ -36,7 +36,7 @@ import EventButton from "../components/EventButton.vue";
 import LoadingState from "../components/LoadingState.vue";
 import {CircleStackIcon, FireIcon} from '@heroicons/vue/24/solid';
 import server from "../api/server";
-import auth from "../api/auth";
+import auth from "../auth/auth";
 
 export default {
   name: "Events",

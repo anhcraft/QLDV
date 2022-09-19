@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import auth from "../api/auth";
+import auth from "../auth/auth";
 import server from "../api/server";
 import lookupErrorCode from "../api/errorCode";
 import {Bars3Icon} from '@heroicons/vue/24/solid';

@@ -116,7 +116,7 @@ import {
   StarIcon
 } from '@heroicons/vue/24/solid'
 import server from "../api/server";
-import auth from "../api/auth";
+import auth from "../auth/auth";
 import { CanvasRenderer } from "echarts/renderers";
 import { PieChart } from "echarts/charts";
 import {

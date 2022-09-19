@@ -1,4 +1,4 @@
-package handlers
+package utils
 
 const ErrInvalidRequestQuery = "ERROR_INVALID_REQUEST_QUERY"
 const ErrInvalidRequestBody = "ERROR_INVALID_REQUEST_BODY"
@@ -12,6 +12,7 @@ const ErrUnknownUser = "ERROR_UNKNOWN_USER"
 const ErrProfileBoardTooShort = "ERROR_PROFILE_BOARD_TOO_SHORT"
 const ErrProfileBoardTooLong = "ERROR_PROFILE_BOARD_TOO_LONG"
 const ErrProfileCoverTooLarge = "ERROR_PROFILE_COVER_TOO_LARGE"
+const ErrProfileCoverUploadFailed = "ERROR_PROFILE_COVER_UPLOAD_FAILED"
 const ErrUnsupportedProfileCover = "ERROR_UNSUPPORTED_PROFILE_COVER"
 
 const ErrUnknownPost = "ERROR_UNKNOWN_POST"
@@ -32,6 +33,7 @@ const ErrPostHashtagListFailed = "ERROR_POST_HASHTAG_LIST_FAILED"
 
 const ErrAttachmentTooLarge = "ERROR_ATTACHMENT_TOO_LARGE"
 const ErrUnsupportedAttachment = "ERROR_UNSUPPORTED_ATTACHMENT"
+const ErrAttachmentUploadFailed = "ERROR_ATTACHMENT_UPLOAD_FAILED"
 const ErrAttachmentDeleteFailed = "ERROR_ATTACHMENT_DELETE_FAILED"
 
 const ErrUnknownEvent = "ERROR_UNKNOWN_EVENT"

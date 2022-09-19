@@ -106,7 +106,7 @@ import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import server from "../api/server";
-import auth from "../api/auth";
+import auth from "../auth/auth";
 import Editor from '@tinymce/tinymce-vue'
 import conf from "../conf";
 import profileCoverDefaultImg from "../assets/profile-cover.jpg";

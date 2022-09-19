@@ -48,7 +48,7 @@
 import {PencilIcon, TrashIcon} from '@heroicons/vue/24/solid'
 import server from "../api/server";
 import Prompt from "../components/Prompt.vue";
-import auth from "../api/auth";
+import auth from "../auth/auth";
 import Header from "../components/Header.vue";
 import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";

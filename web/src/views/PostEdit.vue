@@ -66,7 +66,7 @@
 
 <script>
 import server from "../api/server";
-import auth from "../api/auth";
+import auth from "../auth/auth";
 import conf from "../conf";
 import Editor from '@tinymce/tinymce-vue'
 import Header from "../components/Header.vue";

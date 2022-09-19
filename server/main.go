@@ -21,7 +21,7 @@ func main() {
 
 	app.Get("/user/:id?", handlers.UserGetRouteHandler)
 	app.Post("/user/:id?", handlers.UserUpdateRouteHandler)
-	app.Post("/users/", handlers.UserListRouteHandler)
+	app.Get("/users/", handlers.UserListRouteHandler)
 	app.Get("/user-stats/", handlers.UserStatGetRouteHandler)
 	app.Post("/user-profile-cover/", handlers.ProfileCoverUploadRouteHandler)
 

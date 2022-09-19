@@ -41,7 +41,7 @@ import LoadingState from "../components/LoadingState.vue";
 import PostWidget from "../components/home/PostWidget.vue";
 import {CalendarIcon, EyeIcon, HeartIcon, RssIcon} from "@heroicons/vue/24/solid";
 import server from "../api/server";
-import auth from "../api/auth";
+import auth from "../auth/auth";
 
 export default {
   name: "Posts",

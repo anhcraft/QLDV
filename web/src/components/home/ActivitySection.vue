@@ -57,7 +57,7 @@ import ActivityGallery from "./ActivityGallery.vue";
 import KeyMemberSlideshow from "./KeyMemberSlideshow.vue";
 import { FireIcon } from '@heroicons/vue/24/solid';
 import server from "../../api/server";
-import auth from "../../api/auth";
+import auth from "../../auth/auth";
 import LoadingState from "../LoadingState.vue";
 
 export default {

@@ -22,7 +22,7 @@ import {
   NewspaperIcon,
   UsersIcon
 } from '@heroicons/vue/24/solid';
-import auth from "../api/auth";
+import auth from "../auth/auth";
 
 export default {
   name: "FloatingMenu",

@@ -24,7 +24,7 @@ func GetRequester(c *fiber.Ctx) (*models.User, string) {
 		if res {
 			user := getUserByEmail(txt)
 			if user == nil {
-				return guestUser, ErrUnknownUser
+				return guestUser, utils.ErrUnknownUser
 			}
 			return user, ""
 		}
