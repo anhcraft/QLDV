@@ -12,7 +12,7 @@ type Attachment struct {
 	CreateDate uint64 `gorm:"autoCreateTime:milli"`
 }
 
-func (a *Attachment) serialize() interface{} {
+func (a *Attachment) Serialize() interface{} {
 	res := gabs.New()
 	_, _ = res.Set(a.ID, "id")
 	_, _ = res.Set(a.UpdateDate, "updateDate")

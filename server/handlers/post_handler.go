@@ -43,7 +43,7 @@ func getPost(id interface{}) *models.Post {
 
 func serializePost(post *models.Post, requester *models.User, withContent bool) *gabs.Container {
 	response := post.Serialize(withContent)
-	if requester != nil && utils.IsLoggedIn(requester.Role) {
+	if requester != nil && security.IsLoggedIn(requester.Role) {
 		result := struct {
 			likeCheck int64
 			viewCheck int64
@@ -51,8 +51,12 @@ func serializePost(post *models.Post, requester *models.User, withContent bool) 
 
 		x := storage.Db.Raw("select count(if(post_id = ? and action = 'like' and user_id = ?, 1, null)) as likeCheck, count(if(post_id = ? and action = 'view' and user_id = ?, 1, null)) as likeCheck from post_stats", post.ID, requester.ID, post.ID, requester.ID)
 		_ = x.Row().Scan(&result.likeCheck, &result.viewCheck)
-		_, _ = response.Set(result.likeCheck, "stats.liked")
-		_, _ = response.Set(result.viewCheck, "stats.viewed")
+		_, _ = response.Set(result.likeCheck, "stats", "liked")
+		_, _ = response.Set(result.viewCheck, "stats", "viewed")
+	}
+	_, _ = response.Array("attachments")
+	for _, att := range getAttachments(post.ID) {
+		_ = response.ArrayAppend(att.Serialize(), "attachments")
 	}
 	return response
 }
@@ -207,7 +211,7 @@ func PostUpdateRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
+	if security.GetRoleGroup(requester.Role) != security.RoleGroupGlobalManager {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 	postId := uint32(0)
@@ -284,7 +288,7 @@ func PostDeleteRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
+	if security.GetRoleGroup(requester.Role) != security.RoleGroupGlobalManager {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 
@@ -344,7 +348,7 @@ func PostStatUpdateRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if !utils.IsLoggedIn(requester.Role) {
+	if !security.IsLoggedIn(requester.Role) {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 

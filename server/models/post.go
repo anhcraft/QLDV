@@ -30,8 +30,8 @@ func (p *Post) Serialize(withContent bool) *gabs.Container {
 	_, _ = res.Set(p.Privacy, "privacy")
 	_, _ = res.Set(p.Headline, "headline")
 	_, _ = res.Set(p.Hashtag, "hashtag")
-	_, _ = res.Set(p.ViewCount, "stats.views")
-	_, _ = res.Set(p.LikeCount, "stats.likes")
+	_, _ = res.Set(p.ViewCount, "stats", "views")
+	_, _ = res.Set(p.LikeCount, "stats", "likes")
 	_, _ = res.Set(p.UpdateDate, "updateDate")
 	_, _ = res.Set(p.CreateDate, "createDate")
 	return res

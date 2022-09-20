@@ -21,12 +21,10 @@
     </div>
   </section>
   <Footer></Footer>
-  <FloatingMenu></FloatingMenu>
 </template>
 
 <script>
 import Header from "../components/Header.vue";
-import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import {UserGroupIcon} from "@heroicons/vue/24/solid";
 import Footer from "../components/Footer.vue";
@@ -34,7 +32,7 @@ import Footer from "../components/Footer.vue";
 export default {
   name: "CommitteePage",
   components: {
-    Header, Footer, FloatingMenu, Breadcrumb, UserGroupIcon
+    Header, Footer, Breadcrumb, UserGroupIcon
   },
   data() {
     return {

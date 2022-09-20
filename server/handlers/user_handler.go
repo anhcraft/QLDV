@@ -70,7 +70,7 @@ func getAnnualRankById(id interface{}) []models.AnnualRank {
 }
 
 func setProfileBoard(id interface{}, text string) bool {
-	tx := storage.Db.Model(&models.User{}).Where("user_id = ?", id).Update("profile_board", text)
+	tx := storage.Db.Model(&models.User{}).Where("id = ?", id).Update("profile_board", text)
 	if tx.Error != nil {
 		log.Error().Err(tx.Error).Msg("An error occurred at #setProfileBoard while processing DB transaction")
 		return false
@@ -79,7 +79,7 @@ func setProfileBoard(id interface{}, text string) bool {
 }
 
 func setProfileSettings(id interface{}, settings uint8) bool {
-	tx := storage.Db.Model(&models.User{}).Where("user_id = ?", id).Update("profile_settings", settings)
+	tx := storage.Db.Model(&models.User{}).Where("id = ?", id).Update("profile_settings", settings)
 	if tx.Error != nil {
 		log.Error().Err(tx.Error).Msg("An error occurred at #setProfileSettings while processing DB transaction")
 		return false
@@ -88,7 +88,7 @@ func setProfileSettings(id interface{}, settings uint8) bool {
 }
 
 func setRole(id interface{}, role uint8) bool {
-	tx := storage.Db.Model(&models.User{}).Where("user_id = ?", id).Update("role", role)
+	tx := storage.Db.Model(&models.User{}).Where("id = ?", id).Update("role", role)
 	if tx.Error != nil {
 		log.Error().Err(tx.Error).Msg("An error occurred at #setRole while processing DB transaction")
 		return false
@@ -141,7 +141,7 @@ func getUsers(req *request.UserListModel) []models.User {
 	if len(req.FilterEmail) > 0 {
 		cmd = cmd.Where("LOWER(`email`) like ?", "%"+req.FilterEmail+"%")
 	}
-	if utils.IsLoggedIn(req.FilterRole) {
+	if security.IsLoggedIn(req.FilterRole) {
 		cmd = cmd.Where("role = ?", req.FilterRole)
 	}
 	cmd = cmd.Find(&users)
@@ -161,7 +161,7 @@ func setProfileCover(id uint16, data []byte, ext string) (bool, string) {
 		log.Error().Err(err).Msg("An error occurred at #setProfileCover while writing file")
 		return false, ""
 	}
-	tx := storage.Db.Model(&models.User{}).Where("user_id = ?", id).Update("profile_cover", fileName)
+	tx := storage.Db.Model(&models.User{}).Where("id = ?", id).Update("profile_cover", fileName)
 	if tx.Error != nil {
 		log.Error().Err(tx.Error).Msg("An error occurred at #setProfileCover while processing DB transaction")
 		return false, ""
@@ -185,12 +185,13 @@ func UserGetRouteHandler(c *fiber.Ctx) error {
 	if whoParam == "" {
 		who = requester
 	} else {
-		if !utils.ValidateNonNegativeInteger(whoParam) {
-			return ReturnError(c, utils.ErrInvalidToken)
+		if utils.ValidateNonNegativeInteger(whoParam) {
+			who = getUserById(whoParam)
+		} else {
+			who = getUserByEmail(whoParam + "@dian.sgdbinhduong.edu.vn")
 		}
-		who = getUserById(whoParam)
 	}
-	if who == nil || who.Role == utils.RoleGuest {
+	if who == nil || who.Role == security.RoleGuest {
 		return ReturnError(c, utils.ErrUnknownUser)
 	}
 
@@ -223,12 +224,13 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 	if whoParam == "" {
 		who = requester
 	} else {
-		if !utils.ValidateNonNegativeInteger(whoParam) {
-			return ReturnError(c, utils.ErrInvalidToken)
+		if utils.ValidateNonNegativeInteger(whoParam) {
+			who = getUserById(whoParam)
+		} else {
+			who = getUserByEmail(whoParam + "@dian.sgdbinhduong.edu.vn")
 		}
-		who = getUserById(whoParam)
 	}
-	if who == nil || who.Role == utils.RoleGuest {
+	if who == nil || who.Role == security.RoleGuest {
 		return ReturnError(c, utils.ErrUnknownUser)
 	}
 	if !requester.HasPrivilegeOver(who, 0) {
@@ -280,7 +282,7 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 			}
 		}
 		if profileSettingDirty {
-			_, _ = response.Set(setProfileSettings(who.ID, who.ProfileSettings), "profile.settings")
+			_, _ = response.Set(setProfileSettings(who.ID, who.ProfileSettings), "profile", "settings")
 		}
 
 		profileBoard := json.Path("profile.profileBoard")
@@ -295,32 +297,32 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 				return ReturnError(c, utils.ErrProfileBoardTooLong)
 			}
 
-			_, _ = response.Set(setProfileBoard(who.ID, who.ProfileBoard), "profile.profileBoard")
+			_, _ = response.Set(setProfileBoard(who.ID, who.ProfileBoard), "profile", "profileBoard")
 		}
 
 		return ReturnJSON(c, response)
 
-	} else if utils.IsManager(requester.Role) {
-		isClassScope := utils.GetRoleGroup(requester.Role) == utils.RoleGroupClassManager
+	} else if security.IsManager(requester.Role) {
+		isClassScope := security.GetRoleGroup(requester.Role) == security.RoleGroupClassManager
 		response := gabs.New()
 
-		if json.Exists("profile.role") {
+		if json.Exists("profile", "role") {
 			role := json.Path("profile.role").Data().(uint8)
 			if isClassScope {
 				if who.Class != requester.Class ||
-					utils.GetRoleGroup(who.Role) != utils.RoleGroupMember ||
-					utils.GetRoleGroup(role) != utils.RoleGroupMember {
+					security.GetRoleGroup(who.Role) != security.RoleGroupMember ||
+					security.GetRoleGroup(role) != security.RoleGroupMember {
 					return ReturnError(c, utils.ErrNoPermission)
 				}
 			} else {
-				if (utils.GetRoleGroup(who.Role) != utils.RoleGroupMember &&
-					utils.GetRoleGroup(who.Role) != utils.RoleGroupClassManager) ||
-					(utils.GetRoleGroup(role) != utils.RoleGroupMember &&
-						utils.GetRoleGroup(role) != utils.RoleGroupClassManager) {
+				if (security.GetRoleGroup(who.Role) != security.RoleGroupMember &&
+					security.GetRoleGroup(who.Role) != security.RoleGroupClassManager) ||
+					(security.GetRoleGroup(role) != security.RoleGroupMember &&
+						security.GetRoleGroup(role) != security.RoleGroupClassManager) {
 					return ReturnError(c, utils.ErrNoPermission)
 				}
 			}
-			_, _ = response.Set(setRole(who.ID, role), "profile.role")
+			_, _ = response.Set(setRole(who.ID, role), "profile", "role")
 		}
 
 		if json.Exists("achievements") {
@@ -333,7 +335,8 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 					continue
 				}
 				year := child.Path("year").Data().(uint16)
-				if year < who.EntryYear || year > who.EntryYear+2 { // N, N+1, N+2
+				// 2nd half of N, N+1, N+2, 1st half of N+3
+				if year < who.EntryYear || year > who.EntryYear+3 {
 					continue
 				}
 				ach = append(ach, models.Achievement{
@@ -349,7 +352,8 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 			ar := make([]models.AnnualRank, 0)
 			for _, child := range json.Path("annualRanks").Children() {
 				year := child.Path("year").Data().(uint16)
-				if year < who.EntryYear || year > who.EntryYear+2 { // N, N+1, N+2
+				// 2nd half of N, N+1, N+2, 1st half of N+3
+				if year < who.EntryYear || year > who.EntryYear+3 {
 					continue
 				}
 				level := child.Path("level").Data().(uint8)
@@ -376,7 +380,7 @@ func UserListRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if !utils.IsManager(requester.Role) {
+	if !security.IsManager(requester.Role) {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 	req := request.UserListModel{}
@@ -387,7 +391,7 @@ func UserListRouteHandler(c *fiber.Ctx) error {
 	req.FilterName = strings.ToLower(utils.RemoveVietnameseAccents(strings.TrimSpace(req.FilterName)))
 	req.FilterClass = strings.ToLower(utils.RemoveVietnameseAccents(strings.TrimSpace(req.FilterClass)))
 	req.FilterEmail = strings.ToLower(utils.RemoveVietnameseAccents(strings.TrimSpace(req.FilterEmail)))
-	if utils.GetRoleGroup(requester.Role) == utils.RoleGroupClassManager {
+	if security.GetRoleGroup(requester.Role) == security.RoleGroupClassManager {
 		req.FilterClass = requester.Class
 	}
 	req.Limit = utils.ClampUint8(req.Limit, 0, UserListLimit)
@@ -404,7 +408,7 @@ func UserStatGetRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
+	if security.GetRoleGroup(requester.Role) != security.RoleGroupGlobalManager {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 
@@ -423,12 +427,12 @@ func UserStatGetRouteHandler(c *fiber.Ctx) error {
 	cmd := "select count(if(class like '10%', 1, null)) as a"
 	cmd += ", count(if(class like '11%', 1, null)) as b"
 	cmd += ", count(if(class like '12%', 1, null)) as c"
-	cmd += ", count(if(role = " + strconv.Itoa(int(utils.RoleRegularMember)) + ", 1, null)) as d"
-	cmd += ", count(if(role = " + strconv.Itoa(int(utils.RoleCertifiedMember)) + ", 1, null)) as e"
-	cmd += ", count(if(role = " + strconv.Itoa(int(utils.RoleClassDeputySecretary)) + ", 1, null)) as f"
-	cmd += ", count(if(role = " + strconv.Itoa(int(utils.RoleClassSecretary)) + ", 1, null)) as g"
-	cmd += ", count(if(role = " + strconv.Itoa(int(utils.RoleDeputySecretary)) + ", 1, null)) as h"
-	cmd += ", count(if(role = " + strconv.Itoa(int(utils.RoleSecretary)) + ", 1, null)) as i"
+	cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleRegularMember)) + ", 1, null)) as d"
+	cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleCertifiedMember)) + ", 1, null)) as e"
+	cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleClassDeputySecretary)) + ", 1, null)) as f"
+	cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleClassSecretary)) + ", 1, null)) as g"
+	cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleDeputySecretary)) + ", 1, null)) as h"
+	cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleSecretary)) + ", 1, null)) as i"
 	cmd += " from users"
 	_ = storage.Db.Raw(cmd).Row().Scan(&result.a, &result.b, &result.c, &result.d, &result.e)
 	response := gabs.New()
@@ -450,7 +454,7 @@ func ProfileCoverUploadRouteHandler(c *fiber.Ctx) error {
 	}
 
 	requester, err := GetRequester(c)
-	if err != "" || !utils.IsLoggedIn(requester.Role) {
+	if err != "" || !security.IsLoggedIn(requester.Role) {
 		return ReturnError(c, err)
 	}
 

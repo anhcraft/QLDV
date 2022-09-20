@@ -1,7 +1,7 @@
 package models
 
 import (
-	"das/utils"
+	"das/security"
 	"github.com/Jeffail/gabs/v2"
 )
 
@@ -49,7 +49,7 @@ func (u *User) IsAnnualRankPublic() bool {
 // - Guest
 // - Member: Regular Member, Certified Member
 // - Class Managers: Class Secretary, Class Deputy Secretary
-// - Global Managers: Secretary, Deputy Secretary
+// - Global Managers: Secretary, Deputy Secretary, Root
 // Rules:
 // - The user gains himself privilege
 // - Roles in the same group are not overlapped each other
@@ -60,9 +60,9 @@ func (u *User) HasPrivilegeOver(who *User, mode uint8) bool {
 	if u.ID == who.ID {
 		return true
 	}
-	distinctGroupTest := utils.GetRoleGroup(u.Role) > utils.GetRoleGroup(who.Role)
+	distinctGroupTest := security.GetRoleGroup(u.Role) > security.GetRoleGroup(who.Role)
 	if mode == 1 {
-		return distinctGroupTest && utils.GetRoleGroup(u.Role) == utils.RoleGroupGlobalManager
+		return distinctGroupTest && security.GetRoleGroup(u.Role) == security.RoleGroupGlobalManager
 	} else {
 		return distinctGroupTest
 	}
@@ -73,10 +73,10 @@ func (u *User) HasPrivilegeOver(who *User, mode uint8) bool {
 func (u *User) Serialize(requester *User) *gabs.Container {
 	res := gabs.New()
 	_, _ = res.Set(u.ID, "id")
-	_, _ = res.Set(u.IsProfileLocked(), "settings.profileLocked")
-	_, _ = res.Set(u.IsClassPublic(), "settings.classPublic")
-	_, _ = res.Set(u.IsAchievementPublic(), "settings.achievementPublic")
-	_, _ = res.Set(u.IsAnnualRankPublic(), "settings.annualRankPublic")
+	_, _ = res.Set(u.IsProfileLocked(), "settings", "profileLocked")
+	_, _ = res.Set(u.IsClassPublic(), "settings", "classPublic")
+	_, _ = res.Set(u.IsAchievementPublic(), "settings", "achievementPublic")
+	_, _ = res.Set(u.IsAnnualRankPublic(), "settings", "annualRankPublic")
 	_, _ = res.Set(u.ProfileCover, "profileCover")
 	_, _ = res.Set(u.ProfileBoard, "profileBoard")
 

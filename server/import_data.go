@@ -2,8 +2,8 @@ package main
 
 import (
 	"das/models"
+	"das/security"
 	"das/storage"
-	"das/utils"
 	"encoding/json"
 	"io/ioutil"
 )
@@ -27,9 +27,9 @@ func importData() {
 
 	users := make([]models.User, 0)
 	for _, v := range usersD {
-		r := utils.RoleRegularMember
+		r := security.RoleRegularMember
 		if v.Certified {
-			r = utils.RoleCertifiedMember
+			r = security.RoleCertifiedMember
 		}
 		users = append(users, models.User{
 			Email:     v.Email,

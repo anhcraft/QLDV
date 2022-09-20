@@ -8,7 +8,8 @@ const conf = {
         appId: "1:197333612896:web:d00de79ea57271d1504605",
         measurementId: "G-0LYF0592TD"
     },
-    server: "https://api.thptdian.org"
+    server: "http://127.0.0.1:3002",
+    assetURL: "http://127.0.0.1:3002/static"
 };
 
 export default conf;

@@ -10,9 +10,9 @@ const UserAPI = {
         return API.getObject("/user/" + id, queries)
     },
     updateUser(id: string, data: {
-        "profile": any,
-        "achievements": any,
-        "annualRanks": any,
+        "profile": any | undefined,
+        "achievements": any[] | undefined,
+        "annualRanks": any[] | undefined,
     }): Promise<any | ServerError> {
         return API.postObject("/user/" + id, data)
     },

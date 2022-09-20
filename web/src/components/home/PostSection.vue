@@ -55,6 +55,7 @@ export default {
       }).then((res) => {
         if(res instanceof ServerError) {
           this.$root.popupError(res)
+          return
         }
         this.posts = res
         this.$refs.postLoadingState.deactivate()

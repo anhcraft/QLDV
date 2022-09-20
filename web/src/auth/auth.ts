@@ -5,21 +5,15 @@ import {ClientError} from "../api/client-error";
 const provider = new GoogleAuthProvider();
 provider.addScope('https://www.googleapis.com/auth/userinfo.email');
 
+let initialized = false
+
 const auth = {
     init: function (callback: () => void) {
+        if(initialized) return
         getAuth().onAuthStateChanged(function(user) {
-            if (user) {
-                if(Cookies.get('qldvauth') === undefined) {
-                    auth.logout().then(() => callback())
-                    return
-                }
-            } else {
-                if(Cookies.get('qldvauth') !== undefined) {
-                    auth.logout().then(() => callback())
-                    return
-                }
-            }
+            if(initialized) return
             callback()
+            initialized = true
         });
     },
     requestAuth: function (onSuccess: () => {}, onError: (e: string | ClientError) => {}) {
@@ -52,7 +46,6 @@ const auth = {
     },
     isLoggedIn: function (): boolean {
         const user = getAuth().currentUser
-        console.log(user)
         return user != null && !user.isAnonymous && Cookies.get('qldvauth') !== undefined
     }
 };

@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/sha256"
 	"das/models"
+	"das/security"
 	"das/storage"
 	"das/utils"
 	"encoding/hex"
@@ -40,9 +41,9 @@ func uploadAttachment(postId uint32, data []byte, ext string) (bool, string, str
 	return tx.RowsAffected > 0, id, fileName
 }
 
-func getAttachments(postId int) []models.Attachment {
+func getAttachments(postId uint32) []models.Attachment {
 	var atts []models.Attachment
-	cmd := storage.Db.Where("post_id = ?", postId).Order("date desc").Find(&atts)
+	cmd := storage.Db.Where("post_id = ?", postId).Order("updateDate desc").Find(&atts)
 	if cmd.Error != nil {
 		log.Error().Err(cmd.Error).Msg("An error occurred at #getAttachments while processing DB transaction")
 	}
@@ -71,7 +72,7 @@ func AttachmentUploadRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
+	if security.GetRoleGroup(requester.Role) != security.RoleGroupGlobalManager {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 
@@ -113,7 +114,7 @@ func AttachmentDeleteRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if utils.GetRoleGroup(requester.Role) != utils.RoleGroupGlobalManager {
+	if security.GetRoleGroup(requester.Role) != security.RoleGroupGlobalManager {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 

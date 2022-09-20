@@ -9,17 +9,15 @@
       </p>
     </div>
   </div>
-  <FloatingMenu></FloatingMenu>
 </template>
 
 <script>
 import Header from "../components/Header.vue";
-import FloatingMenu from "../components/FloatingMenu.vue";
 
 export default {
   name: "NotFoundPage",
   components: {
-    Header, FloatingMenu
+    Header
   }
 }
 </script>

@@ -44,7 +44,7 @@ export default {
     getBackground(data) {
       if(data.hasOwnProperty("attachments")) {
         if(data.attachments.length > 0) {
-          return conf.server + '/static/' + data.attachments[0].id
+          return conf.assetURL + '/' + data.attachments[0].id
         }
       }
       return "https://i.ibb.co/WFJ07mW/aH4g7pj.jpg";

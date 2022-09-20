@@ -11,7 +11,7 @@ import (
 
 var guestUser = &models.User{
 	ID:   0, // pick 0 since MySQL auto-increment counter starts from 1
-	Role: utils.RoleGuest,
+	Role: security.RoleGuest,
 }
 
 // GetRequester Returns the user who did the request

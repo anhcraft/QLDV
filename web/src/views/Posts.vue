@@ -30,23 +30,21 @@
     <LoadingState ref="loadingState"></LoadingState>
   </section>
   <Footer></Footer>
-  <FloatingMenu></FloatingMenu>
 </template>
 
 <script>
 import Header from "../components/Header.vue";
 import Footer from "../components/Footer.vue";
-import FloatingMenu from "../components/FloatingMenu.vue";
 import LoadingState from "../components/LoadingState.vue";
 import PostWidget from "../components/home/PostWidget.vue";
 import {CalendarIcon, EyeIcon, HeartIcon, RssIcon} from "@heroicons/vue/24/solid";
-import server from "../api/server";
-import auth from "../auth/auth";
+import PostAPI from "../api/post-api";
+import {ServerError} from "../api/server-error";
 
 export default {
   name: "Posts",
   components: {
-    Header, Footer, FloatingMenu, PostWidget, LoadingState, RssIcon, HeartIcon, EyeIcon, CalendarIcon
+    Header, Footer, PostWidget, LoadingState, RssIcon, HeartIcon, EyeIcon, CalendarIcon
   },
   data() {
     return {
@@ -76,21 +74,25 @@ export default {
           hashtags.push(t)
         }
       })
-      server.loadPosts(10, hashtags, this.pagination.sortBy, this.pagination.lowerThan, this.pagination.belowId, auth.getToken()).then(s => {
-        if(s.posts.length < 10) {
+      PostAPI.listPosts({
+        limit: 15,
+        "below-id": this.pagination.belowId,
+        "filter-hashtags": hashtags,
+        "sort-by": this.pagination.sortBy,
+        "lower-than": this.pagination.lowerThan
+      }).then((res) => {
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+          return
+        }
+        if(res.length < 10) {
           this.pagination.available = false
         }
-        if(s.posts.length > 0) {
-          this.pagination.belowId = s.posts[s.posts.length - 1].id
-          this.posts = this.posts.concat(s.posts)
+        if(res.length > 0) {
+          this.pagination.belowId = res[res.length - 1].id
+          this.posts = this.posts.concat(res)
         }
         this.$refs.loadingState.deactivate()
-      }, (e) => {
-        this.$notify({
-          title: "Tải bài viết thất bại",
-          text: e.message,
-          type: "error"
-        });
       })
     },
     resetPosts() {
@@ -115,7 +117,11 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
-    server.getHashtags().then(data => {
+    PostAPI.getHashtags().then(data => {
+      if(data instanceof ServerError) {
+        this.$root.popupError(data)
+        return
+      }
       data.forEach(e => this.pagination.hashtags[e] = false)
       if(this.$route.query.hasOwnProperty("tag")) {
         let tag = this.$route.query["tag"]

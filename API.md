@@ -42,6 +42,7 @@ Every response will be based on the following format:
 - Note:
   + If the id is absent, this API acts like "getting your own profile". The "access-token" field is required to obtain the corresponding user's id, and in case of absence, the API returns error.
   + If the id is present, this API acts like "getting someone profile" which "someone" can be "self" or "another"
+  + The id can be either `number` or a `string` which is the leading consequence of the email (before `@`)
 - Example response:
 ```json
 {
@@ -100,6 +101,7 @@ Every response will be based on the following format:
   + Only fields which were specified in the request are considered. However, not all of them are editable because of various reasons mentioned above. Some profile fields are modifiable if and only if certain requirements met. For example, the requester must be the user himself or has special permissions. In addition, a few fields are open to the managers only and members are prohibited to edit them. Besides, there are fields reserved and under read-only mode such as ID, Email, etc **(See the Data document for further information)**
   + "achievements" and "annualRanks" must be present with empty values to reset the corresponding field; otherwise, there is no effect if they are absent in the response.
   + If the id is present, this API acts like "getting someone profile" which "someone" can be "self" or "another"
+  + The id can be either `number` or a `string` which is the leading consequence of the email (before `@`)
 - Example response:
 ```json
 {
@@ -200,6 +202,7 @@ Every response will be based on the following format:
 - Optional authentication
 - Note:
   + When the requester is logged in, there will be additional fields related to post statistics: `stats.viewed`, `stats.liked`
+  + Besides post data, there is attachment data included in the response
   + An error may occur if the post is hidden due to privacy settings
 - Example response:
 ```json

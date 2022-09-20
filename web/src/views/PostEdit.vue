@@ -1,7 +1,7 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1024px] m-auto pb-16 p-5 md:px-10">
-    <Breadcrumb :text="($route.params.id === undefined ? 'Tạo' : 'Sửa') + ' bài viết'" link="/pm" class="mb-10"></Breadcrumb>
+  <section class="page-section px-10 py-8 lg:py-16">
+    <Breadcrumb :text="($route.params.id === undefined ? 'Tạo' : 'Sửa') + ' bài viết'" :link="{ name: 'managePosts' }" class="mb-10"></Breadcrumb>
     <LoadingState ref="loadingState">
       <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model="post.title">
       <div class="mt-10 centered-horizontal">
@@ -16,11 +16,7 @@
             apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
             :init="{
                   height: 500,
-                  plugins: [
-                    'advlist autolink link image lists charmap print preview hr anchor pagebreak',
-                    'searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking',
-                    'table emoticons template paste help'
-                  ],
+                  plugins: ['advlist', 'autolink', 'lists', 'link', 'image', 'insertdatetime', 'media', 'table', 'wordcount', 'emoticons', 'table'],
                   toolbar: 'undo redo | styleselect | bold italic | forecolor backcolor emoticons link | ' +
                     'bullist numlist outdent indent | media | ' +
                     'alignleft aligncenter alignright alignjustify | help',
@@ -31,16 +27,7 @@
         ></Editor>
         <div class="border border-gray-300 py-2 px-5 my-10">
           <div class="flex flex-row gap-5 place-items-center">
-            <p>Chỉ cho thành viên xem</p>
-            <input type="checkbox" class="w-4 h-4" v-bind:checked="(post.privacy & 1) === 1" @input="post.privacy = $event.target.value ? (post.privacy ^ 1) : (post.privacy | 1)">
-          </div>
-          <div class="flex flex-row gap-5 place-items-center">
-            <p>Chỉ cho bí thư xem</p>
-            <input type="checkbox" class="w-4 h-4" v-bind:checked="(post.privacy & 2) === 2" @input="post.privacy = $event.target.value ? (post.privacy ^ 2) : (post.privacy | 2)">
-          </div>
-          <div class="flex flex-row gap-5 place-items-center">
-            <p>Chỉ cho quản trị viên xem</p>
-            <input type="checkbox" class="w-4 h-4" v-bind:checked="(post.privacy & 4) === 4" @input="post.privacy = $event.target.value ? (post.privacy ^ 4) : (post.privacy | 4)">
+
           </div>
         </div>
       </div>
@@ -58,26 +45,24 @@
           <img v-for="url in attachmentUploadPreviews" class="max-h-36" :src="url" alt=""/>
         </div>
       </div>
-      <button class="bg-pink-400 hover:bg-pink-500 cursor-pointer px-4 py-2 text-white text-center text-sm" v-if="!submittingPost" @click="submitPost">{{ $route.params.id === undefined ? "Đăng bài" : "Lưu chỉnh sửa" }}</button>
+      <button class="btn-success" v-if="!submittingPost" @click="submitPost">{{ $route.params.id === undefined ? "Đăng bài" : "Lưu chỉnh sửa" }}</button>
     </LoadingState>
-  </div>
-  <FloatingMenu></FloatingMenu>
+  </section>
 </template>
 
 <script>
-import server from "../api/server";
 import auth from "../auth/auth";
 import conf from "../conf";
 import Editor from '@tinymce/tinymce-vue'
 import Header from "../components/Header.vue";
-import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import LoadingState from "../components/LoadingState.vue";
-import lookupErrorCode from "../api/errorCode";
+import PostAPI from "../api/post-api";
+import {ServerError} from "../api/server-error";
 
 export default {
   "name": "PostEdit",
-  components: {LoadingState, Header, FloatingMenu, Breadcrumb, Editor },
+  components: {LoadingState, Header, Breadcrumb, Editor },
   data() {
     return {
       post: {
@@ -173,31 +158,25 @@ export default {
     }
   },
   mounted() {
-    if(!this.$root.isLoggedIn()) {
-      this.$router.push(`/`)
+    if(!this.$root.isLoggedIn() || !this.$root.isManager) {
+      this.$router.push({name: "home"})
       return
     }
-    server.getHashtags().then(data => {
+    PostAPI.getHashtags().then(data => {
+      if(data instanceof ServerError) {
+        this.$root.popupError(data)
+        return
+      }
       this.hashtags = data
     })
     if(this.$route.params.id !== undefined) {
-      server.loadPost(this.$route.params.id, auth.getToken()).then(s => {
-        if (s.hasOwnProperty("error")) {
-          this.$notify({
-            title: "Tải bài viết thất bại",
-            text: lookupErrorCode(s["error"]),
-            type: "error"
-          });
+      PostAPI.getPost(this.$route.params.id).then(res => {
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
           return
         }
-        this.post = s;
+        this.post = res;
         this.$refs.loadingState.deactivate()
-      }, (e) => {
-        this.$notify({
-          title: "Tải bài viết thất bại",
-          text: e.message,
-          type: "error"
-        });
       });
     } else {
       this.$refs.loadingState.deactivate()
