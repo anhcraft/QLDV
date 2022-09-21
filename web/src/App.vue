@@ -19,12 +19,14 @@ import UserAPI from "./api/user-api";
 import {ServerError} from "./api/server-error";
 import conf from "./conf";
 import {IsManager} from "./auth/roles";
+import {nextTick} from "vue";
 
 export default {
   data() {
     return {
       loadingProfile: false,
-      initializing: false,
+      initialized: false,
+      initQueue: [],
       user: {
         profile: {
           id: 0,
@@ -76,45 +78,47 @@ export default {
         });
       }
     },
-    init(target, callback) {
-      if(this.initializing) return;
-      this.initializing = true
-
-      if(!this.isLoggedIn()) {
-        callback.call(target)
-        this.initializing = false
-        return
+    pullQueue(){
+      this.initQueue.forEach(v => v.call(null))
+    },
+    pushQueue(func){
+      if(this.initialized) {
+        func.call(null)
+      } else {
+        this.initQueue.push(func)
       }
-
-      this.loadingProfile = true
-      UserAPI.getUser("", {
-        profile: true,
-        achievements: false,
-        "annual-ranks": false
-      }).then((res) => {
-        this.loadingProfile = false
-        if(res instanceof ServerError) {
-          this.$root.popupError(res)
-          callback.call(target)
-          this.initializing = false
-          return
-        }
-
-        if(res.profile.profileCover === "") {
-          res.profile.profileCover = profileCoverDefaultImg
-        } else {
-          res.profile.profileCover = conf.assetURL + "/" + res.profile.profileCover
-        }
-        Object.assign(this.user, res)
-        this.$forceUpdate()
-
-        callback.call(target)
-        this.initializing = false
-      })
     }
   },
-  mounted() {
-    this.init(this, () => {})
+  async mounted() {
+    await nextTick()
+    if (!this.isLoggedIn()) {
+      this.initialized = true
+      this.pullQueue()
+      return
+    }
+    this.loadingProfile = true
+    UserAPI.getUser("", {
+      profile: true,
+      achievements: false,
+      "annual-ranks": false
+    }).then((res) => {
+      this.loadingProfile = false
+      if (res instanceof ServerError) {
+        this.$root.popupError(res)
+        this.initialized = true
+        this.pullQueue()
+        return
+      }
+      if (res.profile.profileCover === "") {
+        res.profile.profileCover = profileCoverDefaultImg
+      } else {
+        res.profile.profileCover = conf.assetURL + "/" + res.profile.profileCover
+      }
+      Object.assign(this.user, res)
+      this.$forceUpdate()
+      this.initialized = true
+      this.pullQueue()
+    })
   }
 }
 </script>

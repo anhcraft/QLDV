@@ -18,6 +18,16 @@ const API = {
                 } else {
                     return new ServerError(res["error"])
                 }
+            }, (e) => {
+                if(e instanceof HTTPError) {
+                    return e.response.json().then(res => {
+                        if(res["success"]) {
+                            return res["result"]
+                        } else {
+                            return new ServerError(res["error"])
+                        }
+                    })
+                }
             })
         }
         const token = auth.getToken()
@@ -37,6 +47,16 @@ const API = {
                 } else {
                     return new ServerError(res["error"])
                 }
+            }, (e) => {
+                if(e instanceof HTTPError) {
+                    return e.response.json().then(res => {
+                        if(res["success"]) {
+                            return res["result"]
+                        } else {
+                            return new ServerError(res["error"])
+                        }
+                    })
+                }
             })
         }
         const token = auth.getToken()
@@ -55,6 +75,16 @@ const API = {
                     return res["result"]
                 } else {
                     return new ServerError(res["error"])
+                }
+            }, (e) => {
+                if(e instanceof HTTPError) {
+                    return e.response.json().then(res => {
+                        if(res["success"]) {
+                            return res["result"]
+                        } else {
+                            return new ServerError(res["error"])
+                        }
+                    })
                 }
             })
         }

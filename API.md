@@ -345,18 +345,28 @@ Every response will be based on the following format:
 }
 ```
 
-### DELETE /post-attachment/:id
-- Deletes an attachment
+### DELETE /post-attachment/
+- Deletes attachments by bulk
 - Authentication required
 - Note:
   + The `id` param is the attachment's ID
+  + The response will include attachments which were not deleted
   + In order to execute the request, the requester must meet following requirements:
     + The role group is Global Manager
     + The role of the requester must be higher or equal to the `privacy` level of the associated post
+- Example request:
+```json
+{
+  "id": ["1", "2"]
+}
+```
 - Example response:
 ```json
 {
-  "success": true
+  "success": true,
+  "result": {
+    "remaining": []
+  }
 }
 ```
 

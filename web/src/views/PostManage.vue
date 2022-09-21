@@ -40,6 +40,7 @@
       </LoadingState>
     </div>
   </section>
+  <Footer></Footer>
   <Prompt @callback="removePostCallback" ref="removePrompt">
     <p class=font-bold>Bạn có muốn xóa bài viết này?</p><br> {{ postRemoveTitle }}
   </Prompt>
@@ -48,16 +49,17 @@
 <script>
 import {PencilIcon, TrashIcon} from '@heroicons/vue/24/solid';
 import Prompt from "../components/Prompt.vue";
-import auth from "../auth/auth";
 import Header from "../components/Header.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import LoadingState from "../components/LoadingState.vue";
 import PostAPI from "../api/post-api";
 import {ServerError} from "../api/server-error";
+import Footer from "../components/Footer.vue";
 
 export default {
   name: "PostManage",
   components: {
+    Footer,
     LoadingState, Header, Breadcrumb,
     PencilIcon, TrashIcon, Prompt
   },
@@ -133,14 +135,15 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
-    this.$root.init(this, () => {
+    const f = () => {
       if(!this.$root.isLoggedIn() || !this.$root.isManager()) {
         this.$router.push({name: "home"})
         return
       }
       this.loadNextPosts()
       window.addEventListener('scroll', this.handleScroll)
-    })
+    }
+    this.$root.pushQueue(f.bind(this))
   }
 }
 </script>

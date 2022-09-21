@@ -31,8 +31,12 @@ const PostAPI = {
     uploadAttachment(postId: string, data: Blob): Promise<any | ServerError> {
         return API.postBlob("/post-attachment/" + postId, data)
     },
-    deleteAttachment(attId: string, data: Blob): Promise<any | ServerError> {
-        return API.deleteObject("/post-attachment/" + attId, data)
+    deleteAttachment(attId: string[]): Promise<any | ServerError> {
+        return API.deleteObject("/post-attachment/", {
+            "id": attId
+        }).then(v => {
+            return v instanceof ServerError ? v : v["remaining"]
+        })
     },
     getHashtags(): Promise<any | ServerError> {
         return API.getObject("/post-hashtags/", {}).then(v => {

@@ -30,7 +30,7 @@ func main() {
 	app.Get("/posts/", handlers.PostListRouteHandler)
 	app.Post("/post-stat/:id", handlers.PostStatUpdateRouteHandler)
 	app.Post("/post-attachment/:id", handlers.AttachmentUploadRouteHandler)
-	app.Delete("/post-attachment/:id", handlers.AttachmentDeleteRouteHandler)
+	app.Delete("/post-attachment/", handlers.AttachmentDeleteRouteHandler)
 	app.Get("/post-hashtags/", handlers.PostHashtagListRouteHandler)
 
 	app.Get("/event/:id", handlers.EventGetRouteHandler)

@@ -66,6 +66,7 @@
 
     </LoadingState>
   </section>
+  <Footer></Footer>
 </template>
 
 <script>
@@ -77,10 +78,11 @@ import PostAPI from "../api/post-api";
 import {ServerError} from "../api/server-error";
 import {GetRoleTable} from "../auth/roles";
 import conf from "../conf";
+import Footer from "../components/Footer.vue";
 
 export default {
   "name": "PostEdit",
-  components: {LoadingState, Header, Breadcrumb, Editor },
+  components: {LoadingState, Header, Footer, Breadcrumb, Editor },
   data() {
     return {
       post: {
@@ -123,6 +125,13 @@ export default {
         hashtag: this.post.hashtag,
         headline: this.post.headline,
         content: this.post.content
+      }).then(res => {
+        if (res instanceof ServerError) {
+          this.submittingPost = false
+          this.$root.popupError(res)
+          return
+        }
+        return PostAPI.deleteAttachment(this.removeAttachments)
       }).then(res => {
         this.submittingPost = false
         if (res instanceof ServerError) {

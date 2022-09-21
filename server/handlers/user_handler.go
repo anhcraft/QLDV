@@ -75,7 +75,7 @@ func setProfileBoard(id interface{}, text string) bool {
 		log.Error().Err(tx.Error).Msg("An error occurred at #setProfileBoard while processing DB transaction")
 		return false
 	}
-	return tx.RowsAffected > 0
+	return true
 }
 
 func setProfileSettings(id interface{}, settings uint8) bool {
@@ -84,7 +84,7 @@ func setProfileSettings(id interface{}, settings uint8) bool {
 		log.Error().Err(tx.Error).Msg("An error occurred at #setProfileSettings while processing DB transaction")
 		return false
 	}
-	return tx.RowsAffected > 0
+	return true
 }
 
 func setRole(id interface{}, role uint8) bool {
@@ -93,7 +93,7 @@ func setRole(id interface{}, role uint8) bool {
 		log.Error().Err(tx.Error).Msg("An error occurred at #setRole while processing DB transaction")
 		return false
 	}
-	return tx.RowsAffected > 0
+	return true
 }
 
 func setAchievements(id interface{}, achievements []models.Achievement) bool {

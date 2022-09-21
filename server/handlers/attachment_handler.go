@@ -3,6 +3,7 @@ package handlers
 import (
 	"crypto/sha256"
 	"das/models"
+	"das/models/request"
 	"das/security"
 	"das/storage"
 	"das/utils"
@@ -52,7 +53,7 @@ func getAttachments(postId uint32) []models.Attachment {
 
 func removeAttachment(attId string, privacy uint8) bool {
 	var att models.Attachment
-	cmd := storage.Db.Joins("right join posts on attachments.post_id = posts.id").Where("attachments.id = ?", attId).Where("posts.privacy <= ?", privacy).Delete(&att)
+	cmd := storage.Db.Where("attachments.id = ?", attId).Joins("posts", storage.Db.Where(&models.Po)).Where("posts.privacy <= ?", privacy).Delete(&att)
 	if cmd.Error != nil {
 		log.Error().Err(cmd.Error).Msg("An error occurred at #removeAttachment while processing DB transaction")
 	}
@@ -109,7 +110,12 @@ func AttachmentUploadRouteHandler(c *fiber.Ctx) error {
 }
 
 func AttachmentDeleteRouteHandler(c *fiber.Ctx) error {
-	id := c.Params("id") // attachment ID
+	req := &request.AttachmentDeleteModel{}
+	if err2 := c.BodyParser(&req); err2 != nil {
+		log.Error().Err(err2).Msg("There was an error occurred while parsing body at #AttachmentDeleteModel")
+		return ReturnError(c, utils.ErrInvalidRequestBody)
+	}
+
 	requester, err := GetRequester(c)
 	if err != "" {
 		return ReturnError(c, err)
@@ -118,9 +124,14 @@ func AttachmentDeleteRouteHandler(c *fiber.Ctx) error {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 
-	if removeAttachment(id, requester.Role) {
-		return ReturnEmpty(c)
-	} else {
-		return ReturnError(c, utils.ErrAttachmentDeleteFailed)
+	remaining := make([]string, 0)
+	for _, id := range req.Id {
+		if !removeAttachment(id, requester.Role) {
+			remaining = append(remaining, id)
+		}
 	}
+
+	response := gabs.New()
+	_, _ = response.Set(remaining, "remaining")
+	return ReturnJSON(c, response)
 }

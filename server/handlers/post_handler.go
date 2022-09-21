@@ -79,10 +79,8 @@ func updateOrCreatePost(id uint32, req *request.PostUpdateModel) *models.Post {
 	}).Create(&post)
 	if tx.Error != nil {
 		log.Error().Err(tx.Error).Msg("An error occurred at #updateOrCreatePost while processing DB transaction")
-	} else if tx.RowsAffected > 0 {
-		return &post
 	}
-	return nil
+	return &post
 }
 
 func removePost(id interface{}) bool {
