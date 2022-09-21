@@ -199,13 +199,13 @@ func UserGetRouteHandler(c *fiber.Ctx) error {
 	if req.Profile {
 		_, _ = data.Set(who.Serialize(requester), "profile")
 	}
-	if req.Achievements && (requester.HasPrivilegeOver(who, 0) || who.IsAchievementPublic()) {
+	if req.Achievements && (requester.HasPrivilegeOver(who) || who.IsAchievementPublic()) {
 		_, _ = data.Array("achievements")
 		for _, v := range getAchievementById(who.ID) {
 			_ = data.ArrayAppend(v.Serialize(), "achievements")
 		}
 	}
-	if req.AnnualRanks && (requester.HasPrivilegeOver(who, 0) || who.IsAnnualRankPublic()) {
+	if req.AnnualRanks && (requester.HasPrivilegeOver(who) || who.IsAnnualRankPublic()) {
 		_, _ = data.Array("annualRanks")
 		for _, v := range getAnnualRankById(who.ID) {
 			_ = data.ArrayAppend(v.Serialize(), "annualRanks")
@@ -233,7 +233,7 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 	if who == nil || who.Role == security.RoleGuest {
 		return ReturnError(c, utils.ErrUnknownUser)
 	}
-	if !requester.HasPrivilegeOver(who, 0) {
+	if !requester.HasPrivilegeOver(who) {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 
@@ -302,19 +302,19 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 
 		return ReturnJSON(c, response)
 
-	} else if security.IsManager(requester.Role) {
-		isClassScope := security.GetRoleGroup(requester.Role) == security.RoleGroupClassManager
+	}
+	if security.IsManager(requester.Role) {
 		response := gabs.New()
 
 		if json.Exists("profile", "role") {
 			role := json.Path("profile.role").Data().(uint8)
-			if isClassScope {
+			if security.GetRoleGroup(requester.Role) == security.RoleGroupClassManager {
 				if who.Class != requester.Class ||
 					security.GetRoleGroup(who.Role) != security.RoleGroupMember ||
 					security.GetRoleGroup(role) != security.RoleGroupMember {
 					return ReturnError(c, utils.ErrNoPermission)
 				}
-			} else {
+			} else if security.GetRoleGroup(requester.Role) == security.RoleGroupGlobalManager {
 				if (security.GetRoleGroup(who.Role) != security.RoleGroupMember &&
 					security.GetRoleGroup(who.Role) != security.RoleGroupClassManager) ||
 					(security.GetRoleGroup(role) != security.RoleGroupMember &&
@@ -370,9 +370,9 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 		}
 
 		return ReturnJSON(c, response)
-	} else {
-		return ReturnError(c, utils.ErrNoPermission)
 	}
+
+	return ReturnEmpty(c)
 }
 
 func UserListRouteHandler(c *fiber.Ctx) error {

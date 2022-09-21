@@ -49,23 +49,17 @@ func (u *User) IsAnnualRankPublic() bool {
 // - Guest
 // - Member: Regular Member, Certified Member
 // - Class Managers: Class Secretary, Class Deputy Secretary
-// - Global Managers: Secretary, Deputy Secretary, Root
+// - Global Managers: Secretary, Deputy Secretary
+// - Root
 // Rules:
 // - The user gains himself privilege
 // - Roles in the same group are not overlapped each other
-// Mode:
-// - 0 (Group-Distinct) Global Managers > Class Managers > Member > Guest (default)
-// - 1 (Global-Distinct) Global Managers > Class Managers - Member - Guest
-func (u *User) HasPrivilegeOver(who *User, mode uint8) bool {
+// - Root > Global Managers > Class Managers > Member > Guest
+func (u *User) HasPrivilegeOver(who *User) bool {
 	if u.ID == who.ID {
 		return true
 	}
-	distinctGroupTest := security.GetRoleGroup(u.Role) > security.GetRoleGroup(who.Role)
-	if mode == 1 {
-		return distinctGroupTest && security.GetRoleGroup(u.Role) == security.RoleGroupGlobalManager
-	} else {
-		return distinctGroupTest
-	}
+	return security.GetRoleGroup(u.Role) > security.GetRoleGroup(who.Role)
 }
 
 // Serialize Serializes this user's data into a gabs container
@@ -81,7 +75,7 @@ func (u *User) Serialize(requester *User) *gabs.Container {
 	_, _ = res.Set(u.ProfileBoard, "profileBoard")
 
 	// Group-distinct check
-	accessLocked := requester.HasPrivilegeOver(u, 0)
+	accessLocked := requester.HasPrivilegeOver(u)
 	// Personal information
 	if accessLocked || !u.IsProfileLocked() {
 		_, _ = res.Set(u.Name, "name")

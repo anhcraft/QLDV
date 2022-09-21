@@ -11,7 +11,8 @@
           <tr>
             <th>Tên bài</th>
             <th>Hashtag</th>
-            <th>Ngày đăng</th>
+            <th>Ngày cập nhật</th>
+            <th>Ngày tạo</th>
             <th>Lượt xem</th>
             <th>Lượt thích</th>
             <th>Thao tác</th>
@@ -21,7 +22,8 @@
           <tr v-for="post in posts">
             <td class="max-w-xs break-words">{{ post.title }}</td>
             <td class="max-w-xs break-words">#{{ post.hashtag }}</td>
-            <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</td>
+            <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.updateDate)) }}</td>
+            <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.createDate)) }}</td>
             <td class="max-w-xs break-words">{{ post.stats.views }}</td>
             <td class="max-w-xs break-words">{{ post.stats.likes }}</td>
             <td class="ml-5 flex flex-row gap-5">
@@ -131,12 +133,14 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
-    if(!this.$root.isLoggedIn() || !this.$root.isManager) {
-      this.$router.push({name: "home"})
-      return
-    }
-    this.loadNextPosts()
-    window.addEventListener('scroll', this.handleScroll)
+    this.$root.init(this, () => {
+      if(!this.$root.isLoggedIn() || !this.$root.isManager()) {
+        this.$router.push({name: "home"})
+        return
+      }
+      this.loadNextPosts()
+      window.addEventListener('scroll', this.handleScroll)
+    })
   }
 }
 </script>

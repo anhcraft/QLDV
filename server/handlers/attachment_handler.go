@@ -30,7 +30,7 @@ func uploadAttachment(postId uint32, data []byte, ext string) (bool, string, str
 		return false, "", ""
 	}
 	att := models.Attachment{
-		ID:     id,
+		ID:     id + ext,
 		PostId: postId,
 	}
 	tx := storage.Db.Clauses(clause.OnConflict{DoNothing: true}).Create(&att)
@@ -43,7 +43,7 @@ func uploadAttachment(postId uint32, data []byte, ext string) (bool, string, str
 
 func getAttachments(postId uint32) []models.Attachment {
 	var atts []models.Attachment
-	cmd := storage.Db.Where("post_id = ?", postId).Order("updateDate desc").Find(&atts)
+	cmd := storage.Db.Where("post_id = ?", postId).Order("update_date desc").Find(&atts)
 	if cmd.Error != nil {
 		log.Error().Err(cmd.Error).Msg("An error occurred at #getAttachments while processing DB transaction")
 	}
@@ -72,7 +72,7 @@ func AttachmentUploadRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if security.GetRoleGroup(requester.Role) != security.RoleGroupGlobalManager {
+	if security.GetRoleGroup(requester.Role) < security.RoleGroupGlobalManager {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 
@@ -114,7 +114,7 @@ func AttachmentDeleteRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if security.GetRoleGroup(requester.Role) != security.RoleGroupGlobalManager {
+	if security.GetRoleGroup(requester.Role) < security.RoleGroupGlobalManager {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 

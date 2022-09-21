@@ -5,18 +5,18 @@
         <div class="flex flex-col">
           <router-link class="px-10 py-3 hover:bg-slate-300" v-for="v in menu" :to="{name: v.route}">{{ v.name }}</router-link>
         </div>
-        <div class="flex flex-col border-t border-t-slate-300" v-if="$root.isManager">
+        <div class="flex flex-col border-t border-t-slate-300" v-if="$root.isManager()">
           <router-link class="px-10 py-3 hover:bg-slate-300" v-for="v in adminMenu" :to="{name: v.route}">{{ v.name }}</router-link>
         </div>
       </div>
     </div>
 
     <div>
-      <div class="centered-horizontal gap-7 bg-indigo-500 text-sm text-white p-3 shadow-md shadow-slate-500" :class="{'md:hidden' : !$root.isManager}">
+      <div class="centered-horizontal gap-7 bg-indigo-500 text-sm text-white p-3 shadow-md shadow-slate-500" :class="{'md:hidden' : !$root.isManager()}">
         <div class="w-8 h-8">
           <Bars3Icon class="w-8 h-8 cursor-pointer mr-5 md:hidden" @click="showMenu = !showMenu"></Bars3Icon>
         </div>
-        <div class="grow hidden md:block" v-if="$root.isManager">
+        <div class="grow hidden md:block" v-if="$root.isManager()">
           <div class="centered-horizontal justify-center gap-5">
             <router-link class="border-b-2 border-b-transparent hover:border-b-white" v-for="v in adminMenu" :to="{name: v.route}">{{ v.name }}</router-link>
           </div>

@@ -115,7 +115,7 @@ func EventRemoveRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if security.GetRoleGroup(requester.Role) != security.RoleGroupGlobalManager {
+	if security.GetRoleGroup(requester.Role) < security.RoleGroupGlobalManager {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 
@@ -142,7 +142,7 @@ func EventUpdateRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if security.GetRoleGroup(requester.Role) != security.RoleGroupGlobalManager {
+	if security.GetRoleGroup(requester.Role) < security.RoleGroupGlobalManager {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 	eventId := uint32(0)

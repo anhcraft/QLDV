@@ -24,6 +24,7 @@ export default {
   data() {
     return {
       loadingProfile: false,
+      initializing: false,
       user: {
         profile: {
           id: 0,
@@ -48,15 +49,15 @@ export default {
         },
         achievements: [],
         annualRanks: []
-      }
-    }
-  },
-  computed: {
-    isManager() {
-      return IsManager(this.user.profile.role)
+      },
+      mountQueue: []
     }
   },
   methods: {
+    isManager() {
+      console.log(this.user.profile.role)
+      return IsManager(this.user.profile.role)
+    },
     isLoggedIn(){
       return auth.isLoggedIn()
     },
@@ -74,29 +75,46 @@ export default {
           type: "error"
         });
       }
+    },
+    init(target, callback) {
+      if(this.initializing) return;
+      this.initializing = true
+
+      if(!this.isLoggedIn()) {
+        callback.call(target)
+        this.initializing = false
+        return
+      }
+
+      this.loadingProfile = true
+      UserAPI.getUser("", {
+        profile: true,
+        achievements: false,
+        "annual-ranks": false
+      }).then((res) => {
+        this.loadingProfile = false
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+          callback.call(target)
+          this.initializing = false
+          return
+        }
+
+        if(res.profile.profileCover === "") {
+          res.profile.profileCover = profileCoverDefaultImg
+        } else {
+          res.profile.profileCover = conf.assetURL + "/" + res.profile.profileCover
+        }
+        Object.assign(this.user, res)
+        this.$forceUpdate()
+
+        callback.call(target)
+        this.initializing = false
+      })
     }
   },
   mounted() {
-    if(!this.isLoggedIn()) return
-    this.loadingProfile = true
-    UserAPI.getUser("", {
-      profile: true,
-      achievements: false,
-      "annual-ranks": false
-    }).then((res) => {
-      if(res instanceof ServerError) {
-        this.$root.popupError(res)
-        return
-      }
-      if(res.profile.profileCover === "") {
-        res.profile.profileCover = profileCoverDefaultImg
-      } else {
-        res.profile.profileCover = conf.assetURL + "/" + res.profile.profileCover
-      }
-      Object.assign(this.user, res)
-      this.$forceUpdate()
-      this.loadingProfile = false
-    })
+    this.init(this, () => {})
   }
 }
 </script>

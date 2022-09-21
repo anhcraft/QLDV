@@ -3,15 +3,18 @@
   <section class="page-section px-10 py-8 lg:py-16">
     <Breadcrumb :text="($route.params.id === undefined ? 'Tạo' : 'Sửa') + ' bài viết'" :link="{ name: 'managePosts' }" class="mb-10"></Breadcrumb>
     <LoadingState ref="loadingState">
-      <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model="post.title">
-      <div class="mt-10 centered-horizontal">
-        <span>#</span>
-        <input type="text" class="border-b-2 border-b-slate-300 w-full" placeholder="Hashtag" v-model="post.hashtag" list="hashtags">
-        <datalist id="hashtags">
-          <option v-for="v in hashtags" :value="v"/>
-        </datalist>
-      </div>
-      <div class="mt-10">
+
+      <div class="flex flex-col gap-7">
+        <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model="post.title">
+
+        <div class="centered-horizontal">
+          <span>#</span>
+          <input type="text" class="border-b-2 border-b-slate-300 w-full" placeholder="Hashtag" v-model="post.hashtag" list="hashtags">
+          <datalist id="hashtags">
+            <option v-for="v in hashtags" :value="v"/>
+          </datalist>
+        </div>
+
         <Editor
             apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
             :init="{
@@ -25,40 +28,55 @@
                 }"
             v-model="post.content"
         ></Editor>
-        <div class="border border-gray-300 py-2 px-5 my-10">
-          <div class="flex flex-row gap-5 place-items-center">
 
+        <div class="border border-gray-400 py-2 px-5">
+          <p class="text-2xl">Giới hạn người xem</p>
+          <select class="mt-5" v-model.number="post.privacy">
+            <option v-for="v in roleTables" :value="v.role">Từ {{ v.name }} trở lên</option>
+          </select>
+          <p class="mt-5 italic">
+            {{ roleTables.filter(v => v.role >= post.privacy).map(v => v.name).join(", ") }} có thể xem
+          </p>
+        </div>
+
+        <div class="border border-gray-400 py-2 px-5">
+          <p class="text-2xl">Ảnh đính kèm:</p>
+          <div class="my-10">
+            <div class="flex flex-row flex-wrap gap-3">
+              <img v-for="att in post.attachments" class="max-h-36" :class="{'border-2 border-slate-500 opacity-50' : removeAttachments.includes(att.id)}" :src="assetURL + '/' + att.id" alt="" @click="toggleAttachment(att.id)" />
+            </div>
+            <p class="text-red-500 mt-3" v-if="removeAttachments.length > 0">Sẽ xóa {{ removeAttachments.length }} ảnh được chọn.</p>
+          </div>
+
+          <p class="font-bold">Tải ảnh mới:</p>
+          <input @change="onAttachmentChange" accept="image/*" multiple class="block px-3 py-1.5 text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" type="file">
+          <div class="flex flex-row flex-wrap gap-3 my-10">
+            <img v-for="data in attachmentUpload" class="max-h-36" :src="getImageData(data)" alt=""/>
+          </div>
+        </div>
+
+        <div>
+          <button class="btn-success float-right" :class="{'opacity-50' : submittingPost || submittingAttachments}" @click="submitPost">{{ $route.params.id === undefined ? "Đăng bài" : "Lưu chỉnh sửa" }}</button>
+          <div v-if="submittingAttachments || this.submittedAttachmentSuccessCount < this.submittedAttachmentExpectedCount">
+            <progress id="file" :value="submittedAttachmentCount" :max="submittedAttachmentExpectedCount"></progress>
+            <p>Đã tải lên {{ submittedAttachmentSuccessCount }} / {{ submittedAttachmentExpectedCount }} ảnh thành công.</p>
           </div>
         </div>
       </div>
-      <div class="mt-10">
-        <p>Ảnh đính kèm:</p>
-        <div class="my-10">
-          <div class="flex flex-row flex-wrap gap-3">
-            <img v-for="att in post.attachments" class="max-h-36" :class="{'border-2 border-slate-500 opacity-50' : removeAttachments.includes(att.id)}" :src="serverBaseURL + '/static/' + att.id" alt="" @click="removeAttachment(att.id)" />
-          </div>
-          <p class="text-red-500 mt-3" v-if="removeAttachments.length > 0">Sẽ xóa {{ removeAttachments.length }} ảnh được chọn.</p>
-        </div>
-        <p>Tải ảnh mới:</p>
-        <input @change="onAttachmentChange" accept="image/*" multiple class="block px-3 py-1.5 text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" type="file">
-        <div class="flex flex-row flex-wrap gap-3 my-10">
-          <img v-for="url in attachmentUploadPreviews" class="max-h-36" :src="url" alt=""/>
-        </div>
-      </div>
-      <button class="btn-success" v-if="!submittingPost" @click="submitPost">{{ $route.params.id === undefined ? "Đăng bài" : "Lưu chỉnh sửa" }}</button>
+
     </LoadingState>
   </section>
 </template>
 
 <script>
-import auth from "../auth/auth";
-import conf from "../conf";
 import Editor from '@tinymce/tinymce-vue'
 import Header from "../components/Header.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import LoadingState from "../components/LoadingState.vue";
 import PostAPI from "../api/post-api";
 import {ServerError} from "../api/server-error";
+import {GetRoleTable} from "../auth/roles";
+import conf from "../conf";
 
 export default {
   "name": "PostEdit",
@@ -68,88 +86,85 @@ export default {
       post: {
         title: "",
         content: "",
+        headline: "",
         hashtag: "",
-        attachments: [],
-        privacy: 0
+        privacy: 0,
+        attachments: [] // existing attachments
       },
       hashtags: [],
       submittingPost: false,
-      attachmentUpload: [],
-      attachmentUploadQueue: 0,
-      attachmentUploadPreviews: [],
-      removeAttachments: []
+      submittingAttachments: false,
+      removeAttachments: [], // selected attachments to remove
+      attachmentUpload: [], // new attachments waiting to be uploaded
+      submittedAttachmentCount: 0,
+      submittedAttachmentSuccessCount: 0,
+      submittedAttachmentExpectedCount: 0,
+      attachmentFailedUpload: []
     }
   },
   computed: {
-    serverBaseURL() {
-      return conf.server
+    assetURL() {
+      return conf.assetURL
+    },
+    roleTables() {
+      return GetRoleTable()
     }
   },
   methods: {
+    getImageData(data) {
+      return URL.createObjectURL(data)
+    },
     submitPost() {
       this.submittingPost = true
-      const id = this.$route.params.id === undefined ? 0 : this.$route.params.id
-      server.changePost(id, this.post.title, this.post.content, this.post.privacy, this.post.hashtag, this.removeAttachments, auth.getToken()).then(s => {
-        if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-          this.attachmentUploadQueue = this.attachmentUpload.length
-          if(this.attachmentUploadQueue === 0) {
-            this.submittingPost = false
-            this.$router.push('/pm/')
-          } else {
-            for (let i = 0; i < this.attachmentUpload.length; i++) {
-              server.uploadPostAttachment(s["id"], this.attachmentUpload[i], auth.getToken()).then(ss => {
-                if (!ss.hasOwnProperty("error") && ss.hasOwnProperty("success") && ss["success"]) {
-                  this.$notify({
-                    title: "Tải ảnh thành công",
-                    text: "",
-                    type: "success"
-                  });
-                  this.attachmentUploadQueue--
-                  if (this.attachmentUploadQueue === 0) {
-                    this.submittingPost = false
-                    this.$router.push('/pm/')
-                  }
-                } else {
-                  this.$notify({
-                    title: "Tải ảnh thất bại",
-                    text: lookupErrorCode(ss["error"]),
-                    type: "error"
-                  });
-                }
-              }, (e) => {
-                this.$notify({
-                  title: "Tải ảnh thất bại",
-                  text: e.message,
-                  type: "error"
-                });
-              });
-            }
-          }
-        } else {
-          this.submittingPost = false
-          this.$notify({
-            title: "Lưu thay đổi thất bại",
-            text: lookupErrorCode(s["error"]),
-            type: "error"
-          });
+      const id = this.$route.params.id === undefined ? "" : this.$route.params.id
+      PostAPI.updatePost(id, {
+        title: this.post.title,
+        privacy: this.post.privacy,
+        hashtag: this.post.hashtag,
+        headline: this.post.headline,
+        content: this.post.content
+      }).then(res => {
+        this.submittingPost = false
+        if (res instanceof ServerError) {
+          this.$root.popupError(res)
+          return
         }
-      }, (e) => {
-        this.$notify({
-          title: "Lưu thay đổi thất bại",
-          text: e.message,
-          type: "error"
-        });
-      });
+        if(this.attachmentUpload.length === 0){
+          this.$router.push({name: "managePosts"})
+          return;
+        }
+        this.submittingAttachments = true
+        this.submittedAttachmentCount = 0
+        this.submittedAttachmentSuccessCount = 0
+        this.submittedAttachmentExpectedCount = this.attachmentUpload.length
+        this.attachmentFailedUpload = []
+        for (let i = 0; i < this.attachmentUpload.length; i++) {
+          let a = this.attachmentUpload[i]
+          PostAPI.uploadAttachment(id, a).then(res => {
+            if (res instanceof ServerError) {
+              this.$root.popupError(res)
+              this.attachmentFailedUpload.push(a)
+            } else {
+              this.submittedAttachmentSuccessCount += 1
+              this.post.attachments.push(res.id)
+            }
+            if(++this.submittedAttachmentCount === this.submittedAttachmentExpectedCount) {
+              this.submittingAttachments = false
+              if(this.submittedAttachmentSuccessCount === this.submittedAttachmentExpectedCount) {
+                this.$router.push({name: "managePosts"})
+              } else {
+                this.attachmentUpload = this.attachmentFailedUpload
+                this.attachmentFailedUpload = []
+              }
+            }
+          })
+        }
+      })
     },
     onAttachmentChange(e) {
-      const data = [];
-      for(let i = 0; i < e.target.files.length; i++){
-        data.push(URL.createObjectURL(e.target.files[i]))
-      }
-      this.attachmentUploadPreviews = data
       this.attachmentUpload = e.target.files
     },
-    removeAttachment(id) {
+    toggleAttachment(id) {
       if(this.removeAttachments.includes(id)) {
         this.removeAttachments = this.removeAttachments.filter(a => a !== id)
       } else {
@@ -158,8 +173,8 @@ export default {
     }
   },
   mounted() {
-    if(!this.$root.isLoggedIn() || !this.$root.isManager) {
-      this.$router.push({name: "home"})
+    if(!this.$root.isLoggedIn() || !this.$root.isManager()) {
+      this.$router.push({name: "managePosts"})
       return
     }
     PostAPI.getHashtags().then(data => {

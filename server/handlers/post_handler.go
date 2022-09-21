@@ -115,6 +115,11 @@ func getPosts(req *request.PostListModel, requester *models.User) []models.Post 
 		if req.LowerThan > 0 {
 			cmd = cmd.Where("like_count < ?", req.LowerThan)
 		}
+	} else if req.SortBy == "date" {
+		cmd = cmd.Order("update_date DESC, id DESC")
+		if req.LowerThan > 0 {
+			cmd = cmd.Where("update_date < ?", req.LowerThan)
+		}
 	} else {
 		cmd = cmd.Order("id DESC")
 	}
@@ -211,7 +216,7 @@ func PostUpdateRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if security.GetRoleGroup(requester.Role) != security.RoleGroupGlobalManager {
+	if security.GetRoleGroup(requester.Role) < security.RoleGroupGlobalManager {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 	postId := uint32(0)
@@ -288,7 +293,7 @@ func PostDeleteRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if security.GetRoleGroup(requester.Role) != security.RoleGroupGlobalManager {
+	if security.GetRoleGroup(requester.Role) < security.RoleGroupGlobalManager {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 
@@ -326,6 +331,7 @@ func PostListRouteHandler(c *fiber.Ctx) error {
 			hashtagFilter = append(hashtagFilter, v)
 		}
 	}
+	req.FilterHashtags = hashtagFilter
 
 	posts := gabs.New()
 	_, _ = posts.Array("posts")
