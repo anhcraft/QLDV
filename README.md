@@ -12,6 +12,15 @@
 - [API Specification](API.md)
 - [Data Specification](Data.md)
 
+## Project setup
+
+### 1. Backend-side
+**Environmental variables:**
+```
+GOOGLE_APPLICATION_CREDENTIALS=firebase.json
+sql=user:pass@tcp(127.0.0.1:3306)/das?charset=utf8mb4&parseTime=True&loc=Local
+```
+
 ## Project overview
 
 ### I. Structure
