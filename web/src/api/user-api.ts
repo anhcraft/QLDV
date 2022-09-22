@@ -22,7 +22,7 @@ const UserAPI = {
         "filter-class": string,
         "filter-email": string,
         "filter-role": number,
-        "belowId": number
+        "below-id": number
     }): Promise<any[] | ServerError> {
         return API.getObject("/users/", queries).then(v => {
             return v instanceof ServerError ? v : v["users"]

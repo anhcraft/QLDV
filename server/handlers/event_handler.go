@@ -163,11 +163,18 @@ func EventUpdateRouteHandler(c *fiber.Ctx) error {
 		return ReturnError(c, utils.ErrInvalidRequestBody)
 	}
 	req.Title = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Title))
+	if req.Privacy < 0 {
+		req.Privacy = 0
+	}
 
 	if len(req.Title) < MinEventTitleLength {
 		return ReturnError(c, utils.ErrEventTitleTooShort)
 	} else if len(req.Title) > MaxEventTitleLength {
 		return ReturnError(c, utils.ErrEventTitleTooLong)
+	}
+
+	if req.EndDate < req.BeginDate || req.BeginDate < 0 || req.EndDate < 0 {
+		return ReturnError(c, utils.ErrEventInvalidDuration)
 	}
 
 	event := updateOrCreateEvent(eventId, req)
@@ -186,7 +193,7 @@ func EventUpdateRouteHandler(c *fiber.Ctx) error {
 func EventListRouteHandler(c *fiber.Ctx) error {
 	req := request.EventListModel{}
 	if err := c.QueryParser(&req); err != nil {
-		log.Error().Err(err).Msg("There was an error occurred while parsing body at #EventListRouteHandler")
+		log.Error().Err(err).Msg("There was an error occurred while parsing queries at #EventListRouteHandler")
 		return ReturnError(c, utils.ErrInvalidRequestQuery)
 	}
 	requester, err := GetRequester(c)

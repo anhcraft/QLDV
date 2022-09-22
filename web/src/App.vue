@@ -18,7 +18,7 @@ import profileCoverDefaultImg from "./assets/profile-cover.jpg"
 import UserAPI from "./api/user-api";
 import {ServerError} from "./api/server-error";
 import conf from "./conf";
-import {IsManager} from "./auth/roles";
+import {GetRoleGroup, IsManager, RoleGroupGlobalManager} from "./auth/roles";
 import {nextTick} from "vue";
 
 export default {
@@ -55,11 +55,15 @@ export default {
       mountQueue: []
     }
   },
-  methods: {
+  computed: {
     isManager() {
-      console.log(this.user.profile.role)
       return IsManager(this.user.profile.role)
     },
+    isGlobalManager() {
+      return GetRoleGroup(this.user.profile.role) >= RoleGroupGlobalManager
+    }
+  },
+  methods: {
     isLoggedIn(){
       return auth.isLoggedIn()
     },

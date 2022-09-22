@@ -98,10 +98,10 @@ Every response will be based on the following format:
 }
 ```
 - Note:
-  + Only fields which were specified in the request are considered. However, not all of them are editable because of various reasons mentioned above. Some profile fields are modifiable if and only if certain requirements met. For example, the requester must be the user himself or has special permissions. In addition, a few fields are open to the managers only and members are prohibited to edit them. Besides, there are fields reserved and under read-only mode such as ID, Email, etc **(See the Data document for further information)**
-  + "achievements" and "annualRanks" must be present with empty values to reset the corresponding field; otherwise, there is no effect if they are absent in the response.
   + If the id is present, this API acts like "getting someone profile" which "someone" can be "self" or "another"
   + The id can be either `number` or a `string` which is the leading consequence of the email (before `@`)
+  + "achievements" and "annualRanks" must be present with empty values to reset the corresponding field; otherwise, there is no effect if they are absent in the response.
+  + Only fields which were specified in the request are considered. However, not all of them are editable because of various reasons mentioned above. Some profile fields are modifiable if and only if certain requirements met. For example, the requester must be the user himself or has special permissions. In addition, a few fields are open to the managers only and members are prohibited to edit them. Besides, there are fields reserved and under read-only mode such as ID, Email, etc **(See the Data document for further information)**
 - Example response:
 ```json
 {
@@ -135,7 +135,8 @@ Every response will be based on the following format:
 - Note:
   + Only managers can do this request
     + Class managers are prohibited from fetching users out of their classes
-    + Global managers can fetch all users
+    + Global managers and root users can fetch all users
+  + `filterRole` has a limit defined by the role of the requester; in other words, a requester is prohibited from fetching users whom role is higher
   + The system will determine which fields are included in the response, which is the same as `GET /user/:id?`
 - Example response:
 
@@ -159,7 +160,7 @@ Every response will be based on the following format:
 - Fetches user statistics
 - Authentication required
 - Note:
-  + Only global managers can do this request
+  + Only global managers and root users can do this request
 - Example response:
 ```json
 {
@@ -226,9 +227,8 @@ Every response will be based on the following format:
 - Authentication required
 - Note:
   + In order to execute the request, the requester must meet following requirements:
-    + The role group is Global Manager
+    + The role group is either Global Manager or root users
     + The role of the requester must be higher or equal to the `privacy` level
-    + As a consequence, only global managers can participate in editing posts, and who is secretary can hide a specific post from deputy secretary
   + When the `id` param is absent, this means "creating"; otherwise it means "updating"
 - Example request:
 ```json
@@ -252,7 +252,7 @@ Every response will be based on the following format:
 - Authentication required
 - Note:
   + In order to execute the request, the requester must meet following requirements:
-    + The role group is Global Manager
+    + The role group is either Global Manager or root users
     + The role of the requester must be higher or equal to the `privacy` level
 - Example response:
 ```json
@@ -333,7 +333,7 @@ Every response will be based on the following format:
   + The `id` param is the post's ID
   + The `id` in the response is the attachment's ID
   + In order to execute the request, the requester must meet following requirements:
-    + The role group is Global Manager
+    + The role group is either Global Manager or root users
     + The role of the requester must be higher or equal to the `privacy` level
 - Example response:
 ```json
@@ -352,7 +352,7 @@ Every response will be based on the following format:
   + The `id` param is the attachment's ID
   + The response will include attachments which were not deleted
   + In order to execute the request, the requester must meet following requirements:
-    + The role group is Global Manager
+    + The role group is either Global Manager or root users
     + The role of the requester must be higher or equal to the `privacy` level of the associated post
 - Example request:
 ```json
@@ -411,9 +411,8 @@ Every response will be based on the following format:
 - Authentication required
 - Note:
   + In order to execute the request, the requester must meet following requirements:
-    + The role group is Global Manager
+    + The role group is either Global Manager or root users
     + The role of the requester must be higher or equal to the `privacy` level
-    + As a consequence, only global managers can participate in editing events, and who is secretary can hide a specific event from deputy secretary
   + When the `id` param is absent, this means "creating"; otherwise it means "updating"
 - Example request:
 ```json
@@ -436,7 +435,7 @@ Every response will be based on the following format:
 - Authentication required
 - Note:
   + In order to execute the request, the requester must meet following requirements:
-    + The role group is Global Manager
+    + The role group is either Global Manager or root users
     + The role of the requester must be higher or equal to the `privacy` level
 - Example response:
 ```json

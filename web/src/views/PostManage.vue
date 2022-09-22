@@ -1,8 +1,7 @@
 <template>
   <Header></Header>
   <section class="page-section px-10 py-8 lg:py-16">
-    <Breadcrumb text="Quản lý bài viết" link="/pm"></Breadcrumb>
-    <div class="mt-10">
+    <div>
       <button class="btn-success" @click="createPost">Tạo bài viết</button>
     </div>
     <div class="overflow-auto mt-10">
@@ -11,6 +10,7 @@
           <tr>
             <th>Tên bài</th>
             <th>Hashtag</th>
+            <th>Ảnh đính kèm</th>
             <th>Ngày cập nhật</th>
             <th>Ngày tạo</th>
             <th>Lượt xem</th>
@@ -22,6 +22,7 @@
           <tr v-for="post in posts">
             <td class="max-w-xs break-words">{{ post.title }}</td>
             <td class="max-w-xs break-words">#{{ post.hashtag }}</td>
+            <td class="max-w-xs break-words">{{ post.attachments.length }}</td>
             <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.updateDate)) }}</td>
             <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.createDate)) }}</td>
             <td class="max-w-xs break-words">{{ post.stats.views }}</td>
@@ -50,7 +51,6 @@
 import {PencilIcon, TrashIcon} from '@heroicons/vue/24/solid';
 import Prompt from "../components/Prompt.vue";
 import Header from "../components/Header.vue";
-import Breadcrumb from "../components/Breadcrumb.vue";
 import LoadingState from "../components/LoadingState.vue";
 import PostAPI from "../api/post-api";
 import {ServerError} from "../api/server-error";
@@ -59,9 +59,7 @@ import Footer from "../components/Footer.vue";
 export default {
   name: "PostManage",
   components: {
-    Footer,
-    LoadingState, Header, Breadcrumb,
-    PencilIcon, TrashIcon, Prompt
+    Footer, LoadingState, Header, PencilIcon, TrashIcon, Prompt
   },
   data() {
     return {
@@ -73,7 +71,8 @@ export default {
         available: true
       },
       postRemoveId: -1,
-      postRemoveTitle: ''
+      postRemoveTitle: '',
+      deletingPost: false
     }
   },
   methods: {
@@ -86,8 +85,9 @@ export default {
     },
     loadNextPosts(){
       this.$refs.loadingState.activate()
+      const limit = 15
       PostAPI.listPosts({
-        limit: 15,
+        limit: limit,
         "below-id": this.pagination.belowId,
         "filter-hashtags": [],
         "sort-by": this.pagination.sortBy,
@@ -97,7 +97,7 @@ export default {
           this.$root.popupError(res)
           return
         }
-        if(res.length < 10) {
+        if(res.length < limit) {
           this.pagination.available = false
         }
         if(res.length > 0) {
@@ -119,9 +119,11 @@ export default {
       this.$refs.removePrompt.toggle()
     },
     removePostCallback(b) {
-      if(!b) return
+      if(!b || this.deletingPost) return
+      this.deletingPost = true
       PostAPI.deletePost(this.postRemoveId).then(s => {
         if(s instanceof ServerError) {
+          this.deletingPost = false
           this.$root.popupError(s)
           return
         }
@@ -136,7 +138,7 @@ export default {
   },
   mounted() {
     const f = () => {
-      if(!this.$root.isLoggedIn() || !this.$root.isManager()) {
+      if(!this.$root.isLoggedIn() || !this.$root.isGlobalManager) {
         this.$router.push({name: "home"})
         return
       }

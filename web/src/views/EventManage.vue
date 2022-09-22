@@ -1,8 +1,7 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1024px] m-auto pb-16 p-5 md:px-10">
-    <Breadcrumb text="Quản lý sự kiện" link="/em"></Breadcrumb>
-    <div class="mt-10">
+  <section class="page-section px-10 py-8 lg:py-16">
+    <div>
       <button class="btn-success" @click="edit(undefined)">Tạo sự kiện</button>
     </div>
     <div class="overflow-auto mt-10">
@@ -12,8 +11,9 @@
             <th>Tên sự kiện</th>
             <th>Trạng thái</th>
             <th>Thời gian</th>
+            <th>Ngày cập nhật</th>
+            <th>Ngày tạo</th>
             <th>Thao tác</th>
-            <th>Ngày đăng</th>
           </tr>
         </thead>
         <tbody>
@@ -34,13 +34,12 @@
                 }).format(new Date(event.endDate))
               }}
             </td>
+            <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.updateDate)) }}</td>
+            <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.createDate)) }}</td>
             <td class="flex flex-row gap-1">
               <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="edit(event.id)"></PencilIcon>
               <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="remove(event.id, event.title)"></TrashIcon>
               <PuzzlePieceIcon class="w-6 cursor-pointer text-gray-500" @click="manageContest(event.id)"></PuzzlePieceIcon>
-            </td>
-            <td class="text-gray-500">
-              {{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.date)) }}
             </td>
           </tr>
         </tbody>
@@ -51,8 +50,8 @@
         <div v-if="!pagination.available">Đã tải hết sự kiện.</div>
       </LoadingState>
     </div>
-  </div>
-  <FloatingMenu></FloatingMenu>
+  </section>
+  <Footer></Footer>
   <Prompt @callback="removeEventCallback" ref="removePrompt">
     <p class=font-bold>Bạn có muốn xóa sự kiện này?</p><br> {{ eventRemoveTitle }}
   </Prompt>
@@ -60,19 +59,18 @@
 
 <script>
 import {PencilIcon, PuzzlePieceIcon, TrashIcon} from '@heroicons/vue/24/solid';
-import server from "../api/server";
 import Prompt from "../components/Prompt.vue";
-import auth from "../auth/auth";
 import Header from "../components/Header.vue";
-import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import LoadingState from "../components/LoadingState.vue";
-import lookupErrorCode from "../api/errorCode";
+import {ServerError} from "../api/server-error";
+import EventAPI from "../api/event-api";
+import Footer from "../components/Footer.vue";
 
 export default {
   name: "EventManage",
   components: {
-    LoadingState, Header, FloatingMenu, Breadcrumb,
+    LoadingState, Header, Footer, Breadcrumb,
     PencilIcon, TrashIcon, PuzzlePieceIcon, Prompt
   },
   data() {
@@ -83,7 +81,8 @@ export default {
         available: true
       },
       eventRemoveId: '',
-      eventRemoveTitle: ''
+      eventRemoveTitle: '',
+      deletingEvent: false
     }
   },
   methods: {
@@ -96,28 +95,33 @@ export default {
     },
     loadNextEvents(){
       this.$refs.loadingState.activate()
-      server.loadEvents(10, this.pagination.belowId, 0, 0, auth.getToken()).then(s => {
-        if(s.events.length < 10) {
+      const limit = 15
+      EventAPI.listEvents({
+        limit: limit,
+        "below-id": this.pagination.belowId,
+        "begin-date": 0,
+        "end-date": 0
+      }).then((res) => {
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+          return
+        }
+        if(res.length < limit) {
           this.pagination.available = false
         }
-        if(s.events.length > 0) {
-          this.pagination.belowId = s.events[s.events.length - 1].id
-          this.events = this.events.concat(s.events)
+        if(res.length > 0) {
+          this.pagination.belowId = res[res.length - 1].id
+          this.events = this.events.concat(res)
         }
         this.$refs.loadingState.deactivate()
-      }, (e) => {
-        this.$notify({
-          title: "Tải sự kiện thất bại",
-          text: e.message,
-          type: "error"
-        });
       })
     },
     edit(id) {
-      this.$router.push(`/ee/` + (id === undefined ? '' : id))
+      if(id === undefined) this.$router.push({name: "createEvent"})
+      else this.$router.push({name: "updateEvent", params: { id: id }})
     },
     manageContest(id) {
-      this.$router.push(`/mc/` + (id === undefined ? '' : id))
+      //
     },
     remove(id, name) {
       this.eventRemoveId = id
@@ -125,39 +129,33 @@ export default {
       this.$refs.removePrompt.toggle()
     },
     removeEventCallback(b) {
-      if(b) {
-        server.removeEvent(this.eventRemoveId, auth.getToken()).then(s => {
-          if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-            this.events = this.events.filter(p => p.id !== this.eventRemoveId)
-            this.eventRemoveId = ""
-            this.eventRemoveTitle = ""
-          } else {
-            this.$notify({
-              title: "Xóa sự kiện thất bại",
-              text: lookupErrorCode(s["error"]),
-              type: "error"
-            });
-          }
-        }, (e) => {
-          this.$notify({
-            title: "Xóa sự kiện thất bại",
-            text: e.message,
-            type: "error"
-          });
-        });
-      }
+      if(!b || this.deletingEvent) return
+      this.deletingEvent = true
+      EventAPI.deleteEvent(this.eventRemoveId).then(s => {
+        this.deletingEvent = false
+        if(s instanceof ServerError) {
+          this.$root.popupError(s)
+          return
+        }
+        this.events = this.events.filter(p => p.id !== this.eventRemoveId)
+        this.eventRemoveId = ""
+        this.eventRemoveTitle = ""
+      })
     }
   },
   unmounted () {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
-    if(!this.$root.isLoggedIn()) {
-      this.$router.push(`/`)
-      return
+    const f = () => {
+      if(!this.$root.isLoggedIn() || !this.$root.isGlobalManager) {
+        this.$router.push({name: "home"})
+        return
+      }
+      this.loadNextEvents()
+      window.addEventListener('scroll', this.handleScroll)
     }
-    this.loadNextEvents()
-    window.addEventListener('scroll', this.handleScroll)
+    this.$root.pushQueue(f.bind(this))
   }
 }
 </script>

@@ -23,8 +23,8 @@ const PostAPI = {
         })
     },
     updatePostStat(id: string, data: {
-        "like": boolean,
-        "view": boolean,
+        "like": boolean | undefined,
+        "view": boolean | undefined,
     }): Promise<any | ServerError> {
         return API.postObject("/post-stat/" + id, data)
     },

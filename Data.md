@@ -17,6 +17,7 @@ type User struct {
     EntryYear uint16
     Phone     string
     Class     string
+    Featured  bool
     // Profile stuff:
     ProfileCover    string
     ProfileBoard    string
@@ -32,14 +33,15 @@ type User struct {
 const RoleGuest uint8 = 0
 const RoleRegularMember uint8 = 1
 const RoleCertifiedMember uint8 = 2
-const RoleClassSecretary uint8 = 3
-const RoleClassDeputySecretary uint8 = 4
-const RoleSecretary uint8 = 5
-const RoleDeputySecretary uint8 = 6
+const RoleClassDeputySecretary uint8 = 3
+const RoleClassSecretary uint8 = 4
+const RoleDeputySecretary uint8 = 5
+const RoleSecretary uint8 = 6
+const RoleRoot uint8 = 7
 ```
 
 #### Read operation
-- Common information: id, profileSettings, profileCover, profileBoard
+- Common information: id, profileSettings, profileCover, profileBoard, featured
 - Personal information: name, gender, entryYear, class, role; achievements and annual ranks
   <br>At least one requirement met to gain access:
   + Be the user himself
@@ -60,7 +62,7 @@ const RoleDeputySecretary uint8 = 6
     + The target user must be in the same class as the class manager
     + The target is ranked lower except Guest
     + The manager can only work with "Regular Member" and "Certified Member" roles
-  + With global managers (Secretary, Deputy Secretary), there are additional restrictions:
+  + With global managers (Secretary, Deputy Secretary) and root users, there are additional restrictions:
     + The target is ranked lower except Guest
     + The manager can only work with "Regular Member", "Certified Member", "Class Secretary", "Class Deputy Secretary" roles
 - UpdateDate, CreateData are handled by the system
@@ -107,30 +109,27 @@ type AnnualRank struct {
 - `level`, `year` are writeable as long as the associated user data is writeable by the requester
 - The remaining fields are system-generated
 
-### 4. Post
+### 5. Event
 ```go
 type Post struct {
   ID         uint32
   Link       string
   Title      string
-  Headline   string
-  Content    string
-  Hashtag    string
+  BeginDate  uint64
+  EndDate    uint64
   Privacy    uint8
-  LikeCount  uint
-  ViewCount  uint
   UpdateDate uint64
   CreateDate uint64
 }
 ```
 
 #### Privacy level
-- The `privacy` field determines the lowest level of role which is able to access the post
-- For example, if the `privacy` of a post is set to `Regular Member`, any roles can see it except `Guest`
+- The `privacy` field determines the lowest level of role which is able to access the event
+- For example, if the `privacy` of an event is set to `Regular Member`, any roles can see it except `Guest`
 
 #### Read operation
 - All fields are readable as long as the privacy requirement is met
 
 #### Write operation
-- `Title`, `Headline`, `Content`, `Hashtag`, `Privacy` are writeable as long as the requester belongs to the global manager group
+- `Title`, `BeginDate`, `EndDate` are writeable as long as the requester belongs to the global manager group
 - The remaining fields are system-generated

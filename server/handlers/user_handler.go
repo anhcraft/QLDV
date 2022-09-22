@@ -13,6 +13,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"os"
@@ -53,7 +54,7 @@ func getUserById(id interface{}) *models.User {
 
 func getAchievementById(id interface{}) []models.Achievement {
 	var achievements []models.Achievement
-	result := storage.Db.Find(&achievements, "user_id = ?", id)
+	result := storage.Db.Order("year").Find(&achievements, "user_id = ?", id)
 	if result.Error != nil {
 		log.Error().Err(result.Error).Msg("An error occurred at #getAchievementById while processing DB transaction")
 	}
@@ -62,7 +63,7 @@ func getAchievementById(id interface{}) []models.Achievement {
 
 func getAnnualRankById(id interface{}) []models.AnnualRank {
 	var ranks []models.AnnualRank
-	result := storage.Db.Find(&ranks, "user_id = ?", id)
+	result := storage.Db.Order("year").Find(&ranks, "user_id = ?", id)
 	if result.Error != nil {
 		log.Error().Err(result.Error).Msg("An error occurred at #getAnnualRankById while processing DB transaction")
 	}
@@ -91,6 +92,15 @@ func setRole(id interface{}, role uint8) bool {
 	tx := storage.Db.Model(&models.User{}).Where("id = ?", id).Update("role", role)
 	if tx.Error != nil {
 		log.Error().Err(tx.Error).Msg("An error occurred at #setRole while processing DB transaction")
+		return false
+	}
+	return true
+}
+
+func setFeatured(id interface{}, featured bool) bool {
+	tx := storage.Db.Model(&models.User{}).Where("id = ?", id).Update("featured", featured)
+	if tx.Error != nil {
+		log.Error().Err(tx.Error).Msg("An error occurred at #setFeatured while processing DB transaction")
 		return false
 	}
 	return true
@@ -241,14 +251,14 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 	if err2 != nil {
 		return ReturnError(c, utils.ErrInvalidRequestBody)
 	}
-	if requester.ID == who.ID {
-		response := gabs.New()
 
+	response := gabs.New()
+	if requester.ID == who.ID {
 		profileSettingDirty := false
 		profileLocked := json.Path("profile.settings.profileLocked")
 		if profileLocked != nil {
 			profileSettingDirty = true
-			if profileLocked.Data().(bool) {
+			if cast.ToBool(profileLocked.Data()) {
 				who.ProfileSettings = who.ProfileSettings | 1
 			} else {
 				who.ProfileSettings = who.ProfileSettings &^ 1
@@ -257,7 +267,7 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 		classPublic := json.Path("profile.settings.classPublic")
 		if classPublic != nil {
 			profileSettingDirty = true
-			if classPublic.Data().(bool) {
+			if cast.ToBool(profileLocked.Data()) {
 				who.ProfileSettings = who.ProfileSettings | 2
 			} else {
 				who.ProfileSettings = who.ProfileSettings &^ 2
@@ -266,7 +276,7 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 		achievementPublic := json.Path("profile.settings.achievementPublic")
 		if achievementPublic != nil {
 			profileSettingDirty = true
-			if achievementPublic.Data().(bool) {
+			if cast.ToBool(profileLocked.Data()) {
 				who.ProfileSettings = who.ProfileSettings | 4
 			} else {
 				who.ProfileSettings = who.ProfileSettings &^ 4
@@ -275,7 +285,7 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 		annualRankPublic := json.Path("profile.settings.annualRankPublic")
 		if annualRankPublic != nil {
 			profileSettingDirty = true
-			if annualRankPublic.Data().(bool) {
+			if cast.ToBool(profileLocked.Data()) {
 				who.ProfileSettings = who.ProfileSettings | 8
 			} else {
 				who.ProfileSettings = who.ProfileSettings &^ 8
@@ -287,7 +297,7 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 
 		profileBoard := json.Path("profile.profileBoard")
 		if profileBoard != nil {
-			who.ProfileBoard = profileBoard.Data().(string)
+			who.ProfileBoard = cast.ToString(profileBoard.Data())
 			who.ProfileBoard = strings.TrimSpace(who.ProfileBoard)
 			who.ProfileBoard = security.SafeHTMLPolicy.Sanitize(who.ProfileBoard)
 
@@ -299,15 +309,14 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 
 			_, _ = response.Set(setProfileBoard(who.ID, who.ProfileBoard), "profile", "profileBoard")
 		}
-
-		return ReturnJSON(c, response)
-
 	}
-	if security.IsManager(requester.Role) {
-		response := gabs.New()
 
+	if security.IsManager(requester.Role) {
 		if json.Exists("profile", "role") {
-			role := json.Path("profile.role").Data().(uint8)
+			if requester.ID == who.ID {
+				return ReturnError(c, utils.ErrSelfUpdateRole)
+			}
+			role := cast.ToUint8(json.Path("profile.role").Data())
 			if security.GetRoleGroup(requester.Role) == security.RoleGroupClassManager {
 				if who.Class != requester.Class ||
 					security.GetRoleGroup(who.Role) != security.RoleGroupMember ||
@@ -325,16 +334,23 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 			_, _ = response.Set(setRole(who.ID, role), "profile", "role")
 		}
 
+		if json.Exists("profile", "featured") {
+			if !requester.HasPrivilegeOver(who) {
+				return ReturnError(c, utils.ErrNoPermission)
+			}
+			_, _ = response.Set(setFeatured(who.ID, cast.ToBool(json.Path("profile.featured").Data())), "profile", "featured")
+		}
+
 		if json.Exists("achievements") {
 			ach := make([]models.Achievement, 0)
 			for _, child := range json.Path("achievements").Children() {
-				title := child.Path("title").Data().(string)
+				title := cast.ToString(child.Path("title").Data())
 				title = strings.TrimSpace(title)
 				title = bluemonday.StripTagsPolicy().Sanitize(title)
 				if len(title) == 0 {
 					continue
 				}
-				year := child.Path("year").Data().(uint16)
+				year := cast.ToUint16(child.Path("year").Data())
 				// 2nd half of N, N+1, N+2, 1st half of N+3
 				if year < who.EntryYear || year > who.EntryYear+3 {
 					continue
@@ -351,12 +367,12 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 		if json.Exists("annualRanks") {
 			ar := make([]models.AnnualRank, 0)
 			for _, child := range json.Path("annualRanks").Children() {
-				year := child.Path("year").Data().(uint16)
-				// 2nd half of N, N+1, N+2, 1st half of N+3
-				if year < who.EntryYear || year > who.EntryYear+3 {
+				year := cast.ToUint16(child.Path("year").Data())
+				// /N/ -> N+1, /N+1/ -> N+2, /N+2/ -> N+3
+				if year < who.EntryYear || year > who.EntryYear+2 {
 					continue
 				}
-				level := child.Path("level").Data().(uint8)
+				level := cast.ToUint8(child.Path("level").Data())
 				if level < models.UnknownRank || level > models.MediumRank {
 					continue
 				}
@@ -369,10 +385,9 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 			_, _ = response.Set(setAnnualRanks(who.ID, ar), "annualRanks")
 		}
 
-		return ReturnJSON(c, response)
 	}
 
-	return ReturnEmpty(c)
+	return ReturnJSON(c, response)
 }
 
 func UserListRouteHandler(c *fiber.Ctx) error {
@@ -385,7 +400,7 @@ func UserListRouteHandler(c *fiber.Ctx) error {
 	}
 	req := request.UserListModel{}
 	if err := c.QueryParser(&req); err != nil {
-		log.Error().Err(err).Msg("There was an error occurred while parsing body at #UserListRouteHandler")
+		log.Error().Err(err).Msg("There was an error occurred while parsing queries at #UserListRouteHandler")
 		return ReturnError(c, utils.ErrInvalidRequestQuery)
 	}
 	req.FilterName = strings.ToLower(utils.RemoveVietnameseAccents(strings.TrimSpace(req.FilterName)))
@@ -394,6 +409,7 @@ func UserListRouteHandler(c *fiber.Ctx) error {
 	if security.GetRoleGroup(requester.Role) == security.RoleGroupClassManager {
 		req.FilterClass = requester.Class
 	}
+	req.FilterRole = utils.ClampUint8(req.FilterRole, 0, requester.Role)
 	req.Limit = utils.ClampUint8(req.Limit, 0, UserListLimit)
 	users := gabs.New()
 	_, _ = users.Array("users")

@@ -19,6 +19,7 @@ type User struct {
 	EntryYear uint16
 	Phone     string
 	Class     string
+	Featured  bool
 	// Profile stuff:
 	ProfileCover    string
 	ProfileBoard    string
@@ -73,6 +74,7 @@ func (u *User) Serialize(requester *User) *gabs.Container {
 	_, _ = res.Set(u.IsAnnualRankPublic(), "settings", "annualRankPublic")
 	_, _ = res.Set(u.ProfileCover, "profileCover")
 	_, _ = res.Set(u.ProfileBoard, "profileBoard")
+	_, _ = res.Set(u.Featured, "featured")
 
 	// Group-distinct check
 	accessLocked := requester.HasPrivilegeOver(u)

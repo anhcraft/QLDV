@@ -1,17 +1,17 @@
-const RoleGuest: number = 0
-const RoleRegularMember: number = 1
-const RoleCertifiedMember: number = 2
-const RoleClassDeputySecretary: number = 3
-const RoleClassSecretary: number = 4
-const RoleDeputySecretary: number = 5
-const RoleSecretary: number = 6
-const RoleRoot: number = 7
+export const RoleGuest: number = 0
+export const RoleRegularMember: number = 1
+export const RoleCertifiedMember: number = 2
+export const RoleClassDeputySecretary: number = 3
+export const RoleClassSecretary: number = 4
+export const RoleDeputySecretary: number = 5
+export const RoleSecretary: number = 6
+export const RoleRoot: number = 7
 
-const RoleGroupGuest: number = 0
-const RoleGroupMember: number = 1
-const RoleGroupClassManager: number = 2
-const RoleGroupGlobalManager: number = 3
-const RoleGroupRoot: number = 4
+export const RoleGroupGuest: number = 0
+export const RoleGroupMember: number = 1
+export const RoleGroupClassManager: number = 2
+export const RoleGroupGlobalManager: number = 3
+export const RoleGroupRoot: number = 4
 
 export function GetRoleName(role: number): string {
     switch (role) {

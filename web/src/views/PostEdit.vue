@@ -1,18 +1,24 @@
 <template>
   <Header></Header>
   <section class="page-section px-10 py-8 lg:py-16">
-    <Breadcrumb :text="($route.params.id === undefined ? 'Tạo' : 'Sửa') + ' bài viết'" :link="{ name: 'managePosts' }" class="mb-10"></Breadcrumb>
     <LoadingState ref="loadingState">
 
       <div class="flex flex-col gap-7">
-        <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model="post.title">
+        <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model.trim="post.title">
 
         <div class="centered-horizontal">
           <span>#</span>
-          <input type="text" class="border-b-2 border-b-slate-300 w-full" placeholder="Hashtag" v-model="post.hashtag" list="hashtags">
+          <input type="text" class="border-b-2 border-b-slate-300 w-full" placeholder="Hashtag" v-model.trim="post.hashtag" list="hashtags">
           <datalist id="hashtags">
             <option v-for="v in hashtags" :value="v"/>
           </datalist>
+        </div>
+
+
+        <div class="border border-gray-400 py-2 px-5">
+          <p class="text-xl">Đề mục:</p>
+          <textarea class="border-b-2 border-b-slate-300 w-full" v-model.trim="post.headline"></textarea>
+          <p class="italic text-sm">Để trống để tạo đề mục tự động từ nội dung bài viết</p>
         </div>
 
         <Editor
@@ -30,17 +36,17 @@
         ></Editor>
 
         <div class="border border-gray-400 py-2 px-5">
-          <p class="text-2xl">Giới hạn người xem</p>
-          <select class="mt-5" v-model.number="post.privacy">
+          <p class="text-xl">Giới hạn người xem</p>
+          <select class="mt-5 text-sm" v-model.number="post.privacy">
             <option v-for="v in roleTables" :value="v.role">Từ {{ v.name }} trở lên</option>
           </select>
-          <p class="mt-5 italic">
+          <p class="mt-5 text-sm italic">
             {{ roleTables.filter(v => v.role >= post.privacy).map(v => v.name).join(", ") }} có thể xem
           </p>
         </div>
 
         <div class="border border-gray-400 py-2 px-5">
-          <p class="text-2xl">Ảnh đính kèm:</p>
+          <p class="text-xl">Ảnh đính kèm:</p>
           <div class="my-10">
             <div class="flex flex-row flex-wrap gap-3">
               <img v-for="att in post.attachments" class="max-h-36" :class="{'border-2 border-slate-500 opacity-50' : removeAttachments.includes(att.id)}" :src="assetURL + '/' + att.id" alt="" @click="toggleAttachment(att.id)" />
@@ -57,6 +63,7 @@
 
         <div>
           <button class="btn-success float-right" :class="{'opacity-50' : submittingPost || submittingAttachments}" @click="submitPost">{{ $route.params.id === undefined ? "Đăng bài" : "Lưu chỉnh sửa" }}</button>
+
           <div v-if="submittingAttachments || this.submittedAttachmentSuccessCount < this.submittedAttachmentExpectedCount">
             <progress id="file" :value="submittedAttachmentCount" :max="submittedAttachmentExpectedCount"></progress>
             <p>Đã tải lên {{ submittedAttachmentSuccessCount }} / {{ submittedAttachmentExpectedCount }} ảnh thành công.</p>
@@ -72,7 +79,6 @@
 <script>
 import Editor from '@tinymce/tinymce-vue'
 import Header from "../components/Header.vue";
-import Breadcrumb from "../components/Breadcrumb.vue";
 import LoadingState from "../components/LoadingState.vue";
 import PostAPI from "../api/post-api";
 import {ServerError} from "../api/server-error";
@@ -82,7 +88,7 @@ import Footer from "../components/Footer.vue";
 
 export default {
   "name": "PostEdit",
-  components: {LoadingState, Header, Footer, Breadcrumb, Editor },
+  components: {LoadingState, Header, Footer, Editor },
   data() {
     return {
       post: {
@@ -109,7 +115,7 @@ export default {
       return conf.assetURL
     },
     roleTables() {
-      return GetRoleTable()
+      return GetRoleTable().filter(v => v.role <= this.$root.user.profile.role)
     }
   },
   methods: {
@@ -117,6 +123,39 @@ export default {
       return URL.createObjectURL(data)
     },
     submitPost() {
+      if(this.submittingPost) return
+      if(this.post.title.length > 300){
+        this.$root.popupError(new ServerError("ERROR_POST_TITLE_TOO_LONG"))
+        return
+      }
+      if(this.post.title.length < 10){
+        this.$root.popupError(new ServerError("ERROR_POST_TITLE_TOO_SHORT"))
+        return
+      }
+      if(this.post.headline.length > 250){
+        this.$root.popupError(new ServerError("ERROR_POST_HEADLINE_TOO_LONG"))
+        return
+      }
+      if(this.post.headline.length > 0 && this.post.headline.length < 30){
+        this.$root.popupError(new ServerError("ERROR_POST_HEADLINE_TOO_SHORT"))
+        return
+      }
+      if(this.post.hashtag.length > 20){
+        this.$root.popupError(new ServerError("ERROR_POST_HASHTAG_TOO_LONG"))
+        return
+      }
+      if(this.post.hashtag.length < 5){
+        this.$root.popupError(new ServerError("ERROR_POST_HASHTAG_TOO_SHORT"))
+        return
+      }
+      if(this.post.content.length > 100000){
+        this.$root.popupError(new ServerError("ERROR_POST_CONTENT_TOO_LONG"))
+        return
+      }
+      if(this.post.content.length < 100){
+        this.$root.popupError(new ServerError("ERROR_POST_CONTENT_TOO_SHORT"))
+        return
+      }
       this.submittingPost = true
       const id = this.$route.params.id === undefined ? "" : this.$route.params.id
       PostAPI.updatePost(id, {
@@ -182,29 +221,32 @@ export default {
     }
   },
   mounted() {
-    if(!this.$root.isLoggedIn() || !this.$root.isManager()) {
-      this.$router.push({name: "managePosts"})
-      return
-    }
-    PostAPI.getHashtags().then(data => {
-      if(data instanceof ServerError) {
-        this.$root.popupError(data)
+    const f = () => {
+      if(!this.$root.isLoggedIn() || !this.$root.isGlobalManager) {
+        this.$router.push({name: "managePosts"})
         return
       }
-      this.hashtags = data
-    })
-    if(this.$route.params.id !== undefined) {
-      PostAPI.getPost(this.$route.params.id).then(res => {
-        if(res instanceof ServerError) {
-          this.$root.popupError(res)
+      PostAPI.getHashtags().then(data => {
+        if(data instanceof ServerError) {
+          this.$root.popupError(data)
           return
         }
-        this.post = res;
+        this.hashtags = data
+      })
+      if(this.$route.params.id !== undefined) {
+        PostAPI.getPost(this.$route.params.id).then(res => {
+          if(res instanceof ServerError) {
+            this.$root.popupError(res)
+            return
+          }
+          this.post = res;
+          this.$refs.loadingState.deactivate()
+        });
+      } else {
         this.$refs.loadingState.deactivate()
-      });
-    } else {
-      this.$refs.loadingState.deactivate()
+      }
     }
+    this.$root.pushQueue(f.bind(this))
   }
 }
 </script>

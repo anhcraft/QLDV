@@ -8,9 +8,11 @@ import (
 	"das/storage"
 	"das/utils"
 	"encoding/hex"
+	"errors"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"os"
 	"strconv"
@@ -51,9 +53,29 @@ func getAttachments(postId uint32) []models.Attachment {
 	return atts
 }
 
-func removeAttachment(attId string, privacy uint8) bool {
+func getAttachment(attId string) *models.Attachment {
 	var att models.Attachment
-	cmd := storage.Db.Where("attachments.id = ?", attId).Joins("posts", storage.Db.Where(&models.Po)).Where("posts.privacy <= ?", privacy).Delete(&att)
+	cmd := storage.Db.Where("id = ?", attId).Find(&att)
+	if errors.Is(cmd.Error, gorm.ErrRecordNotFound) {
+		return nil
+	} else if cmd.Error != nil {
+		log.Error().Err(cmd.Error).Msg("An error occurred at #getAttachment while processing DB transaction")
+		return nil
+	} else {
+		return &att
+	}
+}
+
+func removeAttachment(attId string, privacy uint8) bool {
+	att := getAttachment(attId)
+	if att == nil {
+		return false
+	}
+	post := getPost(att.PostId)
+	if post == nil || post.Privacy > privacy {
+		return false
+	}
+	cmd := storage.Db.Where("attachments.id = ?", attId).Delete(&att)
 	if cmd.Error != nil {
 		log.Error().Err(cmd.Error).Msg("An error occurred at #removeAttachment while processing DB transaction")
 	}

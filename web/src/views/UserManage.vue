@@ -1,136 +1,141 @@
 <template>
   <Header></Header>
-  <div class="pb-16 max-w-[1024px] m-auto p-5 md:px-10">
-    <Breadcrumb text="Quản lý thành viên" link="/um"></Breadcrumb>
-    <div class="w-full h-48 my-10 border-slate-400 border-2" v-if="$root.profile.admin">
+  <section class="page-section px-10 py-8 lg:py-16">
+    <div class="w-full h-48 my-10 border-slate-400 border-2" v-if="this.$root.isGlobalManager">
       <v-chart class="chart" :option="option" />
     </div>
-    <div class="overflow-auto">
-      <table class="w-max">
+    <div class="border border-slate-400 text-sm p-5" :class="{'opacity-20' : selectedBatchUsers.length === 0}">
+      <p class="font-bold">Bạn đang chọn {{ selectedBatchUsers.length }} người dùng.</p>
+      <p class="font-bold">- Thực hiện đổi chức vụ cho các người dùng trên sang:</p>
+      <select class="border-2 border-gray-300 px-2 py-0.5" :disabled="updatingBatchUsers || selectedBatchUsers.length === 0" v-model.number="batchUpdateRole">
+        <option v-for="v in roleTables.filter(v => v.role > 0)" :value="v.role">{{ v.name }}</option>
+      </select>
+      <button class="btn-outline-sm ml-3" :class="{'opacity-50' : updatingBatchUsers}" @click="batchUpdate()">Đồng ý</button>
+    </div>
+    <div class="overflow-auto mt-10">
+      <table class="w-full">
         <thead>
           <tr>
+            <th></th>
             <th>Tên</th>
             <th>Email</th>
-            <th class="w-32">C.đoàn</th>
-            <th>N.Sinh</th>
-            <th>Giới</th>
-            <th>ĐV</th>
-            <th>BT</th>
+            <th class="w-16">Chi đoàn</th>
+            <th class="w-24">Ngày sinh</th>
+            <th class="w-16">Giới tính</th>
+            <th class="w-16">SĐT</th>
+            <th class="w-44">Chức vụ</th>
+            <th>Thao tác</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.name"></td>
-            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.email"></td>
-            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model="filter.class" v-if="$root.profile.admin"></td>
+          <tr class="w-full">
+            <td></td>
+            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model.trim="pagination.name"></td>
+            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model.trim="pagination.email"></td>
+            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model.trim="pagination.class" v-if="this.$root.isGlobalManager"></td>
+            <td></td>
             <td></td>
             <td></td>
             <td>
-              <select v-model="filter.certified" class="bg-white">
-                <option v-for="option in filter.certified_options" v-bind:value="option.value">
-                  {{ option.text }}
-                </option>
+              <select class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model.number="pagination.role">
+                <option v-for="v in roleTables" :value="v.role">{{ v.name }}</option>
               </select>
             </td>
+            <td>
+              <button class="btn-info" @click="search">Tìm và lọc</button>
+            </td>
+          </tr>
+          <tr class="border-b-2 border-b-slate-400 w-full">
             <td></td>
+            <td colspan="8" class="text-sm italic">Đang hiện {{ this.users.length }} tài khoản, trong đó có {{ this.users.filter(u => u.gender === "female").length }} nữ. Tổng cộng có {{ this.users.filter(u => isMember(u.role)).length }} đoàn viên.</td>
           </tr>
-          <tr class="border-b-2 border-b-slate-400">
-            <td colspan="5" class="text-sm italic">Đang hiện {{ this.users.length }} thành viên, trong đó có {{ this.users.filter(u => u.gender).length }} nữ. Tổng cộng có {{ this.users.filter(u => u.certified).length }} đoàn viên.</td>
-            <td><button class="btn-info" @click="search">Tìm & lọc</button></td>
-            <td><button class="btn-success" @click="saveChanges" :class="{'opacity-20' : sumChanges === 0}">Lưu ({{ sumChanges }})</button></td>
-          </tr>
-          <tr v-for="user in users" class="text-sm hover:bg-blue-200" :class="selectedUser === user.email ? 'border-2 border-gray-400' : (user.certified ? '' : 'bg-red-200')">
-            <td @click="selectUser(user)" class="flex flex-row cursor-pointer text-base hover:underline" :class="user.admin ? 'font-bold text-red-500' : (user['mod'] ? 'text-emerald-500' : '')">{{ user.name }}</td>
+          <tr v-for="(user, i) in users" class="text-sm hover:bg-blue-200 w-full" :class="{'bg-blue-200' : selectedBatchUsers.includes(i)}">
+            <td>
+              <CheckCircleIcon v-if="user.id !== $root.user.profile.id" class="w-6 cursor-pointer text-gray-300" :class="{'text-blue-500' : selectedBatchUsers.includes(i)}" @click="toggleSelectBatchUser(i)"></CheckCircleIcon>
+            </td>
+            <td class="text-base" :class="getRoleStyle(user.role)">{{ user.name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.class }}</td>
-            <td>{{ new Intl.DateTimeFormat("vi-VN" , {dateStyle: "short"}).format(new Date(user.birth)) }}</td>
-            <td class="text-center">{{ user.gender ? "Nữ" : "Nam" }}</td>
-            <td>
-              <CheckBadgeIcon class="w-6 m-auto" :class="user.certified ? 'text-sky-400' : 'text-gray-400'" @click="toggleCertified(user)"></CheckBadgeIcon>
-            </td>
-            <td>
-              <StarIcon class="w-6 cursor-pointer" :class="user.mod ? 'text-emerald-500' : 'text-white'" @click="toggleMod(user)" v-if="$root.profile.admin && !user.admin"></StarIcon>
+            <td>{{ new Intl.DateTimeFormat("vi-VN" , {dateStyle: "short"}).format(new Date(user.birthday)) }}</td>
+            <td class="text-center">{{ user.gender === "female" ? "Nữ" : "Nam" }}</td>
+            <td>{{ user.phone }}</td>
+            <td>{{ getRoleName(user.role) }}</td>
+            <td class="centered-horizontal gap-2">
+              <PencilSquareIcon class="w-6 cursor-pointer text-gray-500" @click="selectUser(i)"></PencilSquareIcon>
+              <StarIcon class="w-6 cursor-pointer text-gray-500" :class="updatingUser ? 'opacity-50' : (user.featured ? 'text-amber-500' : '')" @click="toggleFeatured(i)"></StarIcon>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
     <LoadingState ref="loadingStateForUserList">
-      <div class="mt-5" v-if="!userAvailable">Đã tải hết thành viên.</div>
+      <div class="mt-5" v-if="!pagination.available">Đã tải hết thành viên.</div>
     </LoadingState>
-  </div>
+  </section>
 
   <LoadingState ref="loadingStateForUserProgression" hidden>
-    <div v-if="selectedUser !== undefined">
-      <div class="bg-black opacity-75 fixed top-0 left-0 w-screen h-screen" @click="selectUser(undefined)"></div>
-      <div class="fixed right-0 top-0 z-10 bg-white w-full md:w-auto h-screen overflow-auto border-l-2 border-l-slate-300 p-10">
-        <ChevronDoubleRightIcon class="w-8 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-1" @click="selectUser(undefined)"></ChevronDoubleRightIcon>
-        <p class="my-5 font-bold">{{ selectedUser }}</p>
-        <router-link target="_blank" :to="'/u/' + selectedUser.substring(0, selectedUser.search('@'))">
+    <div v-if="selectedUser >= 0">
+      <div class="bg-black opacity-75 fixed z-[100] top-0 left-0 w-screen h-screen" @click="selectUser(-1)"></div>
+      <div class="fixed z-[200] w-full md:w-[500px] h-screen right-0 top-0 overflow-auto bg-white border-l-2 border-l-slate-300 p-10">
+        <ChevronDoubleRightIcon class="w-8 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-1" @click="selectUser(-1)"></ChevronDoubleRightIcon>
+        <p class="my-5 font-bold">{{ users[selectedUser].name }}</p>
+        <router-link target="_blank" :to="'/u/' + users[selectedUser].email.substring(0, users[selectedUser].email.search('@'))">
           <button class="btn-info">Xem trang cá nhân</button>
         </router-link>
         <div class="border-t-2 border-t-slate-300 mt-10">
           <section class="mt-5">
             <p class="text-xl">Xếp hạng</p>
             <ul class="list-disc list-inside">
-              <li v-for="(value, name) in this.userProgression.rates">
-                <select v-model="this.userProgression.rates[name]" class="bg-white">
-                  <option v-for="option in this.rateOptions" v-bind:value="option.value">
-                    {{ option.text }}
-                  </option>
+              <li v-for="v in normalizeAnnualRanks(users[selectedUser])">
+                <select v-model.number="v.level" class="bg-white">
+                  <option v-for="option in this.rateOptions" :value="option.value">{{ option.text }}</option>
                 </select>
-                ({{ name }} - {{ parseInt(name) + 1 }})
+                ({{ v.year }} - {{ parseInt(v.year) + 1 }})
               </li>
             </ul>
           </section>
-          <section class="mt-5" v-if="this.userProgression.achievements.length > 0">
+          <section class="mt-5">
             <div class="text-xl flex flex-row gap-1">
               <p>Thành tích</p>
-              <PlusCircleIcon class="w-6 cursor-pointer text-slate-500" @click="addAchievementSlot"></PlusCircleIcon>
+              <PlusCircleIcon class="w-6 cursor-pointer text-slate-500" @click="addAchievementSlot()"></PlusCircleIcon>
             </div>
-            <ul class="list-disc list-inside">
-              <li v-for="value in this.userProgression.achievements">
-                <input type="text" v-model="value.title"> (
-                <select v-model="value.year" class="bg-white">
-                  <option v-for="option in this.achievementOption" v-bind:value="option">
-                    {{ option }}
-                  </option>
+            <ul class="list-disc list-inside" v-if="users[selectedUser].hasOwnProperty('achievements')">
+              <li class="flex flex-row" v-for="value in users[selectedUser].achievements">
+                <input type="text" class="grow border-b border-b-slate-400" v-model="value.title"> (
+                <select v-model.number="value.year" class="bg-white">
+                  <option v-for="option in [0, 1, 2, 3]" :value="users[selectedUser].entryYear + option">{{ users[selectedUser].entryYear + option }}</option>
                 </select>)
               </li>
             </ul>
           </section>
-          <button class="btn-success mt-5" @click="saveProgressionChanges">Lưu lại</button>
+          <button class="btn-success mt-5" :class="{'opacity-50' : updatingUser}" @click="saveProgressionChanges">Lưu lại</button>
         </div>
       </div>
     </div>
   </LoadingState>
-
-  <FloatingMenu></FloatingMenu>
+  <Footer></Footer>
 </template>
 
 <script>
-import {
-  CheckBadgeIcon,
-  ChevronDoubleRightIcon,
-  PlusCircleIcon,
-  StarIcon
-} from '@heroicons/vue/24/solid'
-import server from "../api/server";
-import auth from "../auth/auth";
-import { CanvasRenderer } from "echarts/renderers";
-import { PieChart } from "echarts/charts";
-import {
-  TitleComponent,
-  TooltipComponent,
-  LegendComponent
-} from "echarts/components";
+import {ChevronDoubleRightIcon, PlusCircleIcon, CheckCircleIcon, PencilSquareIcon, StarIcon} from '@heroicons/vue/24/solid'
+import {CanvasRenderer} from "echarts/renderers";
+import {PieChart} from "echarts/charts";
+import {LegendComponent, TitleComponent, TooltipComponent} from "echarts/components";
 import {use} from "echarts/core";
 import VChart from "vue-echarts";
 import Header from "../components/Header.vue";
-import FloatingMenu from "../components/FloatingMenu.vue";
-import Breadcrumb from "../components/Breadcrumb.vue";
 import LoadingState from "../components/LoadingState.vue";
-import lookupErrorCode from "../api/errorCode";
+import {
+  GetRoleGroup,
+  GetRoleName,
+  GetRoleTable,
+  IsMember,
+  RoleGroupClassManager,
+  RoleGroupGlobalManager
+} from "../auth/roles";
+import UserAPI from "../api/user-api";
+import {ServerError} from "../api/server-error";
+import Footer from "../components/Footer.vue";
 
 use([
   CanvasRenderer,
@@ -143,43 +148,40 @@ use([
 export default {
   name: "UserManage",
   components: {
-    LoadingState, Header, FloatingMenu, Breadcrumb,
-    CheckBadgeIcon, StarIcon, VChart, ChevronDoubleRightIcon, PlusCircleIcon
+    LoadingState, Header, Footer, VChart, ChevronDoubleRightIcon, PlusCircleIcon, PencilSquareIcon, CheckCircleIcon, StarIcon
   },
   data() {
     return {
-      userAvailable: true,
       users: [],
-      userProgression: {},
-      selectedUser: undefined,
-      dataOffset: 0,
-      certChanges: {},
-      modChanges: {},
-      savingUserChanges: false,
-      filter: {
-        name: "",
-        email: "",
-        class: "",
-        certified: 0,
-        certified_options: [
-          { text: 'Tất cả', value: 0 },
-          { text: 'Đoàn viên', value: 1 },
-          { text: 'Thanh niên', value: 2 }
-        ]
+      pagination: {
+        belowId: 0,
+        filterName: "",
+        filterEmail: "",
+        filterClass: "",
+        filterRole: 0,
+        available: true
       },
+      //
+      selectedUser: -1,
+      updatingUser: false,
+      //
+      selectedBatchUsers: [],
+      batchUpdateRole: 0,
+      processedBatchedUsers: 0,
+      updatingBatchUsers: false,
+      //
       rateOptions: [
         {text: '#', value: 0},
         {text: 'Xuất sắc', value: 1},
         {text: 'Khá', value: 2},
         {text: 'Trung bình', value: 3}
       ],
-      achievementOption: [],
       option: {
         textStyle: {
           fontFamily: "sans-serif"
         },
         title: {
-          text: "Thống kê học sinh",
+          text: "Thống kê",
           left: "center"
         },
         tooltip: {
@@ -202,24 +204,10 @@ export default {
             }
           },
           {
-            name: "Theo giới tính",
+            name: "Theo ĐV",
             type: "pie",
             radius: "55%",
             center: ["50%", "50%"],
-            data: [],
-            emphasis: {
-              itemStyle: {
-                shadowBlur: 10,
-                shadowOffsetX: 0,
-                shadowColor: "rgba(0, 0, 0, 0.5)"
-              }
-            }
-          },
-          {
-            name: "Theo ĐV/TN",
-            type: "pie",
-            radius: "55%",
-            center: ["75%", "50%"],
             data: [],
             emphasis: {
               itemStyle: {
@@ -234,225 +222,225 @@ export default {
     }
   },
   methods: {
-    loadNextUsers(){
-      this.$refs.loadingStateForUserProgression.deactivate()
-      this.$refs.loadingStateForUserList.activate()
-      server.loadUsers(50, this.dataOffset, this.filter, auth.getToken()).then(s => {
-        if(s.users.length === 0) {
-          this.userAvailable = false
-        } else {
-          this.dataOffset += s.users.length
-        }
-        this.users = this.users.concat(s.users)
-        this.$refs.loadingStateForUserList.deactivate()
-      }, (e) => {
-        this.$notify({
-          title: "Tải thành viên thất bại",
-          text: e.message,
-          type: "error"
-        });
-      })
+    toggleSelectBatchUser(u) {
+      if(this.updatingBatchUsers || this.users[u].id === this.$root.user.profile.id) return
+      if(this.selectedBatchUsers.includes(u)) {
+        this.selectedBatchUsers = this.selectedBatchUsers.filter(v => v !== u)
+      } else {
+        this.selectedBatchUsers = this.selectedBatchUsers.concat(u)
+      }
     },
-    selectUser(user){
-      this.userProgression = {}
-      this.selectedUser = undefined
-      if(user === undefined || this.$refs.loadingStateForUserProgression.loading) return;
-      this.$refs.loadingStateForUserProgression.activate()
-      server.loadProgression(auth.getToken(), user.email).then(s => {
-        if (s.hasOwnProperty("error")) {
-          this.$notify({
-            title: "Tải thông tin thất bại",
-            text: lookupErrorCode(s["error"]),
-            type: "error"
-          });
-          this.userProgression = {}
-          return
+    getRoleName(r){
+      return GetRoleName(r)
+    },
+    normalizeAnnualRanks(user){
+      const ar = {}
+      ar[user.entryYear] = 0
+      ar[user.entryYear+1] = 0
+      ar[user.entryYear+2] = 0
+      if(user.hasOwnProperty("annualRanks")) {
+        user.annualRanks.map(v => {
+          if (ar.hasOwnProperty(v.year)) {
+            ar[v.year] = v.level
+          }
+        })
+      }
+      user.annualRanks = Object.keys(ar).map(v => {
+        return {
+          level: ar[v],
+          year: v
         }
-        this.achievementOption = [user.entry, user.entry + 1, user.entry + 2]
-        const map = {}
-        map[user.entry] = 0
-        map[user.entry + 1] = 0
-        map[user.entry + 2] = 0
-        this.userProgression = {
-          rates: Object.assign(map, s.rates.reduce(function(map, obj) {
-            map[obj["year"]] = obj["level"];
-            return map;
-          }, {})),
-          achievements: s.achievements.concat({
-            "title": "",
-            "year": user.entry
-          })
+      })
+      return user.annualRanks
+    },
+    getRoleStyle(role){
+      if(GetRoleGroup(role) === RoleGroupClassManager){
+        return 'text-emerald-500'
+      } else if(GetRoleGroup(role) >= RoleGroupGlobalManager) {
+        return 'font-bold text-red-500'
+      } else {
+        return ''
+      }
+    },
+    isMember(r){
+      return IsMember(r)
+    },
+    loadNextUsers(callback){
+      this.$refs.loadingStateForUserList.activate()
+      const limit = 15
+      UserAPI.listUsers({
+        limit: limit,
+        "below-id": this.pagination.belowId,
+        "filter-name": this.pagination.filterName,
+        "filter-class": this.pagination.filterClass,
+        "filter-role": this.pagination.filterRole,
+        "filter-email": this.pagination.filterEmail,
+      }).then(res => {
+        this.$refs.loadingStateForUserList.deactivate()
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+        } else {
+          if (res.length < limit) {
+            this.pagination.available = false
+          }
+          if (res.length > 0) {
+            this.pagination.belowId = res[res.length - 1].id
+            this.users = this.users.concat(res)
+          }
         }
-        this.selectedUser = user.email
-        this.$refs.loadingStateForUserProgression.deactivate()
-      }, (e) => {
-        this.$notify({
-          title: "Tải thông tin thất bại",
-          text: e.message,
-          type: "error"
-        });
-      });
+        callback.call(null)
+      })
     },
     addAchievementSlot() {
-      this.userProgression.achievements = this.userProgression.achievements.concat({
+      let a = this.users[this.selectedUser].achievements
+      if(a === undefined) a = []
+      this.users[this.selectedUser].achievements = a.concat({
         "title": "",
-        "year": this.userProgression.achievements[this.userProgression.achievements.length - 1].year
-      })
-    },
-    toggleCertified(user) {
-      if(this.savingUserChanges) return
-      user.certified = !user.certified
-      if(this.certChanges.hasOwnProperty(user.email)) {
-        delete this.certChanges[user.email]
-      } else {
-        this.certChanges[user.email] = user.certified
-      }
-    },
-    toggleMod(user) {
-      if(this.savingUserChanges) return
-      user.mod = !user['mod']
-      if(this.modChanges.hasOwnProperty(user.email)) {
-        delete this.modChanges[user.email]
-      } else {
-        this.modChanges[user.email] = user['mod']
-      }
-    },
-    saveChanges() {
-      if(this.savingUserChanges || this.sumChanges === 0) return
-      this.savingUserChanges = true
-      server.saveUserChanges({
-        certified: this.certChanges,
-        mod: this.modChanges
-      }, auth.getToken()).then(s => {
-        this.savingUserChanges = false
-        if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-          this.certChanges = {};
-          this.modChanges = {};
-          this.$notify({
-            title: "Đã lưu thay đổi",
-            text: "",
-            type: "success"
-          });
-        } else {
-          this.$notify({
-            title: "Lưu thay đổi thất bại",
-            text: lookupErrorCode(s["error"]),
-            type: "error"
-          });
-        }
-      }, (e) => {
-        this.$notify({
-          title: "Lưu thay đổi thất bại",
-          text: e.message,
-          type: "error"
-        });
-      });
-    },
-    saveProgressionChanges() {
-      this.$refs.loadingStateForUserProgression.activate()
-      server.saveProgressionChanges(this.userProgression, this.selectedUser, auth.getToken()).then(s => {
-        this.$refs.loadingStateForUserProgression.deactivate()
-        if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-          this.$notify({
-            title: "Đã lưu thay đổi",
-            text: "",
-            type: "success"
-          });
-          this.selectUser(undefined)
-        } else {
-          this.$notify({
-            title: "Lưu thay đổi thất bại",
-            text: lookupErrorCode(s["error"]),
-            type: "error"
-          });
-        }
-      }, (e) => {
-        this.$notify({
-          title: "Lưu thay đổi thất bại",
-          text: e.message,
-          type: "error"
-        });
+        "year": a.length === 0 ? this.users[this.selectedUser].entryYear : a[a.length - 1].year
       })
     },
     search() {
-      this.userAvailable = true
+      if(this.$refs.loadingStateForUserList.loading || this.$refs.loadingStateForUserProgression.loading || this.updatingBatchUsers || this.updatingUser) return
       this.users = []
-      this.$refs.loadingStateForUserList.deactivate()
-      this.dataOffset = 0
-      this.certChanges = {}
-      this.selectUser(undefined)
+      this.pagination.belowId = 0
+      this.pagination.available = false
+      this.selectedUser = -1
       this.loadNextUsers()
     },
     handleScroll() {
       if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-        if(!this.$refs.loadingStateForUserList.loading && this.userAvailable) {
+        if(!this.$refs.loadingStateForUserList.loading && this.pagination.available) {
           this.loadNextUsers()
         }
       }
+    },
+    loadStats() {
+      UserAPI.getUserStats().then(res => {
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+          return
+        }
+        this.option.series[0].data.push({ name: "10", value: res["user-count-by-grade"]["grade-10"] })
+        this.option.series[0].data.push({ name: "11", value: res["user-count-by-grade"]["grade-11"] })
+        this.option.series[0].data.push({ name: "12", value: res["user-count-by-grade"]["grade-12"] })
+        this.option.series[1].data.push({ name: "Chưa kết nạp", value: res["user-count-by-role"]["regular-member"] })
+        this.option.series[1].data.push({ name: "Đã kết nạp",
+          value: res["user-count-by-role"]["certified-member"] +
+              res["user-count-by-role"]["class-deputy-secretary"] +
+              res["user-count-by-role"]["class-secretary"]
+        })
+      })
+    },
+    selectUser(index){
+      if(this.$refs.loadingStateForUserList.loading || this.$refs.loadingStateForUserProgression.loading || this.updatingBatchUsers || this.updatingUser) return
+      if(index < 0) {
+        this.selectedUser = index
+        return
+      }
+      this.$refs.loadingStateForUserProgression.activate()
+      UserAPI.getUser(this.users[index].id, {
+        "profile": false,
+        "achievements": true,
+        "annual-ranks": true
+      }).then(res => {
+        this.$refs.loadingStateForUserProgression.deactivate()
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+          return
+        }
+        this.users[index]["achievements"] = res.achievements
+        this.users[index]["annualRanks"] = res.annualRanks
+        this.selectedUser = index
+      })
+    },
+    batchUpdate() {
+      if(this.$refs.loadingStateForUserList.loading || this.updatingUser || this.updatingBatchUsers) return
+      this.updatingBatchUsers = true
+      this.processedBatchedUsers = 0
+      const role = this.batchUpdateRole
+      const users = this.selectedBatchUsers.reverse() // clone
+      users.map(v => {
+        UserAPI.updateUser(this.users[v].id, {
+          profile: {
+            role: role
+          },
+          achievements: undefined,
+          annualRanks: undefined
+        }).then(res => {
+          if(res instanceof ServerError) {
+            this.$root.popupError(res)
+          } else {
+            this.selectedBatchUsers = this.selectedBatchUsers.filter(q => q !== v)
+            this.users[v].role = role
+          }
+          if(++this.processedBatchedUsers === users.length){
+            this.updatingBatchUsers = false
+          }
+        })
+      })
+    },
+    toggleFeatured(index){
+      if(this.$refs.loadingStateForUserProgression.loading || this.updatingUser || this.updatingBatchUsers) return
+      this.updatingUser = true
+      UserAPI.updateUser(this.users[index].id, {
+        profile: {
+          featured: !this.users[index].featured
+        },
+        achievements: undefined,
+        annualRanks: undefined
+      }).then(res => {
+        this.updatingUser = false
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+          return
+        }
+        this.users[index].featured = !this.users[index].featured
+      })
+    },
+    saveProgressionChanges() {
+      if(this.$refs.loadingStateForUserProgression.loading || this.updatingUser || this.updatingBatchUsers) return
+      this.updatingUser = true
+      UserAPI.updateUser(this.users[this.selectedUser].id, {
+        profile: undefined,
+        achievements: this.users[this.selectedUser].achievements,
+        annualRanks: this.users[this.selectedUser].annualRanks
+      }).then(res => {
+        this.updatingUser = false
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+          return
+        }
+        this.$notify({
+          title: "Đã lưu thay đổi",
+          text: "",
+          type: "success"
+        });
+      })
     }
   },
   computed: {
-    sumChanges() {
-      return Object.keys(this.certChanges).length + Object.keys(this.modChanges).length
+    roleTables() {
+      return GetRoleTable().filter(v => v.role <= this.$root.user.profile.role)
     }
   },
   unmounted () {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
-    if(!this.$root.isLoggedIn()) {
-      this.$router.push(`/`)
-      return
-    }
-    this.loadNextUsers()
-    window.addEventListener('scroll', this.handleScroll)
-    setTimeout(() => {
-      if(!this.$root.profile.admin) return;
-      server.getUserStats(auth.getToken()).then(s => {
-        if (s.hasOwnProperty("error")) {
-          this.$notify({
-            title: "Tải dữ liệu thống kê thất bại",
-            text: lookupErrorCode(s["error"]),
-            type: "error"
-          });
-          return
+    const f = () => {
+      if(!this.$root.isLoggedIn() || !this.$root.isManager) {
+        this.$router.push({name: "home"})
+        return
+      }
+      window.addEventListener('scroll', this.handleScroll)
+      this.$refs.loadingStateForUserProgression.deactivate()
+      this.loadNextUsers(() => {
+        if(this.$root.isGlobalManager) {
+          this.loadStats()
         }
-        this.option.series[0].data.push({
-          value: s["class10"],
-          name: "10"
-        })
-        this.option.series[0].data.push({
-          value: s["class11"],
-          name: "11"
-        })
-        this.option.series[0].data.push({
-          value: s["class12"],
-          name: "12"
-        })
-        this.option.series[1].data.push({
-          value: s["women"],
-          name: "Nữ"
-        })
-        this.option.series[1].data.push({
-          value: s["class10"] + s["class11"] + s["class12"] - s["women"],
-          name: "Nam"
-        })
-        this.option.series[2].data.push({
-          value: s["certified"],
-          name: "Đoàn viên"
-        })
-        this.option.series[2].data.push({
-          value: s["class10"] + s["class11"] + s["class12"] - s["certified"],
-          name: "Thanh niên"
-        })
-      }, (e) => {
-        this.$notify({
-          title: "Tải dữ liệu thống kê thất bại",
-          text: e.message,
-          type: "error"
-        });
-      });
-    }, 1000)
+      })
+    }
+    this.$root.pushQueue(f.bind(this))
   }
 }
 </script>

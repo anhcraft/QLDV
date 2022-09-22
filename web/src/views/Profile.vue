@@ -1,9 +1,8 @@
 <template>
   <Header></Header>
   <section class="page-section px-10 py-8 lg:py-16">
-    <Breadcrumb text="Trang cá nhân" :link="{name: 'profile', params: { id: this.$route.params.id } }"></Breadcrumb>
     <LoadingState ref="profileLoadingState" hidden>
-      <div class="grid grid-cols-1 md:grid-cols-3 md:gap-16 mt-10">
+      <div class="grid grid-cols-1 md:grid-cols-3 md:gap-16">
         <div class="col-span-1 self-start">
 
           <div class="shadow-lg shadow-slate-400">
@@ -105,7 +104,6 @@
 
 <script>
 import Header from "../components/Header.vue";
-import Breadcrumb from "../components/Breadcrumb.vue";
 import Editor from '@tinymce/tinymce-vue'
 import profileCoverDefaultImg from "../assets/profile-cover.jpg";
 import LoadingState from "../components/LoadingState.vue";
@@ -118,7 +116,7 @@ import auth from "../auth/auth";
 
 export default {
   name: "Profile",
-  components: {Footer, LoadingState, Breadcrumb, Header, Editor},
+  components: {Footer, LoadingState, Header, Editor},
   data() {
     return {
       savingProfileSettings: false,

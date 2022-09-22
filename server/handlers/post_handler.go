@@ -9,8 +9,8 @@ import (
 	"errors"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gofiber/fiber/v2"
-	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/cast"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 	"regexp"
@@ -162,7 +162,7 @@ func setPostStat(postId uint32, userId uint16, action string) uint {
 	tx := storage.Db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "post_id"}, {Name: "user_id"}, {Name: "action"}},
 		DoNothing: true,
-	}).Create(models.PostStat{
+	}).Create(&models.PostStat{
 		PostId: postId,
 		UserId: userId,
 		Action: action,
@@ -237,6 +237,9 @@ func PostUpdateRouteHandler(c *fiber.Ctx) error {
 	req.Title = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Title))
 	req.Headline = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Headline))
 	req.Content = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Content))
+	if req.Privacy < 0 {
+		req.Privacy = 0
+	}
 
 	if len(req.Title) < MinPostTitleLength {
 		return ReturnError(c, utils.ErrPostTitleTooShort)
@@ -245,7 +248,7 @@ func PostUpdateRouteHandler(c *fiber.Ctx) error {
 	}
 
 	if req.Headline == "" {
-		req.Headline = utils.LimitString(bluemonday.StrictPolicy().Sanitize(req.Content), MaxPostHeadlineLength)
+		req.Headline = utils.LimitString(req.Content, MaxPostHeadlineLength)
 	} else if len(req.Headline) < MinPostHeadlineLength {
 		return ReturnError(c, utils.ErrPostHeadlineTooShort)
 	} else if len(req.Headline) > MaxPostHeadlineLength {
@@ -312,7 +315,7 @@ func PostDeleteRouteHandler(c *fiber.Ctx) error {
 func PostListRouteHandler(c *fiber.Ctx) error {
 	req := request.PostListModel{}
 	if err := c.QueryParser(&req); err != nil {
-		log.Error().Err(err).Msg("There was an error occurred while parsing body at #PostListRouteHandler")
+		log.Error().Err(err).Msg("There was an error occurred while parsing queries at #PostListRouteHandler")
 		return ReturnError(c, utils.ErrInvalidRequestQuery)
 	}
 	requester, err := GetRequester(c)
@@ -364,7 +367,7 @@ func PostStatUpdateRouteHandler(c *fiber.Ctx) error {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 	response := gabs.New()
-	if json.Exists("view") && json.Path("view").Data().(bool) {
+	if json.Exists("view") && cast.ToBool(json.Path("view").Data()) {
 		q := setPostStat(post.ID, requester.ID, "view")
 		if q == 0 {
 			return ReturnError(c, utils.ErrPostStatUpdateFailed)
@@ -375,7 +378,7 @@ func PostStatUpdateRouteHandler(c *fiber.Ctx) error {
 		}
 		_, _ = response.Set(v, "views")
 	}
-	if json.Exists("like") && json.Path("like").Data().(bool) {
+	if json.Exists("like") {
 		q := setPostStat(post.ID, requester.ID, "like")
 		if q == 0 {
 			return ReturnError(c, utils.ErrPostStatUpdateFailed)
