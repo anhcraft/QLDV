@@ -1,12 +1,13 @@
 <template>
-  <notifications />
-  <router-view />
+  <notifications/>
+  <router-view/>
 </template>
 
 <style>
 .vue-notification {
   font-size: 0.9rem;
 }
+
 .prose img {
   display: inline;
 }
@@ -64,17 +65,17 @@ export default {
     }
   },
   methods: {
-    isLoggedIn(){
+    isLoggedIn() {
       return auth.isLoggedIn()
     },
-    popupError(e){
-      if(e instanceof ServerError){
+    popupError(e) {
+      if (e instanceof ServerError) {
         this.$notify({
           title: "Đã xảy ra lỗi!",
           text: e.message,
           type: "error"
         });
-      } else if(e.hasOwnProperty("message")){
+      } else if (e.hasOwnProperty("message")) {
         this.$notify({
           title: "Đã xảy ra lỗi!",
           text: e["message"],
@@ -82,11 +83,11 @@ export default {
         });
       }
     },
-    pullQueue(){
+    pullQueue() {
       this.initQueue.forEach(v => v.call(null))
     },
-    pushQueue(func){
-      if(this.initialized) {
+    pushQueue(func) {
+      if (this.initialized) {
         func.call(null)
       } else {
         this.initQueue.push(func)

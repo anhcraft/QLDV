@@ -55,7 +55,7 @@
 import EventButton from "../EventButton.vue";
 import ActivityGallery from "./ActivityGallery.vue";
 import KeyMemberSlideshow from "./KeyMemberSlideshow.vue";
-import { FireIcon } from '@heroicons/vue/24/solid';
+import {FireIcon} from '@heroicons/vue/24/solid';
 import LoadingState from "../LoadingState.vue";
 import EventAPI from "../../api/event-api";
 import {ServerError} from "../../api/server-error";
@@ -78,7 +78,7 @@ export default {
     }
   },
   methods: {
-    loadOngoingEvents(){
+    loadOngoingEvents() {
       this.$refs.loadingStateOngoing.activate()
       const t = new Date().getTime()
       EventAPI.listEvents({
@@ -87,7 +87,7 @@ export default {
         "begin-date": t,
         "end-date": t,
       }).then((res) => {
-        if(res instanceof ServerError) {
+        if (res instanceof ServerError) {
           this.$root.popupError(res)
           return
         }

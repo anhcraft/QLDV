@@ -24,7 +24,7 @@ export default {
   components: {
     Header, Footer, PostSection, ActivitySection
   },
-  data(){
+  data() {
     return {
       imageGallery: []
     }
@@ -32,7 +32,7 @@ export default {
   mounted() {
     const f = () => {
       SettingAPI.getSetting("homepage").then(data => {
-        if(data instanceof ServerError) {
+        if (data instanceof ServerError) {
           this.$root.popupError(data)
           return
         }

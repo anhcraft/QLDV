@@ -4,7 +4,7 @@ const list = {
 }
 
 function lookupErrorCode(s: string): string {
-    if(s === undefined) return "-"
+    if (s === undefined) return "-"
     // @ts-ignore
     return list.hasOwnProperty(s) ? list[s] : ("Lỗi: " + s)
 }

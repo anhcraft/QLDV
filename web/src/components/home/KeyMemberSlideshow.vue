@@ -26,8 +26,8 @@
 </template>
 
 <script>
-import { Swiper, SwiperSlide } from "swiper/vue";
-import { Pagination, Autoplay } from "swiper";
+import {Swiper, SwiperSlide} from "swiper/vue";
+import {Autoplay, Pagination} from "swiper";
 import "swiper/css";
 import "swiper/css/pagination";
 import UserAPI from "../../api/user-api";
@@ -39,20 +39,20 @@ export default {
     Swiper,
     SwiperSlide,
   },
-  data(){
+  data() {
     return {
       featuredUsers: []
     }
   },
   setup() {
     return {
-      modules: [Pagination,Autoplay]
+      modules: [Pagination, Autoplay]
     }
   },
   methods: {
-    loadFeaturedMembers(){
+    loadFeaturedMembers() {
       UserAPI.listFeaturedUsers().then(data => {
-        if(data instanceof ServerError) {
+        if (data instanceof ServerError) {
           this.$root.popupError(data)
           return
         }
@@ -96,6 +96,7 @@ export default {
   background-color: #000;
   opacity: 0.5;
 }
+
 .swiper-pagination-bullet-active {
   background-color: #007AFFFF !important;
   opacity: 1;

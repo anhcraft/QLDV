@@ -9,9 +9,9 @@ let initialized = false
 
 const auth = {
     init: function (callback: () => void) {
-        if(initialized) return
-        getAuth().onAuthStateChanged(function(user) {
-            if(initialized) return
+        if (initialized) return
+        getAuth().onAuthStateChanged(function (user) {
+            if (initialized) return
             callback()
             initialized = true
         });
@@ -19,11 +19,11 @@ const auth = {
     requestAuth: function (onSuccess: () => {}, onError: (e: string | ClientError) => {}) {
         signInWithPopup(getAuth(), provider)
             .then((result) => {
-                if(result === null){
+                if (result === null) {
                     onError.call(null, new ClientError("LOGIN_FAILED"))
                     return
                 }
-                if(!result.user.email?.endsWith("@dian.sgdbinhduong.edu.vn")) {
+                if (!result.user.email?.endsWith("@dian.sgdbinhduong.edu.vn")) {
                     onError.call(null, new ClientError("USER_ILLEGAL_EMAIL"))
                     return
                 }
@@ -35,7 +35,7 @@ const auth = {
             })
     },
     getToken: function (): Promise<string> | undefined {
-        if(Cookies.get('qldvauth') === undefined) {
+        if (Cookies.get('qldvauth') === undefined) {
             return undefined
         }
         return getAuth().currentUser?.getIdToken()

@@ -7,41 +7,57 @@
     <div class="overflow-auto mt-10">
       <table class="w-max md:w-full">
         <thead class="text-left">
-          <tr>
-            <th>Tên sự kiện</th>
-            <th>Trạng thái</th>
-            <th>Thời gian</th>
-            <th>Ngày cập nhật</th>
-            <th>Ngày tạo</th>
-            <th>Thao tác</th>
-          </tr>
+        <tr>
+          <th>Tên sự kiện</th>
+          <th>Trạng thái</th>
+          <th>Thời gian</th>
+          <th>Ngày cập nhật</th>
+          <th>Ngày tạo</th>
+          <th>Thao tác</th>
+        </tr>
         </thead>
         <tbody>
-          <tr v-for="event in events">
-            <td class="max-w-xs break-words">{{ event.title }}</td>
-            <td>{{ event.status === 'ongoing' ? "Đang diễn ra" : (event.status === 'finished' ? "Đã kết thúc" : "Chưa bắt đầu") }}</td>
-            <td>
-              {{
-                new Intl.DateTimeFormat("vi-VN", {
-                  timeStyle: "medium",
-                  dateStyle: "short"
-                }).format(new Date(event.beginDate))
-              }} -
-              {{
-                new Intl.DateTimeFormat("vi-VN", {
-                  timeStyle: "medium",
-                  dateStyle: "short"
-                }).format(new Date(event.endDate))
-              }}
-            </td>
-            <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.updateDate)) }}</td>
-            <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(event.createDate)) }}</td>
-            <td class="flex flex-row gap-1">
-              <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="edit(event.id)"></PencilIcon>
-              <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="remove(event.id, event.title)"></TrashIcon>
-              <PuzzlePieceIcon class="w-6 cursor-pointer text-gray-500" @click="manageContest(event.id)"></PuzzlePieceIcon>
-            </td>
-          </tr>
+        <tr v-for="event in events">
+          <td class="max-w-xs break-words">{{ event.title }}</td>
+          <td>{{
+              event.status === 'ongoing' ? "Đang diễn ra" : (event.status === 'finished' ? "Đã kết thúc" : "Chưa bắt đầu")
+            }}
+          </td>
+          <td>
+            {{
+              new Intl.DateTimeFormat("vi-VN", {
+                timeStyle: "medium",
+                dateStyle: "short"
+              }).format(new Date(event.beginDate))
+            }} -
+            {{
+              new Intl.DateTimeFormat("vi-VN", {
+                timeStyle: "medium",
+                dateStyle: "short"
+              }).format(new Date(event.endDate))
+            }}
+          </td>
+          <td class="max-w-xs break-words">{{
+              new Intl.DateTimeFormat("vi-VN", {
+                timeStyle: "medium",
+                dateStyle: "short"
+              }).format(new Date(event.updateDate))
+            }}
+          </td>
+          <td class="max-w-xs break-words">{{
+              new Intl.DateTimeFormat("vi-VN", {
+                timeStyle: "medium",
+                dateStyle: "short"
+              }).format(new Date(event.createDate))
+            }}
+          </td>
+          <td class="flex flex-row gap-1">
+            <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="edit(event.id)"></PencilIcon>
+            <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="remove(event.id, event.title)"></TrashIcon>
+            <PuzzlePieceIcon class="w-6 cursor-pointer text-gray-500"
+                             @click="manageContest(event.id)"></PuzzlePieceIcon>
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -88,12 +104,12 @@ export default {
   methods: {
     handleScroll() {
       if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-        if(!this.$refs.loadingState.loading && this.pagination.available) {
+        if (!this.$refs.loadingState.loading && this.pagination.available) {
           this.loadNextEvents()
         }
       }
     },
-    loadNextEvents(){
+    loadNextEvents() {
       this.$refs.loadingState.activate()
       const limit = 15
       EventAPI.listEvents({
@@ -102,14 +118,14 @@ export default {
         "begin-date": 0,
         "end-date": 0
       }).then((res) => {
-        if(res instanceof ServerError) {
+        if (res instanceof ServerError) {
           this.$root.popupError(res)
           return
         }
-        if(res.length < limit) {
+        if (res.length < limit) {
           this.pagination.available = false
         }
-        if(res.length > 0) {
+        if (res.length > 0) {
           this.pagination.belowId = res[res.length - 1].id
           this.events = this.events.concat(res)
         }
@@ -117,8 +133,8 @@ export default {
       })
     },
     edit(id) {
-      if(id === undefined) this.$router.push({name: "createEvent"})
-      else this.$router.push({name: "updateEvent", params: { id: id }})
+      if (id === undefined) this.$router.push({name: "createEvent"})
+      else this.$router.push({name: "updateEvent", params: {id: id}})
     },
     manageContest(id) {
       //
@@ -129,11 +145,11 @@ export default {
       this.$refs.removePrompt.toggle()
     },
     removeEventCallback(b) {
-      if(!b || this.deletingEvent) return
+      if (!b || this.deletingEvent) return
       this.deletingEvent = true
       EventAPI.deleteEvent(this.eventRemoveId).then(s => {
         this.deletingEvent = false
-        if(s instanceof ServerError) {
+        if (s instanceof ServerError) {
           this.$root.popupError(s)
           return
         }
@@ -143,12 +159,12 @@ export default {
       })
     }
   },
-  unmounted () {
+  unmounted() {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
     const f = () => {
-      if(!this.$root.isLoggedIn() || !this.$root.isGlobalManager) {
+      if (!this.$root.isLoggedIn() || !this.$root.isGlobalManager) {
         this.$router.push({name: "home"})
         return
       }

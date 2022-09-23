@@ -1,11 +1,13 @@
 <template>
-  <router-link class="pw-container block cursor-pointer rounded-2xl before:rounded-2xl w-full max-h-[300px] lg:max-h-full relative" :to="{
+  <router-link
+      class="pw-container block cursor-pointer rounded-2xl before:rounded-2xl w-full max-h-[300px] lg:max-h-full relative"
+      :to="{
     name: 'readPost',
     params: {
       id: data.link
     }
   }">
-    <img :src="getBackground(data)" class="object-cover object-center rounded-2xl w-full max-h-[300px] lg:max-h-full" />
+    <img :src="getBackground(data)" class="object-cover object-center rounded-2xl w-full max-h-[300px] lg:max-h-full"/>
     <div class="absolute text-white top-3 right-5 z-10">
       <div class="flex flex-row gap-1">
         <EyeIcon class="w-4"></EyeIcon>
@@ -16,8 +18,10 @@
         <p>{{ data.stats.likes }}</p>
       </div>
     </div>
-    <div class="w-full absolute text-white break-words z-10 bottom-5 px-5" :class="large ? ' md:bottom-10 lg:px-10' : ''">
-      <p class="font-heading" :class="large ? 'text-xl md:text-3xl xl:text-4xl md:font-bold' : 'text-xl font-semibold'">{{ data.title }}</p>
+    <div class="w-full absolute text-white break-words z-10 bottom-5 px-5"
+         :class="large ? ' md:bottom-10 lg:px-10' : ''">
+      <p class="font-heading" :class="large ? 'text-xl md:text-3xl xl:text-4xl md:font-bold' : 'text-xl font-semibold'">
+        {{ data.title }}</p>
       <p class="font-heading">#{{ data.hashtag }}</p>
       <p class="text-sm mt-5 hidden md:block" v-if="large">
         {{ data.headline }}
@@ -28,7 +32,7 @@
 
 <script>
 import conf from "../../conf";
-import { HeartIcon, EyeIcon } from '@heroicons/vue/24/solid';
+import {EyeIcon, HeartIcon} from '@heroicons/vue/24/solid';
 
 export default {
   name: "PostWidget",
@@ -42,8 +46,8 @@ export default {
   },
   methods: {
     getBackground(data) {
-      if(data.hasOwnProperty("attachments")) {
-        if(data.attachments.length > 0) {
+      if (data.hasOwnProperty("attachments")) {
+        if (data.attachments.length > 0) {
           return conf.assetURL + '/' + data.attachments[0].id
         }
       }
@@ -65,7 +69,8 @@ export default {
   background-image: linear-gradient(180deg, transparent, #333);
   z-index: 1;
 }
-.pw-container:hover::before  {
+
+.pw-container:hover::before {
   height: 75%;
   background-image: linear-gradient(180deg, transparent, #111);
   transition: all 1s ease;

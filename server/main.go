@@ -5,8 +5,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"time"
 )
 
 func main() {
@@ -19,6 +21,11 @@ func main() {
 	}))
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestCompression,
+	}))
+	app.Use(limiter.New(limiter.Config{
+		Max:               150,
+		Expiration:        time.Minute,
+		LimiterMiddleware: limiter.SlidingWindow{},
 	}))
 
 	app.Get("/settings/:id", handlers.SettingGetRouteHandler)

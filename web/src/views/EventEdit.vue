@@ -3,7 +3,8 @@
   <section class="page-section px-3 lg:px-10 py-8 lg:py-16">
     <LoadingState ref="loadingState">
       <div class="flex flex-col gap-5 mb-10">
-        <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tên sự kiện..." v-model.trim="event.title">
+        <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tên sự kiện..."
+               v-model.trim="event.title">
 
         <div class="flex flex-row gap-5 place-items-center">
           <p>Ngày bắt đầu</p>
@@ -26,7 +27,9 @@
         </div>
 
       </div>
-      <button class="btn-success" :class="{'opacity-50' : submittingEvent}" @click="submit()">{{ $route.params.id === undefined ? "Thêm sự kiện" : "Lưu chỉnh sửa" }}</button>
+      <button class="btn-success" :class="{'opacity-50' : submittingEvent}" @click="submit()">
+        {{ $route.params.id === undefined ? "Thêm sự kiện" : "Lưu chỉnh sửa" }}
+      </button>
     </LoadingState>
   </section>
   <Footer></Footer>
@@ -64,16 +67,16 @@ export default {
   },
   methods: {
     submit() {
-      if(this.submittingEvent) return
-      if(this.event.title.length > 300){
+      if (this.submittingEvent) return
+      if (this.event.title.length > 300) {
         this.$root.popupError(new ServerError("ERROR_EVENT_TITLE_TOO_LONG"))
         return
       }
-      if(this.event.title.length < 10){
+      if (this.event.title.length < 10) {
         this.$root.popupError(new ServerError("ERROR_EVENT_TITLE_TOO_SHORT"))
         return
       }
-      if(this.event.beginDate.getTime() > this.event.endDate.getTime()){
+      if (this.event.beginDate.getTime() > this.event.endDate.getTime()) {
         this.$root.popupError(new ServerError("ERROR_EVENT_INVALID_DURATION"))
         return
       }
@@ -96,13 +99,13 @@ export default {
   },
   mounted() {
     const f = () => {
-      if(!this.$root.isLoggedIn() || !this.$root.isGlobalManager) {
+      if (!this.$root.isLoggedIn() || !this.$root.isGlobalManager) {
         this.$router.push({name: "manageEvents"})
         return
       }
-      if(this.$route.params.id !== undefined) {
+      if (this.$route.params.id !== undefined) {
         EventAPI.getEvent(this.$route.params.id).then(res => {
-          if(res instanceof ServerError) {
+          if (res instanceof ServerError) {
             this.$root.popupError(res)
             return
           }

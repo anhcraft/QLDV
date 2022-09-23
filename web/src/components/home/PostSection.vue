@@ -4,7 +4,8 @@
       <RssIcon class="w-8 h-8 text-rose-500"></RssIcon>
       <p class="text-3xl font-heading">Tin tức</p>
     </div>
-    <router-link class="centered-horizontal gap-1 ml-auto text-slate-500 hover:text-black transition-all duration-300" to="/p">
+    <router-link class="centered-horizontal gap-1 ml-auto text-slate-500 hover:text-black transition-all duration-300"
+                 to="/p">
       <p class="text-sm">Xem thêm</p>
       <ArrowRightIcon class="w-3 h-3"></ArrowRightIcon>
     </router-link>
@@ -26,7 +27,7 @@
 <script>
 import PostWidget from "./PostWidget.vue";
 import LoadingState from "../LoadingState.vue";
-import { RssIcon, ArrowRightIcon } from '@heroicons/vue/24/solid';
+import {ArrowRightIcon, RssIcon} from '@heroicons/vue/24/solid';
 import PostAPI from "../../api/post-api";
 import {ServerError} from "../../api/server-error";
 
@@ -38,13 +39,13 @@ export default {
     RssIcon,
     ArrowRightIcon
   },
-  data(){
+  data() {
     return {
       posts: []
     }
   },
   methods: {
-    loadPosts(){
+    loadPosts() {
       this.$refs.postLoadingState.activate()
       PostAPI.listPosts({
         limit: 3,
@@ -53,7 +54,7 @@ export default {
         "sort-by": "date",
         "lower-than": 0
       }).then((res) => {
-        if(res instanceof ServerError) {
+        if (res instanceof ServerError) {
           this.$root.popupError(res)
           return
         }

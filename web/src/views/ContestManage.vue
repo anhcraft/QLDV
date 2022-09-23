@@ -15,22 +15,25 @@
         </div>
         <div class="flex flex-row gap-5 place-items-center">
           <p class="font-bold">Giới hạn số câu hỏi</p>
-          <input type="number" min="3" max="100" class="border border-slate-300 px-1" v-model.number="event.contest.limitQuestions"> câu
+          <input type="number" min="3" max="100" class="border border-slate-300 px-1"
+                 v-model.number="event.contest.limitQuestions"> câu
         </div>
         <div class="flex flex-row gap-5 place-items-center">
           <p class="font-bold">Giới hạn thời gian làm</p>
-          <input type="number" min="0" max="1440" class="border border-slate-300 px-1" v-model.number="event.contest.limitTime"> phút
+          <input type="number" min="0" max="1440" class="border border-slate-300 px-1"
+                 v-model.number="event.contest.limitTime"> phút
         </div>
         <p class="italic">(Điền 0 để quy định không giới hạn về thời gian)</p>
         <div class="flex flex-row gap-5 place-items-center">
           <p class="font-bold">Giới hạn số lần làm</p>
-          <input type="number" min="1" max="30" class="border border-slate-300 px-1" v-model.number="event.contest.limitSessions"> lần
+          <input type="number" min="1" max="30" class="border border-slate-300 px-1"
+                 v-model.number="event.contest.limitSessions"> lần
         </div>
         <div class="mt-5">
           <p class="font-bold">Thông tin cuộc thi</p>
           <Editor
-            apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
-            :init="{
+              apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
+              :init="{
                   height: 300,
                   plugins: [
                     'advlist autolink link image lists charmap print preview hr anchor pagebreak',
@@ -43,7 +46,7 @@
                   menubar: false,
                   branding: false
                 }"
-            v-model="event.contest.info"
+              v-model="event.contest.info"
           ></Editor>
         </div>
       </div>
@@ -53,26 +56,30 @@
         <p class="italic">- Cột thứ hai: đáp án (a, b, c, d hoặc 1, 2, 3, 4)</p>
         <p class="italic">- 4 cột tiếp theo: các lựa chọn</p>
         <p>Người tham gia thi sẽ nhận được các câu hỏi ngẫu nhiên trong bộ câu hỏi trên.</p>
-        <input @change="onUploadDataFile" class="block mt-5 px-3 py-1 text-gray-700 text-sm bg-white border border-solid border-gray-300 rounded focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" type="file">
+        <input @change="onUploadDataFile"
+               class="block mt-5 px-3 py-1 text-gray-700 text-sm bg-white border border-solid border-gray-300 rounded focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+               type="file">
       </div>
       <div class="mt-5" v-if="event.contest.dataSheet.length > 0">
         <p class="font-bold">Bộ câu hỏi</p>
         <div class="overflow-auto">
           <table class="w-max border-collapse border border-slate-300 w-full mt-5">
             <thead>
-              <tr>
-                <th class="border border-slate-300">Câu hỏi</th>
-                <th class="border border-slate-300">Lựa chọn 1</th>
-                <th class="border border-slate-300">Lựa chọn 2</th>
-                <th class="border border-slate-300">Lựa chọn 3</th>
-                <th class="border border-slate-300">Lựa chọn 4</th>
-              </tr>
+            <tr>
+              <th class="border border-slate-300">Câu hỏi</th>
+              <th class="border border-slate-300">Lựa chọn 1</th>
+              <th class="border border-slate-300">Lựa chọn 2</th>
+              <th class="border border-slate-300">Lựa chọn 3</th>
+              <th class="border border-slate-300">Lựa chọn 4</th>
+            </tr>
             </thead>
             <tbody class="text-sm">
-              <tr v-for="item in event.contest.dataSheet">
-                <td class="border border-slate-300 p-2 max-w-xs break-words">{{ item.question }}</td>
-                <td v-for="(choice, i) in item.choices" class="border border-slate-300 p-2 max-w-xs break-words" :class="{'bg-yellow-400' : i === item.answer}">{{ choice }}</td>
-              </tr>
+            <tr v-for="item in event.contest.dataSheet">
+              <td class="border border-slate-300 p-2 max-w-xs break-words">{{ item.question }}</td>
+              <td v-for="(choice, i) in item.choices" class="border border-slate-300 p-2 max-w-xs break-words"
+                  :class="{'bg-yellow-400' : i === item.answer}">{{ choice }}
+              </td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -80,7 +87,7 @@
       <div class="mt-5">
         <button class="btn-success" @click="saveChanges">Lưu thay đổi</button>
       </div>
-   </LoadingState>
+    </LoadingState>
   </div>
   <FloatingMenu></FloatingMenu>
   <Prompt @callback="removeContestCallback" ref="removePrompt">
@@ -111,20 +118,20 @@ export default {
   methods: {
     parseAnswer(s) {
       s = String(s).trim().toLowerCase();
-      if(s === "1" || s === "a") return 0;
-      if(s === "2" || s === "b") return 1;
-      if(s === "3" || s === "c") return 2;
-      if(s === "4" || s === "d") return 3;
+      if (s === "1" || s === "a") return 0;
+      if (s === "2" || s === "b") return 1;
+      if (s === "3" || s === "c") return 2;
+      if (s === "4" || s === "d") return 3;
     },
     async onUploadDataFile(e) {
       const file = e.target.files[0];
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
-      if(workbook.SheetNames.length > 0) {
+      if (workbook.SheetNames.length > 0) {
         const sheet = workbook.Sheets[workbook.SheetNames[0]];
         const data = XLSX.utils.sheet_to_json(sheet, {header: 1});
         const preview = [];
-        for(let i = 0; i < data.length; i++){
+        for (let i = 0; i < data.length; i++) {
           const row = data[i];
           preview.push({
             question: row[0],
@@ -136,11 +143,11 @@ export default {
       }
     },
     removeContestCallback(b) {
-      if(!b) return
+      if (!b) return
       this.$refs.loadingState.activate()
       server.removeContest(this.$route.params.id, auth.getToken()).then(s => {
         this.$refs.loadingState.deactivate()
-        if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+        if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
           this.$router.push('/em/')
         } else {
           this.$notify({
@@ -157,11 +164,11 @@ export default {
         });
       })
     },
-    saveChanges(){
+    saveChanges() {
       this.$refs.loadingState.activate()
       server.changeContest(this.$route.params.id, this.event.contest, auth.getToken()).then(s => {
         this.$refs.loadingState.deactivate()
-        if(!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
+        if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
           this.$router.push('/em/')
         } else {
           this.$notify({
@@ -183,13 +190,13 @@ export default {
     }
   },
   mounted() {
-    if(!this.$root.isLoggedIn()) {
+    if (!this.$root.isLoggedIn()) {
       this.$router.push(`/`)
       return
     }
-    if(this.$route.params.id !== undefined) {
+    if (this.$route.params.id !== undefined) {
       server.loadEvent(this.$route.params.id, auth.getToken()).then(s => {
-        if(!s.hasOwnProperty("error")) {
+        if (!s.hasOwnProperty("error")) {
           if (s.hasOwnProperty("contest")) {
             s.contest.dataSheet = JSON.parse(s.contest.dataSheet)
             s.contest.limitTime /= 60000

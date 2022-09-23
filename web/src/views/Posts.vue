@@ -10,7 +10,8 @@
         <div class="btn-outline-sm"
              v-for="tag in Object.keys(pagination.hashtags)"
              :class="{'bg-violet-500 text-white' : pagination.hashtags[tag]}"
-             @click="this.switchHashtag(tag)">#{{ tag }}</div>
+             @click="this.switchHashtag(tag)">#{{ tag }}
+        </div>
       </div>
       <div class="centered-horizontal gap-1">
         <CalendarIcon class="w-8 h-8 btn-outline-sm"
@@ -61,16 +62,16 @@ export default {
   methods: {
     handleScroll() {
       if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-        if(!this.$refs.loadingState.loading && this.pagination.available) {
+        if (!this.$refs.loadingState.loading && this.pagination.available) {
           this.loadNextPosts()
         }
       }
     },
-    loadNextPosts(){
+    loadNextPosts() {
       this.$refs.loadingState.activate()
       let hashtags = []
       Object.keys(this.pagination.hashtags).forEach(t => {
-        if(this.pagination.hashtags[t]) {
+        if (this.pagination.hashtags[t]) {
           hashtags.push(t)
         }
       })
@@ -81,14 +82,14 @@ export default {
         "sort-by": this.pagination.sortBy,
         "lower-than": this.pagination.lowerThan
       }).then((res) => {
-        if(res instanceof ServerError) {
+        if (res instanceof ServerError) {
           this.$root.popupError(res)
           return
         }
-        if(res.length < 10) {
+        if (res.length < 10) {
           this.pagination.available = false
         }
-        if(res.length > 0) {
+        if (res.length > 0) {
           this.pagination.belowId = res[res.length - 1].id
           this.posts = this.posts.concat(res)
         }
@@ -106,26 +107,26 @@ export default {
       this.pagination.hashtags[tag] = !this.pagination.hashtags[tag]
       this.resetPosts();
     },
-    setSortBy(w){
-      if(w !== this.pagination.sortBy) {
+    setSortBy(w) {
+      if (w !== this.pagination.sortBy) {
         this.pagination.sortBy = w
         this.resetPosts();
       }
     }
   },
-  unmounted () {
+  unmounted() {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
     PostAPI.getHashtags().then(data => {
-      if(data instanceof ServerError) {
+      if (data instanceof ServerError) {
         this.$root.popupError(data)
         return
       }
       data.forEach(e => this.pagination.hashtags[e] = false)
-      if(this.$route.query.hasOwnProperty("tag")) {
+      if (this.$route.query.hasOwnProperty("tag")) {
         let tag = this.$route.query["tag"]
-        if(this.pagination.hashtags.hasOwnProperty(tag)) {
+        if (this.pagination.hashtags.hasOwnProperty(tag)) {
           this.pagination.hashtags[tag] = true
         }
       }

@@ -6,26 +6,33 @@
       <div class="flex flex-col gap-5 mt-5">
         <div class="centered-horizontal">
           <p>Số lượng đoàn viên tiêu biểu</p>
-          <input type="number" class="border border-slate-400 ml-5" v-model.number="homepageSettings.featuredUserLimit" min="0" max="10">
+          <input type="number" class="border border-slate-400 ml-5" v-model.number="homepageSettings.featuredUserLimit"
+                 min="0" max="10">
         </div>
         <div class="centered-horizontal">
           <p>Số lượng thành tựu tiêu biểu sẽ hiển thị</p>
-          <input type="number" class="border border-slate-400 ml-5" v-model.number="homepageSettings.featuredAchievementLimit" min="0" max="10">
+          <input type="number" class="border border-slate-400 ml-5"
+                 v-model.number="homepageSettings.featuredAchievementLimit" min="0" max="10">
         </div>
         <div>
           <div class="centered-horizontal">
             <p>Link ảnh hoạt động</p>
-            <PlusCircleIcon class="w-6 h-6 text-slate-500 cursor-pointer" @click="homepageSettings.activitySlideshow.push('')"></PlusCircleIcon>
+            <PlusCircleIcon class="w-6 h-6 text-slate-500 cursor-pointer"
+                            @click="homepageSettings.activitySlideshow.push('')"></PlusCircleIcon>
           </div>
           <ul class="list-disc list-inside">
             <li class="mt-1" v-for="(val, index) in homepageSettings.activitySlideshow">
-              <input type="text" class="border border-slate-400 px-2 py-1 rounded-md w-[400px]" v-model.trim="homepageSettings.activitySlideshow[index]">
+              <input type="text" class="border border-slate-400 px-2 py-1 rounded-md w-[400px]"
+                     v-model.trim="homepageSettings.activitySlideshow[index]">
             </li>
           </ul>
         </div>
         <div>
-          <button class="btn-success" :class="{'opacity-50' : updatingSettings}" @click="saveHomepageSettings">Cập nhật</button>
+          <button class="btn-success" :class="{'opacity-50' : updatingSettings}" @click="saveHomepageSettings">Cập
+            nhật
+          </button>
         </div>
+        <div class="font-bold mt-5">Lưu ý: Vui lòng đợi 3-5 phút để các cài đặt có tác dụng.</div>
       </div>
     </LoadingState>
   </section>
@@ -57,11 +64,11 @@ export default {
   },
   methods: {
     saveHomepageSettings() {
-      if(this.updatingSettings) return
+      if (this.updatingSettings) return
       this.updatingSettings = true
       SettingAPI.updateSetting("homepage", this.homepageSettings).then(res => {
         this.updatingSettings = false
-        if(res instanceof ServerError) {
+        if (res instanceof ServerError) {
           this.$root.popupError(res)
           return
         }
@@ -75,12 +82,12 @@ export default {
   },
   mounted() {
     const f = () => {
-      if(!this.$root.isLoggedIn() || !this.$root.isGlobalManager) {
+      if (!this.$root.isLoggedIn() || !this.$root.isGlobalManager) {
         this.$router.push({name: "home"})
         return
       }
       SettingAPI.getSetting("homepage").then(data => {
-        if(data instanceof ServerError) {
+        if (data instanceof ServerError) {
           this.$root.popupError(data)
         } else {
           if (!data.hasOwnProperty("activitySlideshow")) {

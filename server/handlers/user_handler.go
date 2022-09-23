@@ -361,7 +361,7 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 			for _, child := range json.Path("achievements").Children() {
 				title := cast.ToString(child.Path("title").Data())
 				title = strings.TrimSpace(title)
-				title = bluemonday.StripTagsPolicy().Sanitize(title)
+				title = bluemonday.StrictPolicy().Sanitize(title)
 				if len(title) == 0 {
 					continue
 				}
@@ -462,7 +462,7 @@ func UserStatGetRouteHandler(c *fiber.Ctx) error {
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	if security.GetRoleGroup(requester.Role) != security.RoleGroupGlobalManager {
+	if security.GetRoleGroup(requester.Role) < security.RoleGroupGlobalManager {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 

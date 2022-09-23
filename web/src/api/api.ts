@@ -13,15 +13,15 @@ const API = {
                 },
                 body: JSON.stringify(data)
             }).json().then((res: any) => {
-                if(res["success"]) {
+                if (res["success"]) {
                     return res["result"]
                 } else {
                     return new ServerError(res["error"])
                 }
             }, (e) => {
-                if(e instanceof HTTPError) {
+                if (e instanceof HTTPError) {
                     return e.response.json().then(res => {
-                        if(res["success"]) {
+                        if (res["success"]) {
                             return res["result"]
                         } else {
                             return new ServerError(res["error"])
@@ -42,15 +42,15 @@ const API = {
                 },
                 body: JSON.stringify(data)
             }).json().then((res: any) => {
-                if(res["success"]) {
+                if (res["success"]) {
                     return res["result"]
                 } else {
                     return new ServerError(res["error"])
                 }
             }, (e) => {
-                if(e instanceof HTTPError) {
+                if (e instanceof HTTPError) {
                     return e.response.json().then(res => {
-                        if(res["success"]) {
+                        if (res["success"]) {
                             return res["result"]
                         } else {
                             return new ServerError(res["error"])
@@ -71,15 +71,15 @@ const API = {
                 },
                 body: data
             }).json().then((res: any) => {
-                if(res["success"]) {
+                if (res["success"]) {
                     return res["result"]
                 } else {
                     return new ServerError(res["error"])
                 }
             }, (e) => {
-                if(e instanceof HTTPError) {
+                if (e instanceof HTTPError) {
                     return e.response.json().then(res => {
-                        if(res["success"]) {
+                        if (res["success"]) {
                             return res["result"]
                         } else {
                             return new ServerError(res["error"])
@@ -92,7 +92,7 @@ const API = {
         return token === undefined ? f("") : token.then(f)
     },
     getObject(endpoint: string, queries: any): Promise<any | ServerError> {
-        if(queries !== undefined && Object.keys(queries).length > 0){
+        if (queries !== undefined && Object.keys(queries).length > 0) {
             endpoint += "?" + Object.entries(queries).map(([key, val]) => `${key}=${val}`).join('&')
         }
         const f = (v: string) => {
@@ -102,15 +102,15 @@ const API = {
                     'access-token': v
                 }
             }).json().then((res: any) => {
-                if(res["success"]) {
+                if (res["success"]) {
                     return res["result"]
                 } else {
                     return new ServerError(res["error"])
                 }
             }, (e) => {
-                if(e instanceof HTTPError) {
+                if (e instanceof HTTPError) {
                     return e.response.json().then(res => {
-                        if(res["success"]) {
+                        if (res["success"]) {
                             return res["result"]
                         } else {
                             return new ServerError(res["error"])

@@ -4,11 +4,13 @@
     <LoadingState ref="loadingState">
 
       <div class="flex flex-col gap-7">
-        <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..." v-model.trim="post.title">
+        <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tiêu đề..."
+               v-model.trim="post.title">
 
         <div class="centered-horizontal">
           <span>#</span>
-          <input type="text" class="border-b-2 border-b-slate-300 w-full" placeholder="Hashtag" v-model.trim="post.hashtag" list="hashtags">
+          <input type="text" class="border-b-2 border-b-slate-300 w-full" placeholder="Hashtag"
+                 v-model.trim="post.hashtag" list="hashtags">
           <datalist id="hashtags">
             <option v-for="v in hashtags" :value="v"/>
           </datalist>
@@ -49,24 +51,33 @@
           <p class="text-xl">Ảnh đính kèm:</p>
           <div class="my-10">
             <div class="flex flex-row flex-wrap gap-3">
-              <img v-for="att in post.attachments" class="max-h-36" :class="{'border-2 border-slate-500 opacity-50' : removeAttachments.includes(att.id)}" :src="assetURL + '/' + att.id" alt="" @click="toggleAttachment(att.id)" />
+              <img v-for="att in post.attachments" class="max-h-36"
+                   :class="{'border-2 border-slate-500 opacity-50' : removeAttachments.includes(att.id)}"
+                   :src="assetURL + '/' + att.id" alt="" @click="toggleAttachment(att.id)"/>
             </div>
-            <p class="text-red-500 mt-3" v-if="removeAttachments.length > 0">Sẽ xóa {{ removeAttachments.length }} ảnh được chọn.</p>
+            <p class="text-red-500 mt-3" v-if="removeAttachments.length > 0">Sẽ xóa {{ removeAttachments.length }} ảnh
+              được chọn.</p>
           </div>
 
           <p class="font-bold">Tải ảnh mới:</p>
-          <input @change="onAttachmentChange" accept="image/*" multiple class="block px-3 py-1.5 text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none" type="file">
+          <input @change="onAttachmentChange" accept="image/*" multiple
+                 class="block px-3 py-1.5 text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                 type="file">
           <div class="flex flex-row flex-wrap gap-3 my-10">
             <img v-for="data in attachmentUpload" class="max-h-36" :src="getImageData(data)" alt=""/>
           </div>
         </div>
 
         <div>
-          <button class="btn-success float-right" :class="{'opacity-50' : submittingPost || submittingAttachments}" @click="submitPost">{{ $route.params.id === undefined ? "Đăng bài" : "Lưu chỉnh sửa" }}</button>
+          <button class="btn-success float-right" :class="{'opacity-50' : submittingPost || submittingAttachments}"
+                  @click="submitPost">{{ $route.params.id === undefined ? "Đăng bài" : "Lưu chỉnh sửa" }}
+          </button>
 
-          <div v-if="submittingAttachments || this.submittedAttachmentSuccessCount < this.submittedAttachmentExpectedCount">
+          <div
+              v-if="submittingAttachments || this.submittedAttachmentSuccessCount < this.submittedAttachmentExpectedCount">
             <progress id="file" :value="submittedAttachmentCount" :max="submittedAttachmentExpectedCount"></progress>
-            <p>Đã tải lên {{ submittedAttachmentSuccessCount }} / {{ submittedAttachmentExpectedCount }} ảnh thành công.</p>
+            <p>Đã tải lên {{ submittedAttachmentSuccessCount }} / {{ submittedAttachmentExpectedCount }} ảnh thành
+              công.</p>
           </div>
         </div>
       </div>
@@ -88,7 +99,7 @@ import Footer from "../components/Footer.vue";
 
 export default {
   "name": "PostEdit",
-  components: {LoadingState, Header, Footer, Editor },
+  components: {LoadingState, Header, Footer, Editor},
   data() {
     return {
       post: {
@@ -123,36 +134,36 @@ export default {
       return URL.createObjectURL(data)
     },
     submitPost() {
-      if(this.submittingPost) return
-      if(this.post.title.length > 300){
+      if (this.submittingPost) return
+      if (this.post.title.length > 300) {
         this.$root.popupError(new ServerError("ERROR_POST_TITLE_TOO_LONG"))
         return
       }
-      if(this.post.title.length < 10){
+      if (this.post.title.length < 10) {
         this.$root.popupError(new ServerError("ERROR_POST_TITLE_TOO_SHORT"))
         return
       }
-      if(this.post.headline.length > 250){
+      if (this.post.headline.length > 250) {
         this.$root.popupError(new ServerError("ERROR_POST_HEADLINE_TOO_LONG"))
         return
       }
-      if(this.post.headline.length > 0 && this.post.headline.length < 30){
+      if (this.post.headline.length > 0 && this.post.headline.length < 30) {
         this.$root.popupError(new ServerError("ERROR_POST_HEADLINE_TOO_SHORT"))
         return
       }
-      if(this.post.hashtag.length > 20){
+      if (this.post.hashtag.length > 20) {
         this.$root.popupError(new ServerError("ERROR_POST_HASHTAG_TOO_LONG"))
         return
       }
-      if(this.post.hashtag.length < 5){
+      if (this.post.hashtag.length < 5) {
         this.$root.popupError(new ServerError("ERROR_POST_HASHTAG_TOO_SHORT"))
         return
       }
-      if(this.post.content.length > 100000){
+      if (this.post.content.length > 100000) {
         this.$root.popupError(new ServerError("ERROR_POST_CONTENT_TOO_LONG"))
         return
       }
-      if(this.post.content.length < 100){
+      if (this.post.content.length < 100) {
         this.$root.popupError(new ServerError("ERROR_POST_CONTENT_TOO_SHORT"))
         return
       }
@@ -177,7 +188,7 @@ export default {
           this.$root.popupError(res)
           return
         }
-        if(this.attachmentUpload.length === 0){
+        if (this.attachmentUpload.length === 0) {
           this.$router.push({name: "managePosts"})
           return;
         }
@@ -196,9 +207,9 @@ export default {
               this.submittedAttachmentSuccessCount += 1
               this.post.attachments.push(res.id)
             }
-            if(++this.submittedAttachmentCount === this.submittedAttachmentExpectedCount) {
+            if (++this.submittedAttachmentCount === this.submittedAttachmentExpectedCount) {
               this.submittingAttachments = false
-              if(this.submittedAttachmentSuccessCount === this.submittedAttachmentExpectedCount) {
+              if (this.submittedAttachmentSuccessCount === this.submittedAttachmentExpectedCount) {
                 this.$router.push({name: "managePosts"})
               } else {
                 this.attachmentUpload = this.attachmentFailedUpload
@@ -213,7 +224,7 @@ export default {
       this.attachmentUpload = e.target.files
     },
     toggleAttachment(id) {
-      if(this.removeAttachments.includes(id)) {
+      if (this.removeAttachments.includes(id)) {
         this.removeAttachments = this.removeAttachments.filter(a => a !== id)
       } else {
         this.removeAttachments = this.removeAttachments.concat(id)
@@ -222,20 +233,20 @@ export default {
   },
   mounted() {
     const f = () => {
-      if(!this.$root.isLoggedIn() || !this.$root.isGlobalManager) {
+      if (!this.$root.isLoggedIn() || !this.$root.isGlobalManager) {
         this.$router.push({name: "managePosts"})
         return
       }
       PostAPI.getHashtags().then(data => {
-        if(data instanceof ServerError) {
+        if (data instanceof ServerError) {
           this.$root.popupError(data)
           return
         }
         this.hashtags = data
       })
-      if(this.$route.params.id !== undefined) {
+      if (this.$route.params.id !== undefined) {
         PostAPI.getPost(this.$route.params.id).then(res => {
-          if(res instanceof ServerError) {
+          if (res instanceof ServerError) {
             this.$root.popupError(res)
             return
           }

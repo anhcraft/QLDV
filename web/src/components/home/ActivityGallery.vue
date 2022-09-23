@@ -17,8 +17,8 @@
 </template>
 
 <script>
-import { Swiper, SwiperSlide } from "swiper/vue";
-import { Lazy, Pagination, Autoplay, EffectFade } from "swiper";
+import {Swiper, SwiperSlide} from "swiper/vue";
+import {Autoplay, EffectFade, Lazy, Pagination} from "swiper";
 import "swiper/css";
 import "swiper/css/lazy";
 import "swiper/css/pagination";
@@ -80,6 +80,7 @@ export default {
   background-color: #fff;
   opacity: 0.5;
 }
+
 .swiper-pagination-bullet-active {
   background-color: #007AFFFF !important;
   opacity: 1;

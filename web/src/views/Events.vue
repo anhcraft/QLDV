@@ -16,7 +16,7 @@
     </div>
     <div class="mt-10 flex flex-col gap-10">
       <div v-for="ent in Object.keys(scheduler)">
-        <p class="text-2xl font-heading">{{ent}}</p>
+        <p class="text-2xl font-heading">{{ ent }}</p>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mt-5">
           <EventButton v-for="data in scheduler[ent]" :data="events[data]"></EventButton>
         </div>
@@ -55,12 +55,12 @@ export default {
   methods: {
     handleScroll() {
       if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-        if(!this.$refs.loadingStateAll.loading && this.pagination.available) {
+        if (!this.$refs.loadingStateAll.loading && this.pagination.available) {
           this.loadNextEvents()
         }
       }
     },
-    loadOngoingEvents(){
+    loadOngoingEvents() {
       this.$refs.loadingStateOngoing.activate()
       const t = new Date().getTime()
       EventAPI.listEvents({
@@ -69,7 +69,7 @@ export default {
         "begin-date": t,
         "end-date": t,
       }).then((res) => {
-        if(res instanceof ServerError) {
+        if (res instanceof ServerError) {
           this.$root.popupError(res)
           return
         }
@@ -77,7 +77,7 @@ export default {
         this.$refs.loadingStateOngoing.deactivate()
       })
     },
-    loadNextEvents(){
+    loadNextEvents() {
       this.$refs.loadingStateAll.activate()
       EventAPI.listEvents({
         limit: 15,
@@ -85,16 +85,16 @@ export default {
         "begin-date": 0,
         "end-date": 0,
       }).then((res) => {
-        if(res instanceof ServerError) {
+        if (res instanceof ServerError) {
           this.$root.popupError(res)
           return
         }
-        if(res.length < 10) {
+        if (res.length < 10) {
           this.pagination.available = false
         }
-        if(res.length > 0) {
+        if (res.length > 0) {
           this.pagination.belowId = res[res.length - 1].id
-          for(let i = 0; i < res.length; i++){
+          for (let i = 0; i < res.length; i++) {
             this.indexEvent(res[i], i + this.events.length)
           }
           this.events = this.events.concat(res)
@@ -105,25 +105,25 @@ export default {
     indexEvent(ev, index) {
       let target = new Date(ev.beginDate)
       let cursor = new Date(ev.endDate)
-      if(target.getTime() > cursor.getTime()) return
+      if (target.getTime() > cursor.getTime()) return
       while (true) {
         const m = cursor.getMonth()
         const y = cursor.getFullYear()
         const k = m + "/" + y
         let arr = []
-        if(this.scheduler.hasOwnProperty(k)) {
+        if (this.scheduler.hasOwnProperty(k)) {
           arr = this.scheduler[k]
         }
         arr.push(index)
         this.scheduler[k] = arr
-        if(m === target.getMonth() && y === target.getFullYear()) {
+        if (m === target.getMonth() && y === target.getFullYear()) {
           break
         }
         cursor.setMonth(cursor.getMonth() - 1)
       }
     }
   },
-  unmounted () {
+  unmounted() {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {

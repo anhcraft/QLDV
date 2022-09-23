@@ -5,14 +5,22 @@
       <div class="centered-horizontal gap-3 text-slate-500 mb-3">
         <div class="grow"></div>
         <p>
-          <router-link class="text-cyan-500 hover:underline" :to="{ name: 'listPosts', query: { tag: post.hashtag} }">#{{ post.hashtag }}</router-link>
+          <router-link class="text-cyan-500 hover:underline" :to="{ name: 'listPosts', query: { tag: post.hashtag} }">
+            #{{ post.hashtag }}
+          </router-link>
         </p>
-        <p class="text-sm">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.updateDate)) }}</p>
+        <p class="text-sm">{{
+            new Intl.DateTimeFormat("vi-VN", {
+              timeStyle: "medium",
+              dateStyle: "short"
+            }).format(new Date(post.updateDate))
+          }}</p>
         <div class="flex flex-row gap-1 text-xs">
           <EyeIcon class="w-4"></EyeIcon>
           <p>{{ post.stats.views }}</p>
         </div>
-        <div class="flex flex-row gap-1 border-2 border-white rounded-md px-2 py-1 text-xs transition-all duration-300" :class="
+        <div class="flex flex-row gap-1 border-2 border-white rounded-md px-2 py-1 text-xs transition-all duration-300"
+             :class="
           (post.stats.liked ? 'bg-pink-500 text-white hover:bg-pink-300': '') + ' ' +
           (this.$root.isLoggedIn() ? 'cursor-pointer border-pink-500' : '')" @click="likePost()">
           <HeartIcon class="w-4" :class="post.stats.liked ? 'text-white' : 'text-pink-500'"></HeartIcon>
@@ -26,7 +34,8 @@
       <div class="mt-10">
         <viewer :images="attachments">
           <div class="grid grid-cols-6 gap-5">
-            <img v-for="src in attachments" :key="src" :src="src" class="w-full h-[150px] object-contain border border-slate-400 hover:opacity-70 cursor-pointer">
+            <img v-for="src in attachments" :key="src" :src="src"
+                 class="w-full h-[150px] object-contain border border-slate-400 hover:opacity-70 cursor-pointer">
           </div>
         </viewer>
       </div>
@@ -68,8 +77,8 @@ export default {
     }
   },
   methods: {
-    likePost(){
-      if(!this.$root.isLoggedIn()) return
+    likePost() {
+      if (!this.$root.isLoggedIn()) return
       PostAPI.updatePostStat(this.postId, {
         like: !this.post.stats.liked,
         view: undefined
@@ -86,7 +95,7 @@ export default {
   mounted() {
     const f = () => {
       PostAPI.getPost(this.postId).then(s => {
-        if(s instanceof ServerError) {
+        if (s instanceof ServerError) {
           this.$root.popupError(s)
           return
         }

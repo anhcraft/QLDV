@@ -2,69 +2,82 @@
   <Header></Header>
   <section class="page-section px-3 lg:px-10 py-8 lg:py-16">
     <div class="w-full h-48 border-slate-400 border-2 overflow-auto" v-if="this.$root.isGlobalManager">
-      <v-chart class="chart" :option="option" />
+      <v-chart class="chart" :option="option"/>
     </div>
     <div class="border border-slate-400 text-sm p-5" :class="{'opacity-20' : selectedBatchUsers.length === 0}">
       <p class="font-bold">Bạn đang chọn {{ selectedBatchUsers.length }} người dùng.</p>
       <p class="font-bold">- Thực hiện đổi chức vụ cho các người dùng trên sang:</p>
-      <select class="border-2 border-gray-300 px-2 py-0.5" :disabled="updatingBatchUsers || selectedBatchUsers.length === 0" v-model.number="batchUpdateRole">
+      <select class="border-2 border-gray-300 px-2 py-0.5"
+              :disabled="updatingBatchUsers || selectedBatchUsers.length === 0" v-model.number="batchUpdateRole">
         <option v-for="v in roleTables.filter(v => v.role > 0)" :value="v.role">{{ v.name }}</option>
       </select>
-      <button class="btn-outline-sm ml-3" :class="{'opacity-50' : updatingBatchUsers}" @click="batchUpdate()">Đồng ý</button>
+      <button class="btn-outline-sm ml-3" :class="{'opacity-50' : updatingBatchUsers}" @click="batchUpdate()">Đồng ý
+      </button>
     </div>
     <div class="overflow-auto mt-10">
       <table class="min-w-[48rem] w-full">
         <thead>
-          <tr>
-            <th></th>
-            <th>Tên</th>
-            <th>Email</th>
-            <th class="w-16">Chi đoàn</th>
-            <th class="w-24">Ngày sinh</th>
-            <th class="w-16">Giới tính</th>
-            <th class="w-16">SĐT</th>
-            <th class="w-44">Chức vụ</th>
-            <th>Thao tác</th>
-          </tr>
+        <tr>
+          <th></th>
+          <th>Tên</th>
+          <th>Email</th>
+          <th class="w-16">Chi đoàn</th>
+          <th class="w-24">Ngày sinh</th>
+          <th class="w-16">Giới tính</th>
+          <th class="w-16">SĐT</th>
+          <th class="w-44">Chức vụ</th>
+          <th>Thao tác</th>
+        </tr>
         </thead>
         <tbody>
-          <tr>
-            <td></td>
-            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model.trim="pagination.name"></td>
-            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model.trim="pagination.email"></td>
-            <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model.trim="pagination.class" v-if="this.$root.isGlobalManager"></td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td>
-              <select class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model.number="pagination.role">
-                <option v-for="v in roleTables" :value="v.role">{{ v.name }}</option>
-              </select>
-            </td>
-            <td>
-              <button class="btn-info" @click="search">Tìm và lọc</button>
-            </td>
-          </tr>
-          <tr class="border-b-2 border-b-slate-400 w-full">
-            <td></td>
-            <td colspan="8" class="text-sm italic">Đang hiện {{ this.users.length }} tài khoản, trong đó có {{ this.users.filter(u => u.gender === "female").length }} nữ. Tổng cộng có {{ this.users.filter(u => isMember(u.role)).length }} đoàn viên.</td>
-          </tr>
-          <tr v-for="(user, i) in users" class="text-sm hover:bg-blue-200 w-full" :class="{'bg-blue-200' : selectedBatchUsers.includes(i)}">
-            <td>
-              <CheckCircleIcon v-if="user.id !== $root.user.profile.id" class="w-6 cursor-pointer text-gray-300" :class="{'text-blue-500' : selectedBatchUsers.includes(i)}" @click="toggleSelectBatchUser(i)"></CheckCircleIcon>
-            </td>
-            <td class="text-base" :class="getRoleStyle(user.role)">{{ user.name }}</td>
-            <td><input v-model.trim="user.email" class="w-full" readOnly></td>
-            <td>{{ user.class }}</td>
-            <td>{{ new Intl.DateTimeFormat("vi-VN" , {dateStyle: "short"}).format(new Date(user.birthday)) }}</td>
-            <td class="text-center">{{ user.gender === "female" ? "Nữ" : "Nam" }}</td>
-            <td>{{ user.phone }}</td>
-            <td>{{ getRoleName(user.role) }}</td>
-            <td class="centered-horizontal gap-2">
-              <PencilSquareIcon class="w-6 cursor-pointer text-gray-500" @click="selectUser(i)"></PencilSquareIcon>
-              <StarIcon class="w-6 cursor-pointer text-gray-500" :class="updatingUser ? 'opacity-50' : (user.featured ? 'text-amber-500' : '')" @click="toggleFeatured(i)"></StarIcon>
-            </td>
-          </tr>
+        <tr>
+          <td></td>
+          <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full"
+                     v-model.trim="pagination.name"></td>
+          <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full"
+                     v-model.trim="pagination.email"></td>
+          <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full"
+                     v-model.trim="pagination.class" v-if="this.$root.isGlobalManager"></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>
+            <select class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model.number="pagination.role">
+              <option v-for="v in roleTables" :value="v.role">{{ v.name }}</option>
+            </select>
+          </td>
+          <td>
+            <button class="btn-info" @click="search">Tìm và lọc</button>
+          </td>
+        </tr>
+        <tr class="border-b-2 border-b-slate-400 w-full">
+          <td></td>
+          <td colspan="8" class="text-sm italic">Đang hiện {{ this.users.length }} tài khoản, trong đó có
+            {{ this.users.filter(u => u.gender === "female").length }} nữ. Tổng cộng có
+            {{ this.users.filter(u => isMember(u.role)).length }} đoàn viên.
+          </td>
+        </tr>
+        <tr v-for="(user, i) in users" class="text-sm hover:bg-blue-200 w-full"
+            :class="{'bg-blue-200' : selectedBatchUsers.includes(i)}">
+          <td>
+            <CheckCircleIcon v-if="user.id !== $root.user.profile.id" class="w-6 cursor-pointer text-gray-300"
+                             :class="{'text-blue-500' : selectedBatchUsers.includes(i)}"
+                             @click="toggleSelectBatchUser(i)"></CheckCircleIcon>
+          </td>
+          <td class="text-base" :class="getRoleStyle(user.role)">{{ user.name }}</td>
+          <td><input v-model.trim="user.email" class="w-full" readOnly></td>
+          <td>{{ user.class }}</td>
+          <td>{{ new Intl.DateTimeFormat("vi-VN", {dateStyle: "short"}).format(new Date(user.birthday)) }}</td>
+          <td class="text-center">{{ user.gender === "female" ? "Nữ" : "Nam" }}</td>
+          <td>{{ user.phone }}</td>
+          <td>{{ getRoleName(user.role) }}</td>
+          <td class="centered-horizontal gap-2">
+            <PencilSquareIcon class="w-6 cursor-pointer text-gray-500" @click="selectUser(i)"></PencilSquareIcon>
+            <StarIcon class="w-6 cursor-pointer text-gray-500"
+                      :class="updatingUser ? 'opacity-50' : (user.featured ? 'text-amber-500' : '')"
+                      @click="toggleFeatured(i)"></StarIcon>
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -76,10 +89,13 @@
   <LoadingState ref="loadingStateForUserProgression" hidden>
     <div v-if="selectedUser >= 0">
       <div class="bg-black opacity-75 fixed z-[100] top-0 left-0 w-screen h-screen" @click="selectUser(-1)"></div>
-      <div class="fixed z-[200] w-full md:w-[500px] h-screen right-0 top-0 overflow-auto bg-white border-l-2 border-l-slate-300 p-10">
-        <ChevronDoubleRightIcon class="w-8 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-1" @click="selectUser(-1)"></ChevronDoubleRightIcon>
+      <div
+          class="fixed z-[200] w-full md:w-[500px] h-screen right-0 top-0 overflow-auto bg-white border-l-2 border-l-slate-300 p-10">
+        <ChevronDoubleRightIcon class="w-8 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-1"
+                                @click="selectUser(-1)"></ChevronDoubleRightIcon>
         <p class="my-5 font-bold">{{ users[selectedUser].name }}</p>
-        <router-link target="_blank" :to="'/u/' + users[selectedUser].email.substring(0, users[selectedUser].email.search('@'))">
+        <router-link target="_blank"
+                     :to="'/u/' + users[selectedUser].email.substring(0, users[selectedUser].email.search('@'))">
           <button class="btn-info">Xem trang cá nhân</button>
         </router-link>
         <div class="border-t-2 border-t-slate-300 mt-10">
@@ -103,12 +119,16 @@
               <li class="flex flex-row" v-for="value in users[selectedUser].achievements">
                 <input type="text" class="grow border-b border-b-slate-400" v-model="value.title"> (
                 <select v-model.number="value.year" class="bg-white">
-                  <option v-for="option in [0, 1, 2, 3]" :value="users[selectedUser].entryYear + option">{{ users[selectedUser].entryYear + option }}</option>
+                  <option v-for="option in [0, 1, 2, 3]" :value="users[selectedUser].entryYear + option">
+                    {{ users[selectedUser].entryYear + option }}
+                  </option>
                 </select>)
               </li>
             </ul>
           </section>
-          <button class="btn-success mt-5" :class="{'opacity-50' : updatingUser}" @click="saveProgressionChanges">Lưu lại</button>
+          <button class="btn-success mt-5" :class="{'opacity-50' : updatingUser}" @click="saveProgressionChanges">Lưu
+            lại
+          </button>
         </div>
       </div>
     </div>
@@ -117,7 +137,13 @@
 </template>
 
 <script>
-import {ChevronDoubleRightIcon, PlusCircleIcon, CheckCircleIcon, PencilSquareIcon, StarIcon} from '@heroicons/vue/24/solid'
+import {
+  CheckCircleIcon,
+  ChevronDoubleRightIcon,
+  PencilSquareIcon,
+  PlusCircleIcon,
+  StarIcon
+} from '@heroicons/vue/24/solid'
 import {CanvasRenderer} from "echarts/renderers";
 import {PieChart} from "echarts/charts";
 import {LegendComponent, TitleComponent, TooltipComponent} from "echarts/components";
@@ -148,7 +174,15 @@ use([
 export default {
   name: "UserManage",
   components: {
-    LoadingState, Header, Footer, VChart, ChevronDoubleRightIcon, PlusCircleIcon, PencilSquareIcon, CheckCircleIcon, StarIcon
+    LoadingState,
+    Header,
+    Footer,
+    VChart,
+    ChevronDoubleRightIcon,
+    PlusCircleIcon,
+    PencilSquareIcon,
+    CheckCircleIcon,
+    StarIcon
   },
   data() {
     return {
@@ -223,22 +257,22 @@ export default {
   },
   methods: {
     toggleSelectBatchUser(u) {
-      if(this.updatingBatchUsers || this.users[u].id === this.$root.user.profile.id) return
-      if(this.selectedBatchUsers.includes(u)) {
+      if (this.updatingBatchUsers || this.users[u].id === this.$root.user.profile.id) return
+      if (this.selectedBatchUsers.includes(u)) {
         this.selectedBatchUsers = this.selectedBatchUsers.filter(v => v !== u)
       } else {
         this.selectedBatchUsers = this.selectedBatchUsers.concat(u)
       }
     },
-    getRoleName(r){
+    getRoleName(r) {
       return GetRoleName(r)
     },
-    normalizeAnnualRanks(user){
+    normalizeAnnualRanks(user) {
       const ar = {}
       ar[user.entryYear] = 0
-      ar[user.entryYear+1] = 0
-      ar[user.entryYear+2] = 0
-      if(user.hasOwnProperty("annualRanks")) {
+      ar[user.entryYear + 1] = 0
+      ar[user.entryYear + 2] = 0
+      if (user.hasOwnProperty("annualRanks")) {
         user.annualRanks.map(v => {
           if (ar.hasOwnProperty(v.year)) {
             ar[v.year] = v.level
@@ -253,19 +287,19 @@ export default {
       })
       return user.annualRanks
     },
-    getRoleStyle(role){
-      if(GetRoleGroup(role) === RoleGroupClassManager){
+    getRoleStyle(role) {
+      if (GetRoleGroup(role) === RoleGroupClassManager) {
         return 'text-emerald-500'
-      } else if(GetRoleGroup(role) >= RoleGroupGlobalManager) {
+      } else if (GetRoleGroup(role) >= RoleGroupGlobalManager) {
         return 'font-bold text-red-500'
       } else {
         return ''
       }
     },
-    isMember(r){
+    isMember(r) {
       return IsMember(r)
     },
-    loadNextUsers(callback){
+    loadNextUsers(callback) {
       this.$refs.loadingStateForUserList.activate()
       const limit = 15
       UserAPI.listUsers({
@@ -277,7 +311,7 @@ export default {
         "filter-email": this.pagination.filterEmail,
       }).then(res => {
         this.$refs.loadingStateForUserList.deactivate()
-        if(res instanceof ServerError) {
+        if (res instanceof ServerError) {
           this.$root.popupError(res)
         } else {
           if (res.length < limit) {
@@ -293,14 +327,14 @@ export default {
     },
     addAchievementSlot() {
       let a = this.users[this.selectedUser].achievements
-      if(a === undefined) a = []
+      if (a === undefined) a = []
       this.users[this.selectedUser].achievements = a.concat({
         "title": "",
         "year": a.length === 0 ? this.users[this.selectedUser].entryYear : a[a.length - 1].year
       })
     },
     search() {
-      if(this.$refs.loadingStateForUserList.loading || this.$refs.loadingStateForUserProgression.loading || this.updatingBatchUsers || this.updatingUser) return
+      if (this.$refs.loadingStateForUserList.loading || this.$refs.loadingStateForUserProgression.loading || this.updatingBatchUsers || this.updatingUser) return
       this.users = []
       this.pagination.belowId = 0
       this.pagination.available = false
@@ -309,31 +343,32 @@ export default {
     },
     handleScroll() {
       if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-        if(!this.$refs.loadingStateForUserList.loading && this.pagination.available) {
+        if (!this.$refs.loadingStateForUserList.loading && this.pagination.available) {
           this.loadNextUsers()
         }
       }
     },
     loadStats() {
       UserAPI.getUserStats().then(res => {
-        if(res instanceof ServerError) {
+        if (res instanceof ServerError) {
           this.$root.popupError(res)
           return
         }
-        this.option.series[0].data.push({ name: "10", value: res["user-count-by-grade"]["grade-10"] })
-        this.option.series[0].data.push({ name: "11", value: res["user-count-by-grade"]["grade-11"] })
-        this.option.series[0].data.push({ name: "12", value: res["user-count-by-grade"]["grade-12"] })
-        this.option.series[1].data.push({ name: "Chưa kết nạp", value: res["user-count-by-role"]["regular-member"] })
-        this.option.series[1].data.push({ name: "Đã kết nạp",
+        this.option.series[0].data.push({name: "10", value: res["user-count-by-grade"]["grade-10"]})
+        this.option.series[0].data.push({name: "11", value: res["user-count-by-grade"]["grade-11"]})
+        this.option.series[0].data.push({name: "12", value: res["user-count-by-grade"]["grade-12"]})
+        this.option.series[1].data.push({name: "Chưa kết nạp", value: res["user-count-by-role"]["regular-member"]})
+        this.option.series[1].data.push({
+          name: "Đã kết nạp",
           value: res["user-count-by-role"]["certified-member"] +
               res["user-count-by-role"]["class-deputy-secretary"] +
               res["user-count-by-role"]["class-secretary"]
         })
       })
     },
-    selectUser(index){
-      if(this.$refs.loadingStateForUserList.loading || this.$refs.loadingStateForUserProgression.loading || this.updatingBatchUsers || this.updatingUser) return
-      if(index < 0) {
+    selectUser(index) {
+      if (this.$refs.loadingStateForUserList.loading || this.$refs.loadingStateForUserProgression.loading || this.updatingBatchUsers || this.updatingUser) return
+      if (index < 0) {
         this.selectedUser = index
         return
       }
@@ -344,7 +379,7 @@ export default {
         "annual-ranks": true
       }).then(res => {
         this.$refs.loadingStateForUserProgression.deactivate()
-        if(res instanceof ServerError) {
+        if (res instanceof ServerError) {
           this.$root.popupError(res)
           return
         }
@@ -354,7 +389,7 @@ export default {
       })
     },
     batchUpdate() {
-      if(this.$refs.loadingStateForUserList.loading || this.updatingUser || this.updatingBatchUsers) return
+      if (this.$refs.loadingStateForUserList.loading || this.updatingUser || this.updatingBatchUsers) return
       this.updatingBatchUsers = true
       this.processedBatchedUsers = 0
       const role = this.batchUpdateRole
@@ -367,20 +402,20 @@ export default {
           achievements: undefined,
           annualRanks: undefined
         }).then(res => {
-          if(res instanceof ServerError) {
+          if (res instanceof ServerError) {
             this.$root.popupError(res)
           } else {
             this.selectedBatchUsers = this.selectedBatchUsers.filter(q => q !== v)
             this.users[v].role = role
           }
-          if(++this.processedBatchedUsers === users.length){
+          if (++this.processedBatchedUsers === users.length) {
             this.updatingBatchUsers = false
           }
         })
       })
     },
-    toggleFeatured(index){
-      if(this.$refs.loadingStateForUserProgression.loading || this.updatingUser || this.updatingBatchUsers) return
+    toggleFeatured(index) {
+      if (this.$refs.loadingStateForUserProgression.loading || this.updatingUser || this.updatingBatchUsers) return
       this.updatingUser = true
       UserAPI.updateUser(this.users[index].id, {
         profile: {
@@ -390,7 +425,7 @@ export default {
         annualRanks: undefined
       }).then(res => {
         this.updatingUser = false
-        if(res instanceof ServerError) {
+        if (res instanceof ServerError) {
           this.$root.popupError(res)
           return
         }
@@ -398,7 +433,7 @@ export default {
       })
     },
     saveProgressionChanges() {
-      if(this.$refs.loadingStateForUserProgression.loading || this.updatingUser || this.updatingBatchUsers) return
+      if (this.$refs.loadingStateForUserProgression.loading || this.updatingUser || this.updatingBatchUsers) return
       this.updatingUser = true
       UserAPI.updateUser(this.users[this.selectedUser].id, {
         profile: undefined,
@@ -406,7 +441,7 @@ export default {
         annualRanks: this.users[this.selectedUser].annualRanks
       }).then(res => {
         this.updatingUser = false
-        if(res instanceof ServerError) {
+        if (res instanceof ServerError) {
           this.$root.popupError(res)
           return
         }
@@ -423,19 +458,19 @@ export default {
       return GetRoleTable().filter(v => v.role <= this.$root.user.profile.role)
     }
   },
-  unmounted () {
+  unmounted() {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
     const f = () => {
-      if(!this.$root.isLoggedIn() || !this.$root.isManager) {
+      if (!this.$root.isLoggedIn() || !this.$root.isManager) {
         this.$router.push({name: "home"})
         return
       }
       window.addEventListener('scroll', this.handleScroll)
       this.$refs.loadingStateForUserProgression.deactivate()
       this.loadNextUsers(() => {
-        if(this.$root.isGlobalManager) {
+        if (this.$root.isGlobalManager) {
           this.loadStats()
         }
       })

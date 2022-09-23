@@ -8,24 +8,36 @@
     <div class="mt-5">
       <table class="w-full">
         <thead>
-          <tr>
-            <th>Email</th>
-            <th>Thời gian bắt đầu</th>
-            <th>Thời gian còn lại</th>
-            <th>Thời gian lưu bài gần nhất</th>
-            <th>Tình trạng</th>
-            <th>Điểm</th>
-          </tr>
+        <tr>
+          <th>Email</th>
+          <th>Thời gian bắt đầu</th>
+          <th>Thời gian còn lại</th>
+          <th>Thời gian lưu bài gần nhất</th>
+          <th>Tình trạng</th>
+          <th>Điểm</th>
+        </tr>
         </thead>
         <tbody>
-          <tr v-for="cs in contestSessions" class="text-sm hover:bg-blue-200 text-center">
-            <td class="text-left">{{ cs.userId }}</td>
-            <td>{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(cs.startTime)) }}</td>
-            <td>{{ stringifyTime(cs.finished ? 0 : Math.max(0, cs.endTime - new Date())) }}</td>
-            <td>{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(cs.lastAnswerSubmittedTime)) }}</td>
-            <td>{{ cs.finished ? "Đã hoàn thành" : "Đang làm bài" }}</td>
-            <td>{{ cs.score }}</td>
-          </tr>
+        <tr v-for="cs in contestSessions" class="text-sm hover:bg-blue-200 text-center">
+          <td class="text-left">{{ cs.userId }}</td>
+          <td>{{
+              new Intl.DateTimeFormat("vi-VN", {
+                timeStyle: "medium",
+                dateStyle: "short"
+              }).format(new Date(cs.startTime))
+            }}
+          </td>
+          <td>{{ stringifyTime(cs.finished ? 0 : Math.max(0, cs.endTime - new Date())) }}</td>
+          <td>{{
+              new Intl.DateTimeFormat("vi-VN", {
+                timeStyle: "medium",
+                dateStyle: "short"
+              }).format(new Date(cs.lastAnswerSubmittedTime))
+            }}
+          </td>
+          <td>{{ cs.finished ? "Đã hoàn thành" : "Đang làm bài" }}</td>
+          <td>{{ cs.score }}</td>
+        </tr>
         </tbody>
       </table>
       <LoadingState ref="sessionLoadingState">
@@ -74,10 +86,10 @@ export default {
       }
       return hours + ':' + minutes + ':' + seconds;
     },
-    loadNextSessions(){
+    loadNextSessions() {
       this.$refs.sessionLoadingState.activate()
       server.loadContestSessions(this.$route.params.id, 50, this.dataOffset, "", false, [], auth.getToken()).then(s => {
-        if(s.contestSessions.length === 0) {
+        if (s.contestSessions.length === 0) {
           this.sessionAvailable = false
         } else {
           this.dataOffset += s.contestSessions.length
@@ -88,23 +100,23 @@ export default {
     },
     handleScroll() {
       if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight) {
-        if(!this.$refs.sessionLoadingState.loading && this.sessionAvailable) {
+        if (!this.$refs.sessionLoadingState.loading && this.sessionAvailable) {
           this.loadNextSessions()
         }
       }
     }
   },
-  unmounted () {
+  unmounted() {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
-    if(!this.$root.isLoggedIn()) {
+    if (!this.$root.isLoggedIn()) {
       this.$router.push(`/`)
       return
     }
-    if(this.$route.params.id !== undefined) {
+    if (this.$route.params.id !== undefined) {
       server.loadEvent(this.$route.params.id, auth.getToken()).then(s => {
-        if(!s.hasOwnProperty("error")) {
+        if (!s.hasOwnProperty("error")) {
           if (s.hasOwnProperty("contest")) {
             s.contest.dataSheet = JSON.parse(s.contest.dataSheet)
             this.event = s;

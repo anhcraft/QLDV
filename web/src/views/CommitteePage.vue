@@ -9,9 +9,12 @@
       <div class="col-span-5">
         <div class="flex flex-col gap-5 mt-5">
           <div v-for="i in committees">
-            <div class="float-left w-32 h-32 bg-cover bg-center mr-5" :style="`background-image: url(${i.avatar})`"></div>
+            <div class="float-left w-32 h-32 bg-cover bg-center mr-5"
+                 :style="`background-image: url(${i.avatar})`"></div>
             <div>
-              <div><span class="font-bold">Họ và tên:</span> <router-link :to="'/u/' + i.user">{{ i.name }}</router-link></div>
+              <div><span class="font-bold">Họ và tên:</span>
+                <router-link :to="'/u/' + i.user">{{ i.name }}</router-link>
+              </div>
               <div><span class="font-bold">Chức vụ:</span> {{ i.role }}</div>
               <div><span class="font-bold">Email:</span> {{ i.user }}@dian.sgdbinhduong.edu.vn</div>
             </div>

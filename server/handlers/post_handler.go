@@ -9,6 +9,7 @@ import (
 	"errors"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cast"
 	"gorm.io/gorm"
@@ -234,8 +235,7 @@ func PostUpdateRouteHandler(c *fiber.Ctx) error {
 		log.Error().Err(err2).Msg("There was an error occurred while parsing body at #PostUpdateRouteHandler")
 		return ReturnError(c, utils.ErrInvalidRequestBody)
 	}
-	req.Title = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Title))
-	req.Headline = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Headline))
+	req.Title = bluemonday.StrictPolicy().Sanitize(strings.TrimSpace(req.Title))
 	req.Content = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Content))
 	if req.Privacy < 0 {
 		req.Privacy = 0
@@ -248,11 +248,13 @@ func PostUpdateRouteHandler(c *fiber.Ctx) error {
 	}
 
 	if req.Headline == "" {
-		req.Headline = utils.LimitString(req.Content, MaxPostHeadlineLength)
+		req.Headline = utils.LimitString(bluemonday.StrictPolicy().Sanitize(req.Content), MaxPostHeadlineLength)
 	} else if len(req.Headline) < MinPostHeadlineLength {
 		return ReturnError(c, utils.ErrPostHeadlineTooShort)
 	} else if len(req.Headline) > MaxPostHeadlineLength {
 		return ReturnError(c, utils.ErrPostHeadlineTooLong)
+	} else {
+		req.Headline = bluemonday.StrictPolicy().Sanitize(strings.TrimSpace(req.Headline))
 	}
 
 	if len(req.Content) < MinPostContentLength {

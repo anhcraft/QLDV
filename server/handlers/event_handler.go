@@ -9,6 +9,7 @@ import (
 	"errors"
 	"github.com/Jeffail/gabs/v2"
 	"github.com/gofiber/fiber/v2"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog/log"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -162,7 +163,7 @@ func EventUpdateRouteHandler(c *fiber.Ctx) error {
 		log.Error().Err(err2).Msg("There was an error occurred while parsing body at #EventUpdateRouteHandler")
 		return ReturnError(c, utils.ErrInvalidRequestBody)
 	}
-	req.Title = security.SafeHTMLPolicy.Sanitize(strings.TrimSpace(req.Title))
+	req.Title = bluemonday.StrictPolicy().Sanitize(strings.TrimSpace(req.Title))
 	if req.Privacy < 0 {
 		req.Privacy = 0
 	}
