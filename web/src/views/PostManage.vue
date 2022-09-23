@@ -1,8 +1,7 @@
 <template>
   <Header></Header>
-  <div class="max-w-[1024px] m-auto pb-16 p-5 md:px-10">
-    <Breadcrumb text="Quản lý bài viết" link="/pm"></Breadcrumb>
-    <div class="mt-10">
+  <section class="page-section px-3 lg:px-10 py-8 lg:py-16">
+    <div>
       <button class="btn-success" @click="createPost">Tạo bài viết</button>
     </div>
     <div class="overflow-auto mt-10">
@@ -11,7 +10,9 @@
           <tr>
             <th>Tên bài</th>
             <th>Hashtag</th>
-            <th>Ngày đăng</th>
+            <th>Ảnh đính kèm</th>
+            <th>Ngày cập nhật</th>
+            <th>Ngày tạo</th>
             <th>Lượt xem</th>
             <th>Lượt thích</th>
             <th>Thao tác</th>
@@ -21,9 +22,11 @@
           <tr v-for="post in posts">
             <td class="max-w-xs break-words">{{ post.title }}</td>
             <td class="max-w-xs break-words">#{{ post.hashtag }}</td>
-            <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</td>
-            <td class="max-w-xs break-words">{{ post.views }}</td>
-            <td class="max-w-xs break-words">{{ post.likes }}</td>
+            <td class="max-w-xs break-words">{{ post.attachments.length }}</td>
+            <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.updateDate)) }}</td>
+            <td class="max-w-xs break-words">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.createDate)) }}</td>
+            <td class="max-w-xs break-words">{{ post.stats.views }}</td>
+            <td class="max-w-xs break-words">{{ post.stats.likes }}</td>
             <td class="ml-5 flex flex-row gap-5">
               <PencilIcon class="w-6 cursor-pointer text-gray-500" @click="editPost(post.id)"></PencilIcon>
               <TrashIcon class="w-6 cursor-pointer text-gray-500" @click="removePost(post.id, post.title)"></TrashIcon>
@@ -37,29 +40,26 @@
         <div v-if="!pagination.available">Đã tải hết bài viết.</div>
       </LoadingState>
     </div>
-  </div>
-  <FloatingMenu></FloatingMenu>
+  </section>
+  <Footer></Footer>
   <Prompt @callback="removePostCallback" ref="removePrompt">
     <p class=font-bold>Bạn có muốn xóa bài viết này?</p><br> {{ postRemoveTitle }}
   </Prompt>
 </template>
 
 <script>
-import {PencilIcon, TrashIcon} from '@heroicons/vue/24/solid'
-import server from "../api/server";
+import {PencilIcon, TrashIcon} from '@heroicons/vue/24/solid';
 import Prompt from "../components/Prompt.vue";
-import auth from "../api/auth";
 import Header from "../components/Header.vue";
-import FloatingMenu from "../components/FloatingMenu.vue";
-import Breadcrumb from "../components/Breadcrumb.vue";
 import LoadingState from "../components/LoadingState.vue";
-import lookupErrorCode from "../api/errorCode";
+import PostAPI from "../api/post-api";
+import {ServerError} from "../api/server-error";
+import Footer from "../components/Footer.vue";
 
 export default {
   name: "PostManage",
   components: {
-    LoadingState, Header, FloatingMenu, Breadcrumb,
-    PencilIcon, TrashIcon, Prompt
+    Footer, LoadingState, Header, PencilIcon, TrashIcon, Prompt
   },
   data() {
     return {
@@ -71,7 +71,8 @@ export default {
         available: true
       },
       postRemoveId: -1,
-      postRemoveTitle: ''
+      postRemoveTitle: '',
+      deletingPost: false
     }
   },
   methods: {
@@ -84,28 +85,33 @@ export default {
     },
     loadNextPosts(){
       this.$refs.loadingState.activate()
-      server.loadPosts(10, [], this.pagination.sortBy, this.pagination.lowerThan, this.pagination.belowId, auth.getToken()).then(s => {
-        if(s.posts.length < 10) {
+      const limit = 15
+      PostAPI.listPosts({
+        limit: limit,
+        "below-id": this.pagination.belowId,
+        "filter-hashtags": [],
+        "sort-by": this.pagination.sortBy,
+        "lower-than": this.pagination.lowerThan
+      }).then((res) => {
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+          return
+        }
+        if(res.length < limit) {
           this.pagination.available = false
         }
-        if(s.posts.length > 0) {
-          this.pagination.belowId = s.posts[s.posts.length - 1].id
-          this.posts = this.posts.concat(s.posts)
+        if(res.length > 0) {
+          this.pagination.belowId = res[res.length - 1].id
+          this.posts = this.posts.concat(res)
         }
         this.$refs.loadingState.deactivate()
-      }, (e) => {
-        this.$notify({
-          title: "Tải bài viết thất bại",
-          text: e.message,
-          type: "error"
-        });
       })
     },
     createPost() {
-      this.$router.push(`/pe/`)
+      this.$router.push({name: "createPost"})
     },
     editPost(id) {
-      this.$router.push(`/pe/${id}/`)
+      this.$router.push({name: "updatePost", params: { id: id }})
     },
     removePost(id, name) {
       this.postRemoveId = id
@@ -113,39 +119,33 @@ export default {
       this.$refs.removePrompt.toggle()
     },
     removePostCallback(b) {
-      if(b) {
-        server.removePost(this.postRemoveId, auth.getToken()).then(s => {
-          if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-            this.posts = this.posts.filter(p => p.id !== this.postRemoveId)
-            this.postRemoveId = -1
-            this.postRemoveTitle = ''
-          } else {
-            this.$notify({
-              title: "Xóa bài viết thất bại",
-              text: lookupErrorCode(s["error"]),
-              type: "error"
-            });
-          }
-        }, (e) => {
-          this.$notify({
-            title: "Xóa bài viết thất bại",
-            text: e.message,
-            type: "error"
-          });
-        });
-      }
+      if(!b || this.deletingPost) return
+      this.deletingPost = true
+      PostAPI.deletePost(this.postRemoveId).then(s => {
+        if(s instanceof ServerError) {
+          this.deletingPost = false
+          this.$root.popupError(s)
+          return
+        }
+        this.posts = this.posts.filter(p => p.id !== this.postRemoveId)
+        this.postRemoveId = -1
+        this.postRemoveTitle = ''
+      })
     }
   },
   unmounted () {
     window.removeEventListener('scroll', this.handleScroll);
   },
   mounted() {
-    if(!this.$root.isLoggedIn()) {
-      this.$router.push(`/`)
-      return
+    const f = () => {
+      if(!this.$root.isLoggedIn() || !this.$root.isGlobalManager) {
+        this.$router.push({name: "home"})
+        return
+      }
+      this.loadNextPosts()
+      window.addEventListener('scroll', this.handleScroll)
     }
-    this.loadNextPosts()
-    window.addEventListener('scroll', this.handleScroll)
+    this.$root.pushQueue(f.bind(this))
   }
 }
 </script>

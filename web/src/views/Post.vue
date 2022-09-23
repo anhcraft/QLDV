@@ -1,156 +1,111 @@
 <template>
   <Header></Header>
-  <div class="pt-10 pb-16 px-5 md:px-0 max-w-[1100px] m-auto">
-    <Breadcrumb text="Tin tức" link="/"></Breadcrumb>
-    <div class="grid grid-cols-1 md:grid-cols-7 md:gap-16 mt-5">
-      <div class="col-span-5">
-        <LoadingState ref="loadingState">
-          <div class="centered-horizontal gap-3 text-slate-500 mb-3">
-            <div class="grow mr-10">
-              <router-link class="text-cyan-500 text-lg hover:underline" :to="'/p?tag=' + post.hashtag">#{{ post.hashtag }}</router-link>
-            </div>
-            <p class="text-sm">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.date)) }}</p>
-            <div class="flex flex-row gap-1 text-xs">
-              <EyeIcon class="w-4"></EyeIcon>
-              <p>{{ post.views }}</p>
-            </div>
-            <div class="flex flex-row gap-1 border-2 border-white rounded-md px-2 py-1 text-xs transition-all duration-300" :class="
-          (post.liked ? 'bg-pink-500 text-white hover:bg-pink-300': '') + ' ' +
+  <section class="page-section px-3 lg:px-10 py-8 lg:py-16">
+    <LoadingState ref="loadingState">
+      <div class="centered-horizontal gap-3 text-slate-500 mb-3">
+        <div class="grow"></div>
+        <p>
+          <router-link class="text-cyan-500 hover:underline" :to="{ name: 'listPosts', query: { tag: post.hashtag} }">#{{ post.hashtag }}</router-link>
+        </p>
+        <p class="text-sm">{{ new Intl.DateTimeFormat("vi-VN" , {timeStyle: "medium", dateStyle: "short"}).format(new Date(post.updateDate)) }}</p>
+        <div class="flex flex-row gap-1 text-xs">
+          <EyeIcon class="w-4"></EyeIcon>
+          <p>{{ post.stats.views }}</p>
+        </div>
+        <div class="flex flex-row gap-1 border-2 border-white rounded-md px-2 py-1 text-xs transition-all duration-300" :class="
+          (post.stats.liked ? 'bg-pink-500 text-white hover:bg-pink-300': '') + ' ' +
           (this.$root.isLoggedIn() ? 'cursor-pointer border-pink-500' : '')" @click="likePost()">
-              <HeartIcon class="w-4" :class="post.liked ? 'text-white' : 'text-pink-500'"></HeartIcon>
-              <p>{{ post.likes }}</p>
-            </div>
-          </div>
-          <article class="border-t-2 border-t-slate-300 py-10">
-            <header class="text-3xl md:text-4xl">{{ post.title }}</header>
-            <section class="mt-5 break-words prose max-w-max" v-html="post.content"></section>
-          </article>
-          <div class="mt-10 flex flex-row flex-wrap gap-3" v-if="post.attachments.length > 0">
-            <img v-for="att in post.attachments" class="max-h-36 cursor-pointer hover:opacity-80" :src="serverBaseURL + '/static/' + att.id" alt="" @click="previewImage(att.id)" />
-          </div>
-        </LoadingState>
+          <HeartIcon class="w-4" :class="post.stats.liked ? 'text-white' : 'text-pink-500'"></HeartIcon>
+          <p>{{ post.stats.likes }}</p>
+        </div>
       </div>
-    </div>
-  </div>
-  <FloatingMenu></FloatingMenu>
-  <div class="select-none" v-if="previewImageId !== undefined">
-    <div class="bg-black opacity-75 fixed top-0 left-0 w-screen h-screen" v-on:mouseenter="zoomControlShow = false" @click="previewImage(undefined)"></div>
-    <div class="md:hidden">
-      <img class="w-full fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 m-auto transition-all duration-300" :src="serverBaseURL + '/static/' + previewImageId" alt="" />
-    </div>
-    <div class="hidden md:block">
-      <img :style="`width: ${this.previewImageSize}%`" v-on:mouseenter="zoomControlShow = true" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 m-auto transition-all duration-300" :src="serverBaseURL + '/static/' + previewImageId" alt="" />
-      <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-row justify-center mt-1" v-if="zoomControlShow">
-        <MagnifyingGlassPlusIcon class="w-7 cursor-pointer p-1 bg-gray-300 hover:bg-gray-400" @click="zoomPreviewImg(1)"></MagnifyingGlassPlusIcon>
-        <MagnifyingGlassMinusIcon class="w-7 cursor-pointer p-1 bg-gray-300 hover:bg-gray-400" @click="zoomPreviewImg(-1)"></MagnifyingGlassMinusIcon>
+      <article class="border-t-2 border-t-slate-300 py-10">
+        <header class="text-3xl md:text-4xl">{{ post.title }}</header>
+        <section class="mt-5 break-words prose max-w-max" v-html="post.content"></section>
+      </article>
+      <div class="mt-10">
+        <viewer :images="attachments">
+          <div class="grid grid-cols-6 gap-5">
+            <img v-for="src in attachments" :key="src" :src="src" class="w-full h-[150px] object-contain border border-slate-400 hover:opacity-70 cursor-pointer">
+          </div>
+        </viewer>
       </div>
-    </div>
-  </div>
+    </LoadingState>
+  </section>
+  <Footer></Footer>
 </template>
 
 <script>
-import server from "../api/server";
 import conf from "../conf";
 import Header from "../components/Header.vue";
-import {MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon} from "@heroicons/vue/24/outline";
-import FloatingMenu from "../components/FloatingMenu.vue";
-import Breadcrumb from "../components/Breadcrumb.vue";
 import {EyeIcon, HeartIcon} from '@heroicons/vue/24/solid';
-import auth from "../api/auth";
 import LoadingState from "../components/LoadingState.vue";
-import lookupErrorCode from "../api/errorCode";
+import Footer from "../components/Footer.vue";
+import PostAPI from "../api/post-api";
+import {ServerError} from "../api/server-error";
+import VueViewer from 'v-viewer'
+import 'viewerjs/dist/viewer.css'
 
 export default {
   name: "Post",
   components: {
-    LoadingState, Header, FloatingMenu, Breadcrumb,
-    MagnifyingGlassPlusIcon, MagnifyingGlassMinusIcon, EyeIcon, HeartIcon
+    LoadingState, Header, Footer, EyeIcon, HeartIcon, VueViewer
   },
   data() {
     return {
-      post: {},
-      previewImageId: undefined,
-      previewImageSize: 0,
-      zoomControlShow: false
+      post: {}
     }
   },
   computed: {
-    serverBaseURL() {
-      return conf.server
-    },
     postId() {
       let s = this.$route.params.id.split(".")
       s = s[s.length - 1]
       s = s.replace(/\D/i, s)
       return s
+    },
+    attachments() {
+      return this.post.attachments.map(v => conf.assetURL + "/" + v.id)
     }
   },
   methods: {
-    previewImage(id) {
-      this.previewImageId = id
-      this.previewImageSize = 50
-      this.zoomControlShow = false
-    },
-    zoomPreviewImg(base) {
-      this.previewImageSize = Math.max(Math.min(this.previewImageSize + base * 10, 80), 50)
-    },
     likePost(){
       if(!this.$root.isLoggedIn()) return
-      server.updatePostStat(this.postId, "like", auth.getToken()).then(s => {
-        if (!s.hasOwnProperty("error") && s.hasOwnProperty("success") && s["success"]) {
-          if (this.post.liked) {
-            this.post.liked = false
-            this.post.likes = this.post.likes - 1
-          } else {
-            this.post.liked = true
-            this.post.likes = this.post.likes + 1
-          }
+      PostAPI.updatePostStat(this.postId, {
+        like: !this.post.stats.liked,
+        view: undefined
+      }).then(s => {
+        if (s instanceof ServerError) {
+          this.$root.popupError(s)
         } else {
-          this.$notify({
-            title: "Cập nhật bài viết thất bại",
-            text: lookupErrorCode(s["error"]),
-            type: "error"
-          });
+          this.post.stats.likes = s.likes
+          this.post.stats.liked = !this.post.stats.liked
         }
-      }, (e) => {
-        this.$notify({
-          title: "Lỗi hệ thống",
-          text: e.message,
-          type: "error"
-        });
       })
     }
   },
   mounted() {
-    server.loadPost(this.postId, auth.getToken()).then(s => {
-      if (s.hasOwnProperty("error")) {
-        this.$notify({
-          title: "Tải bài viết thất bại",
-          text: lookupErrorCode(s["error"]),
-          type: "error"
-        });
-        return
-      }
-      this.post = s;
-      this.$refs.loadingState.deactivate()
-      server.updatePostStat(this.postId, "view", auth.getToken()).then(s => {
-        if (s.hasOwnProperty("error") && s["error"] !== "ERR_TOKEN_VERIFY") {
-          this.$notify({
-            title: "Tải bài viết thất bại",
-            text: lookupErrorCode(s["error"]),
-            type: "error"
-          });
-        } else if(s.hasOwnProperty("success") && s["success"]) {
-          this.post.views = this.post.views + 1
+    const f = () => {
+      PostAPI.getPost(this.postId).then(s => {
+        if(s instanceof ServerError) {
+          this.$root.popupError(s)
+          return
         }
+        this.post = s;
+        this.$refs.loadingState.deactivate()
+        PostAPI.updatePostStat(this.postId, {
+          like: undefined,
+          view: true
+        }).then(s => {
+          if (s instanceof ServerError) {
+            //this.$root.popupError(s)
+          } else {
+            this.post.stats.views = s.views
+            this.post.stats.viewed = true
+          }
+        })
       })
-    }, (e) => {
-      this.$notify({
-        title: "Tải bài viết thất bại",
-        text: e.message,
-        type: "error"
-      });
-    })
+    }
+    this.$root.pushQueue(f.bind(this))
   }
 }
 </script>

@@ -8,15 +8,17 @@
           }"
           :lazy="true"
           :modules="modules">
-    <swiper-slide v-for="mem in members">
+    <swiper-slide v-for="user in featuredUsers">
       <div class="flex flex-row gap-5 my-10">
         <div>
           <div class="bg-slate-300 w-32 h-32"></div>
         </div>
         <div>
-          <p class="text-2xl">{{ mem.name }}</p>
-          <p class="italic text-sm">- Lớp {{ mem.className }}</p>
-          <p class="mt-2">{{ mem.comment }}</p>
+          <p class="text-xl">{{ user.name }}</p>
+          <p class="italic text-sm">- Lớp {{ user.class }}</p>
+          <ul class="list-disc list-inside mt-2">
+            <li v-for="val in user.achievements">{{ val.title }} ({{ val.year }})</li>
+          </ul>
         </div>
       </div>
     </swiper-slide>
@@ -28,6 +30,8 @@ import { Swiper, SwiperSlide } from "swiper/vue";
 import { Pagination, Autoplay } from "swiper";
 import "swiper/css";
 import "swiper/css/pagination";
+import UserAPI from "../../api/user-api";
+import {ServerError} from "../../api/server-error";
 
 export default {
   name: "KeyMemberSlideshow",
@@ -37,29 +41,30 @@ export default {
   },
   data(){
     return {
-      members: [
-        {
-          name: "Nguyễn Văn A",
-          className: "12AB1",
-          comment: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras aliquam velit vel ipsum elementum efficitur. Nulla porttitor id leo sit amet rhoncus. Curabitur pulvinar elit non ex commodo elementum. Duis sit amet quam aliquet, mollis metus sed, iaculis tortor."
-        },
-        {
-          name: "Nguyễn Văn B",
-          className: "12AB2",
-          comment: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras aliquam velit vel ipsum elementum efficitur. Nulla porttitor id leo sit amet rhoncus. Curabitur pulvinar elit non ex commodo elementum. Duis sit amet quam aliquet, mollis metus sed, iaculis tortor."
-        },
-        {
-          name: "Nguyễn Văn C",
-          className: "12A1",
-          comment: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras aliquam velit vel ipsum elementum efficitur. Nulla porttitor id leo sit amet rhoncus. Curabitur pulvinar elit non ex commodo elementum. Duis sit amet quam aliquet, mollis metus sed, iaculis tortor."
-        }
-      ]
+      featuredUsers: []
     }
   },
   setup() {
     return {
       modules: [Pagination,Autoplay]
     }
+  },
+  methods: {
+    loadFeaturedMembers(){
+      UserAPI.listFeaturedUsers().then(data => {
+        if(data instanceof ServerError) {
+          this.$root.popupError(data)
+          return
+        }
+        this.featuredUsers = data
+      })
+    }
+  },
+  mounted() {
+    const f = () => {
+      this.loadFeaturedMembers()
+    }
+    this.$root.pushQueue(f.bind(this))
   }
 }
 </script>

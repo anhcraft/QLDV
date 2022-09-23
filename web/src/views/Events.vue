@@ -1,6 +1,6 @@
 <template>
   <Header></Header>
-  <section class="page-section px-10 py-8 lg:py-16">
+  <section class="page-section px-3 lg:px-10 py-8 lg:py-16">
     <div class="centered-horizontal mb-5 gap-3">
       <FireIcon class="w-8 h-8 text-rose-500"></FireIcon>
       <p class="text-3xl font-heading">Đang diễn ra</p>
@@ -25,23 +25,21 @@
     <LoadingState ref="loadingStateAll"></LoadingState>
   </section>
   <Footer></Footer>
-  <FloatingMenu></FloatingMenu>
 </template>
 
 <script>
 import Header from "../components/Header.vue";
 import Footer from "../components/Footer.vue";
-import FloatingMenu from "../components/FloatingMenu.vue";
 import EventButton from "../components/EventButton.vue";
 import LoadingState from "../components/LoadingState.vue";
 import {CircleStackIcon, FireIcon} from '@heroicons/vue/24/solid';
-import server from "../api/server";
-import auth from "../api/auth";
+import EventAPI from "../api/event-api";
+import {ServerError} from "../api/server-error";
 
 export default {
   name: "Events",
   components: {
-    Header, Footer, FloatingMenu, LoadingState, FireIcon, EventButton, CircleStackIcon
+    Header, Footer, LoadingState, FireIcon, EventButton, CircleStackIcon
   },
   data() {
     return {
@@ -65,37 +63,43 @@ export default {
     loadOngoingEvents(){
       this.$refs.loadingStateOngoing.activate()
       const t = new Date().getTime()
-      server.loadEvents(20, 0, t, t, auth.getToken()).then(s => {
-        this.onGoingEvents = s.events
+      EventAPI.listEvents({
+        limit: 10,
+        "below-id": 0,
+        "begin-date": t,
+        "end-date": t,
+      }).then((res) => {
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+          return
+        }
+        this.onGoingEvents = res
         this.$refs.loadingStateOngoing.deactivate()
-      }, (e) => {
-        this.$notify({
-          title: "Tải sự kiện thất bại",
-          text: e.message,
-          type: "error"
-        });
       })
     },
     loadNextEvents(){
       this.$refs.loadingStateAll.activate()
-      server.loadEvents(10, this.pagination.belowId, 0, 0, auth.getToken()).then(s => {
-        if(s.events.length < 10) {
+      EventAPI.listEvents({
+        limit: 15,
+        "below-id": this.pagination.belowId,
+        "begin-date": 0,
+        "end-date": 0,
+      }).then((res) => {
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+          return
+        }
+        if(res.length < 10) {
           this.pagination.available = false
         }
-        if(s.events.length > 0) {
-          this.pagination.belowId = s.events[s.events.length - 1].id
-          for(let i = 0; i < s.events.length; i++){
-            this.indexEvent(s.events[i], i + this.events.length)
+        if(res.length > 0) {
+          this.pagination.belowId = res[res.length - 1].id
+          for(let i = 0; i < res.length; i++){
+            this.indexEvent(res[i], i + this.events.length)
           }
-          this.events = this.events.concat(s.events)
+          this.events = this.events.concat(res)
         }
         this.$refs.loadingStateAll.deactivate()
-      }, (e) => {
-        this.$notify({
-          title: "Tải sự kiện thất bại",
-          text: e.message,
-          type: "error"
-        });
       })
     },
     indexEvent(ev, index) {

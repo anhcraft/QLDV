@@ -7,6 +7,8 @@ require (
 	github.com/Jeffail/gabs/v2 v2.6.1
 	github.com/gofiber/fiber/v2 v2.24.0
 	github.com/microcosm-cc/bluemonday v1.0.18
+	github.com/rs/zerolog v1.28.0
+	github.com/spf13/cast v1.5.0
 	github.com/stretchr/testify v1.6.1
 	gorm.io/driver/mysql v1.2.2
 	gorm.io/gorm v1.22.4
@@ -28,12 +30,14 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/google/go-cmp v0.5.6 // indirect
+	github.com/google/go-cmp v0.5.7 // indirect
 	github.com/googleapis/gax-go/v2 v2.1.1 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.4 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
+	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.31.0 // indirect

@@ -13,90 +13,116 @@
 </style>
 
 <script>
-import auth from "./api/auth";
-import server from "./api/server";
+import auth from "./auth/auth";
 import profileCoverDefaultImg from "./assets/profile-cover.jpg"
+import UserAPI from "./api/user-api";
+import {ServerError} from "./api/server-error";
 import conf from "./conf";
-import lookupErrorCode from "./api/errorCode";
+import {GetRoleGroup, IsManager, RoleGroupGlobalManager} from "./auth/roles";
+import {nextTick} from "vue";
 
 export default {
   data() {
     return {
       loadingProfile: false,
-      progressionLoading: false,
-      progressionLoaded: false,
-      profile: {
-        email: "",
-        name: "",
-        certified: false,
-        admin: false,
-        mod: false,
-        gender: false,
-        class: "",
-        entryDate: 2022,
-        endDate: 2022,
-        studentId: "0000000000000000",
+      initialized: false,
+      initQueue: [],
+      user: {
+        profile: {
+          id: 0,
+          email: "",
+          role: 0,
+          name: "",
+          gender: "male",
+          birthday: 0,
+          entryYear: 0,
+          phone: "",
+          class: "",
+          settings: {
+            profileLocked: false,
+            classPublic: false,
+            achievementPublic: false,
+            annualRankPublic: false
+          },
+          profileCover: "",
+          profileBoard: "",
+          updateDate: 0,
+          createDate: 0
+        },
         achievements: [],
-        rates: {},
-        profileCover: undefined,
-        profileBoard: ""
-      }
+        annualRanks: []
+      },
+      mountQueue: []
     }
   },
   computed: {
-    formattedStudentId() {
-      const chunks = [];
-      for (let i = 0, charsLength = this.profile.studentId.length; i < charsLength; i += 4) {
-        chunks.push(this.profile.studentId.substring(i, i + 4));
-      }
-      return chunks.join(" ");
+    isManager() {
+      return IsManager(this.user.profile.role)
     },
-  },
-  methods: {
-    isLoggedIn() {
-      return auth.isLoggedIn()
+    isGlobalManager() {
+      return GetRoleGroup(this.user.profile.role) >= RoleGroupGlobalManager
     }
   },
-  mounted() {
-    if(!this.isLoggedIn()) {
+  methods: {
+    isLoggedIn(){
+      return auth.isLoggedIn()
+    },
+    popupError(e){
+      if(e instanceof ServerError){
+        this.$notify({
+          title: "Đã xảy ra lỗi!",
+          text: e.message,
+          type: "error"
+        });
+      } else if(e.hasOwnProperty("message")){
+        this.$notify({
+          title: "Đã xảy ra lỗi!",
+          text: e["message"],
+          type: "error"
+        });
+      }
+    },
+    pullQueue(){
+      this.initQueue.forEach(v => v.call(null))
+    },
+    pushQueue(func){
+      if(this.initialized) {
+        func.call(null)
+      } else {
+        this.initQueue.push(func)
+      }
+    }
+  },
+  async mounted() {
+    await nextTick()
+    if (!this.isLoggedIn()) {
+      this.initialized = true
+      this.pullQueue()
       return
     }
     this.loadingProfile = true
-    server.loadProfile('', auth.getToken()).then(s => {
-      if (s.hasOwnProperty("error")) {
-        this.$notify({
-          title: "Tải thông tin thất bại",
-          text: lookupErrorCode(s["error"]),
-          type: "error"
-        });
-        auth.setAuthenticated(false)
-        window.location.reload();
+    UserAPI.getUser("", {
+      profile: true,
+      achievements: false,
+      "annual-ranks": false
+    }).then((res) => {
+      this.loadingProfile = false
+      if (res instanceof ServerError) {
+        this.$root.popupError(res)
+        this.initialized = true
+        this.pullQueue()
         return
       }
-      this.profile.email = s["email"];
-      this.profile.name = s["name"];
-      this.profile.certified = s["certified"];
-      this.profile.admin = s["admin"];
-      this.profile.mod = s["mod"];
-      this.profile.gender = s["gender"];
-      this.profile.entryDate = parseInt(s["entry"]);
-      this.profile.endDate = this.profile.entryDate + 3;
-      this.profile.class = s["class"];
-      this.profile.studentId = s["sid"];
-      if (s["profileCover"].length > 0) {
-        this.profile.profileCover = conf.server + "/static/" + s["profileCover"];
+      if (res.profile.profileCover === "") {
+        res.profile.profileCover = profileCoverDefaultImg
       } else {
-        this.profile.profileCover = profileCoverDefaultImg
+        res.profile.profileCover = conf.assetURL + "/" + res.profile.profileCover
       }
-      this.profile.profileBoard = s["profileBoard"]
-      this.loadingProfile = false
-    }, (e) => {
-      this.$notify({
-        title: "Tải thông tin thất bại",
-        text: e.message,
-        type: "error"
-      });
-    });
+      Object.assign(this.user, res)
+      this.$forceUpdate()
+      this.initialized = true
+      this.pullQueue()
+    })
   }
 }
 </script>

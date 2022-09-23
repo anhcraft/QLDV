@@ -7,10 +7,10 @@
     <div class="md:w-[600px] md:h-[450px] md:rotate-[-5deg] relative m-auto">
       <img src="../../assets/activity-gallery-bg.svg" class="absolute w-full h-full z-10 hidden md:block">
       <div class="md:absolute top-20 left-24 right-24 bottom-20">
-        <ActivityGallery></ActivityGallery>
+        <ActivityGallery :images="imageGallery"></ActivityGallery>
       </div>
     </div>
-    <div class="mt-5 xl:mt-0">
+    <div class="mt-10 xl:mt-0">
       <div class="text-3xl font-heading text-center">Câu lạc bộ</div>
       <div class="grid grid-cols-2 gap-5 xl:gap-14 font-heading text-lg text-center">
         <div class="self-end">
@@ -56,9 +56,9 @@ import EventButton from "../EventButton.vue";
 import ActivityGallery from "./ActivityGallery.vue";
 import KeyMemberSlideshow from "./KeyMemberSlideshow.vue";
 import { FireIcon } from '@heroicons/vue/24/solid';
-import server from "../../api/server";
-import auth from "../../api/auth";
 import LoadingState from "../LoadingState.vue";
+import EventAPI from "../../api/event-api";
+import {ServerError} from "../../api/server-error";
 
 export default {
   name: "ActivitySection",
@@ -69,6 +69,9 @@ export default {
     FireIcon,
     LoadingState
   },
+  props: {
+    imageGallery: Array
+  },
   data() {
     return {
       onGoingEvents: []
@@ -78,20 +81,26 @@ export default {
     loadOngoingEvents(){
       this.$refs.loadingStateOngoing.activate()
       const t = new Date().getTime()
-      server.loadEvents(8, 0, t, t, auth.getToken()).then(s => {
-        this.onGoingEvents = s.events
+      EventAPI.listEvents({
+        limit: 8,
+        "below-id": 0,
+        "begin-date": t,
+        "end-date": t,
+      }).then((res) => {
+        if(res instanceof ServerError) {
+          this.$root.popupError(res)
+          return
+        }
+        this.onGoingEvents = res
         this.$refs.loadingStateOngoing.deactivate()
-      }, (e) => {
-        this.$notify({
-          title: "Tải sự kiện thất bại",
-          text: e.message,
-          type: "error"
-        });
       })
-    },
+    }
   },
   mounted() {
-    this.loadOngoingEvents()
+    const f = () => {
+      this.loadOngoingEvents()
+    }
+    this.$root.pushQueue(f.bind(this))
   }
 }
 </script>

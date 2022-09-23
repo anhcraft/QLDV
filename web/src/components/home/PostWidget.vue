@@ -1,14 +1,19 @@
 <template>
-  <router-link class="pw-container block cursor-pointer rounded-2xl before:rounded-2xl w-full max-h-[300px] lg:max-h-full relative" :to="'/p/' + data.link">
+  <router-link class="pw-container block cursor-pointer rounded-2xl before:rounded-2xl w-full max-h-[300px] lg:max-h-full relative" :to="{
+    name: 'readPost',
+    params: {
+      id: data.link
+    }
+  }">
     <img :src="getBackground(data)" class="object-cover object-center rounded-2xl w-full max-h-[300px] lg:max-h-full" />
     <div class="absolute text-white top-3 right-5 z-10">
       <div class="flex flex-row gap-1">
         <EyeIcon class="w-4"></EyeIcon>
-        <p>{{ data.views }}</p>
+        <p>{{ data.stats.views }}</p>
       </div>
       <div class="flex flex-row gap-1">
         <HeartIcon class="w-4"></HeartIcon>
-        <p>{{ data.likes }}</p>
+        <p>{{ data.stats.likes }}</p>
       </div>
     </div>
     <div class="w-full absolute text-white break-words z-10 bottom-5 px-5" :class="large ? ' md:bottom-10 lg:px-10' : ''">
@@ -39,7 +44,7 @@ export default {
     getBackground(data) {
       if(data.hasOwnProperty("attachments")) {
         if(data.attachments.length > 0) {
-          return conf.server + '/static/' + data.attachments[0].id
+          return conf.assetURL + '/' + data.attachments[0].id
         }
       }
       return "https://i.ibb.co/WFJ07mW/aH4g7pj.jpg";

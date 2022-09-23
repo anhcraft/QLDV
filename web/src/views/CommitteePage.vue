@@ -1,6 +1,6 @@
 <template>
   <Header></Header>
-  <section class="page-section px-10 py-8 lg:py-16">
+  <section class="page-section px-3 lg:px-10 py-8 lg:py-16">
     <div class="centered-horizontal mb-5 gap-3">
       <UserGroupIcon class="w-8 h-8 text-rose-500"></UserGroupIcon>
       <p class="text-3xl font-heading">Ban chấp hành</p>
@@ -21,12 +21,10 @@
     </div>
   </section>
   <Footer></Footer>
-  <FloatingMenu></FloatingMenu>
 </template>
 
 <script>
 import Header from "../components/Header.vue";
-import FloatingMenu from "../components/FloatingMenu.vue";
 import Breadcrumb from "../components/Breadcrumb.vue";
 import {UserGroupIcon} from "@heroicons/vue/24/solid";
 import Footer from "../components/Footer.vue";
@@ -34,7 +32,7 @@ import Footer from "../components/Footer.vue";
 export default {
   name: "CommitteePage",
   components: {
-    Header, Footer, FloatingMenu, Breadcrumb, UserGroupIcon
+    Header, Footer, Breadcrumb, UserGroupIcon
   },
   data() {
     return {
