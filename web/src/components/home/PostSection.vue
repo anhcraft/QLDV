@@ -63,7 +63,10 @@ export default {
     }
   },
   mounted() {
-    this.loadPosts()
+    const f = () => {
+      this.loadPosts()
+    }
+    this.$root.pushQueue(f.bind(this))
   }
 }
 </script>

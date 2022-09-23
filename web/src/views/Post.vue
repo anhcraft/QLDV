@@ -1,6 +1,6 @@
 <template>
   <Header></Header>
-  <section class="page-section px-10 py-8 lg:py-16">
+  <section class="page-section px-3 lg:px-10 py-8 lg:py-16">
     <LoadingState ref="loadingState">
       <div class="centered-horizontal gap-3 text-slate-500 mb-3">
         <div class="grow"></div>
@@ -97,7 +97,7 @@ export default {
           view: true
         }).then(s => {
           if (s instanceof ServerError) {
-            this.$root.popupError(s)
+            //this.$root.popupError(s)
           } else {
             this.post.stats.views = s.views
             this.post.stats.viewed = true

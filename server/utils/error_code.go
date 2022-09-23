@@ -3,8 +3,9 @@ package utils
 const ErrInvalidRequestQuery = "ERROR_INVALID_REQUEST_QUERY"
 const ErrInvalidRequestBody = "ERROR_INVALID_REQUEST_BODY"
 
+const ErrSettingUpdateFailed = "ERROR_SETTING_UPDATE_FAILED"
+
 const ErrTokenVerify = "ERROR_TOKEN_VERIFY"
-const ErrInvalidToken = "ERROR_INVALID_TOKEN"
 const ErrUnknownTokenOwner = "ERROR_UNKNOWN_TOKEN_OWNER"
 const ErrNoPermission = "ERROR_NO_PERMISSION"
 

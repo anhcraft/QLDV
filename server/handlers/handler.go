@@ -14,6 +14,11 @@ var guestUser = &models.User{
 	Role: security.RoleGuest,
 }
 
+var rootUser = &models.User{
+	ID:   0, // pick 0 since MySQL auto-increment counter starts from 1
+	Role: security.RoleRoot,
+}
+
 // GetRequester Returns the user who did the request
 // - 1st return value is always not-null; if the authentication failed, it returns a "dummy" guest
 // - 2nd return value is the error code; will be empty in case of success

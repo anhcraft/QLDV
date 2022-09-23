@@ -52,9 +52,13 @@ func getUserById(id interface{}) *models.User {
 	}
 }
 
-func getAchievementById(id interface{}) []models.Achievement {
+func getAchievementById(id interface{}, lim uint8) []models.Achievement {
 	var achievements []models.Achievement
-	result := storage.Db.Order("year").Find(&achievements, "user_id = ?", id)
+	result := storage.Db.Order("year DESC")
+	if lim > 0 {
+		result = result.Limit(int(lim))
+	}
+	result = result.Find(&achievements, "user_id = ?", id)
 	if result.Error != nil {
 		log.Error().Err(result.Error).Msg("An error occurred at #getAchievementById while processing DB transaction")
 	}
@@ -63,7 +67,7 @@ func getAchievementById(id interface{}) []models.Achievement {
 
 func getAnnualRankById(id interface{}) []models.AnnualRank {
 	var ranks []models.AnnualRank
-	result := storage.Db.Order("year").Find(&ranks, "user_id = ?", id)
+	result := storage.Db.Order("year DESC").Find(&ranks, "user_id = ?", id)
 	if result.Error != nil {
 		log.Error().Err(result.Error).Msg("An error occurred at #getAnnualRankById while processing DB transaction")
 	}
@@ -161,6 +165,17 @@ func getUsers(req *request.UserListModel) []models.User {
 	return users
 }
 
+func getFeaturedUsers(limit uint8) []models.User {
+	var users []models.User
+	cmd := storage.Db.Limit(int(limit))
+	cmd = cmd.Where("featured = ?", true)
+	cmd = cmd.Find(&users)
+	if cmd.Error != nil {
+		log.Error().Err(cmd.Error).Msg("An error occurred at #getFeaturedUsers while processing DB transaction")
+	}
+	return users
+}
+
 func setProfileCover(id uint16, data []byte, ext string) (bool, string) {
 	_ = os.Mkdir("public", os.ModePerm)
 	hash := sha256.New()
@@ -211,7 +226,7 @@ func UserGetRouteHandler(c *fiber.Ctx) error {
 	}
 	if req.Achievements && (requester.HasPrivilegeOver(who) || who.IsAchievementPublic()) {
 		_, _ = data.Array("achievements")
-		for _, v := range getAchievementById(who.ID) {
+		for _, v := range getAchievementById(who.ID, 0) {
 			_ = data.ArrayAppend(v.Serialize(), "achievements")
 		}
 	}
@@ -416,6 +431,29 @@ func UserListRouteHandler(c *fiber.Ctx) error {
 	for _, user := range getUsers(&req) {
 		_ = users.ArrayAppend(user.Serialize(requester), "users")
 	}
+	return ReturnJSON(c, users)
+}
+
+func FeaturedUserListRouteHandler(c *fiber.Ctx) error {
+	users := gabs.New()
+	_, _ = users.Array("users")
+	json, err := gabs.ParseJSON([]byte(getSetting(HomepageSettingKey, rootUser)))
+	if err == nil {
+		featuredUserLimit := cast.ToUint8(json.Path("featuredUserLimit").Data())
+		featuredAchievementLimit := cast.ToUint8(json.Path("featuredAchievementLimit").Data())
+		for _, user := range getFeaturedUsers(featuredUserLimit) {
+			u := gabs.New()
+			_, _ = u.Set(user.ID, "id")
+			_, _ = u.Set(user.Class, "class")
+			_, _ = u.Set(user.Name, "name")
+			_, _ = u.Array("achievements")
+			for _, v := range getAchievementById(user.ID, featuredAchievementLimit) {
+				_ = u.ArrayAppend(v.Serialize(), "achievements")
+			}
+			_ = users.ArrayAppend(u, "users")
+		}
+	}
+
 	return ReturnJSON(c, users)
 }
 

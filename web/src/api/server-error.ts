@@ -1,8 +1,8 @@
 const list = {
     "ERROR_INVALID_REQUEST_QUERY": "Lỗi gói tệp tin #1",
     "ERROR_INVALID_REQUEST_BODY": "Lỗi gói tệp tin #2",
+    "ERROR_SETTING_UPDATE_FAILED": "Cập nhật cài đặt thất bại",
     "ERROR_TOKEN_VERIFY": "Không thể xác thực người dùng",
-    "ERROR_INVALID_TOKEN": "Sai mã xác thực",
     "ERROR_UNKNOWN_TOKEN_OWNER": "Không thể tìm thấy người dùng",
     "ERROR_NO_PERMISSION": "Không có quyền truy cập",
     "ERROR_UNKNOWN_USER": "Không tìm thấy người dùng",

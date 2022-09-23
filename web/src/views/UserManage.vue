@@ -1,7 +1,7 @@
 <template>
   <Header></Header>
-  <section class="page-section px-10 py-8 lg:py-16">
-    <div class="w-full h-48 my-10 border-slate-400 border-2" v-if="this.$root.isGlobalManager">
+  <section class="page-section px-3 lg:px-10 py-8 lg:py-16">
+    <div class="w-full h-48 border-slate-400 border-2 overflow-auto" v-if="this.$root.isGlobalManager">
       <v-chart class="chart" :option="option" />
     </div>
     <div class="border border-slate-400 text-sm p-5" :class="{'opacity-20' : selectedBatchUsers.length === 0}">
@@ -13,7 +13,7 @@
       <button class="btn-outline-sm ml-3" :class="{'opacity-50' : updatingBatchUsers}" @click="batchUpdate()">Đồng ý</button>
     </div>
     <div class="overflow-auto mt-10">
-      <table class="w-full">
+      <table class="min-w-[48rem] w-full">
         <thead>
           <tr>
             <th></th>
@@ -28,7 +28,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr class="w-full">
+          <tr>
             <td></td>
             <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model.trim="pagination.name"></td>
             <td><input placeholder="..." class="border-2 border-gray-300 px-2 py-0.5 w-full" v-model.trim="pagination.email"></td>
@@ -54,7 +54,7 @@
               <CheckCircleIcon v-if="user.id !== $root.user.profile.id" class="w-6 cursor-pointer text-gray-300" :class="{'text-blue-500' : selectedBatchUsers.includes(i)}" @click="toggleSelectBatchUser(i)"></CheckCircleIcon>
             </td>
             <td class="text-base" :class="getRoleStyle(user.role)">{{ user.name }}</td>
-            <td>{{ user.email }}</td>
+            <td><input v-model.trim="user.email" class="w-full" readOnly></td>
             <td>{{ user.class }}</td>
             <td>{{ new Intl.DateTimeFormat("vi-VN" , {dateStyle: "short"}).format(new Date(user.birthday)) }}</td>
             <td class="text-center">{{ user.gender === "female" ? "Nữ" : "Nam" }}</td>

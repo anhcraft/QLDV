@@ -7,10 +7,10 @@
     <div class="md:w-[600px] md:h-[450px] md:rotate-[-5deg] relative m-auto">
       <img src="../../assets/activity-gallery-bg.svg" class="absolute w-full h-full z-10 hidden md:block">
       <div class="md:absolute top-20 left-24 right-24 bottom-20">
-        <ActivityGallery></ActivityGallery>
+        <ActivityGallery :images="imageGallery"></ActivityGallery>
       </div>
     </div>
-    <div class="mt-5 xl:mt-0">
+    <div class="mt-10 xl:mt-0">
       <div class="text-3xl font-heading text-center">Câu lạc bộ</div>
       <div class="grid grid-cols-2 gap-5 xl:gap-14 font-heading text-lg text-center">
         <div class="self-end">
@@ -69,6 +69,9 @@ export default {
     FireIcon,
     LoadingState
   },
+  props: {
+    imageGallery: Array
+  },
   data() {
     return {
       onGoingEvents: []
@@ -91,10 +94,13 @@ export default {
         this.onGoingEvents = res
         this.$refs.loadingStateOngoing.deactivate()
       })
-    },
+    }
   },
   mounted() {
-    this.loadOngoingEvents()
+    const f = () => {
+      this.loadOngoingEvents()
+    }
+    this.$root.pushQueue(f.bind(this))
   }
 }
 </script>

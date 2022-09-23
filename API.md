@@ -475,3 +475,16 @@ Every response will be based on the following format:
   "success": true
 }
 ```
+
+---
+
+### GET /settings/:id
+- Gets a system setting
+- Note:
+  + The requester must have the right permission to access the setting
+
+### POST /settings/:id
+- Updates a system setting
+- Note:
+  + The requester must have the right permission to access the setting
+  + The settings will be validated and only permitted fields are allowed to be updated; and the remaining is discarded.

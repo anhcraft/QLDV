@@ -27,7 +27,7 @@
         </div>
       </div>
 
-      <div class="pt-24 pb-10 relative">
+      <div class="pt-16 md:pt-24 pb-10 relative">
         <div class="page-section w-fit md:w-full relative">
           <div class="xl:centered-horizontal gap-3 xl:px-10">
 
@@ -95,12 +95,16 @@ export default {
       ]
       if(this.$root.isGlobalManager){
         s.push({
+          "name": "Quản lý bài viết",
+          "route": "managePosts"
+        })
+        s.push({
           "name": "Quản lý hoạt động",
           "route": "manageEvents"
         })
         s.push({
-          "name": "Quản lý bài viết",
-          "route": "managePosts"
+          "name": "Cài đặt hệ thống",
+          "route": "manageSettings"
         })
       }
       return s

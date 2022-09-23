@@ -18,9 +18,13 @@ func main() {
 		Level: compress.LevelBestCompression,
 	}))
 
+	app.Get("/settings/:id", handlers.SettingGetRouteHandler)
+	app.Post("/settings/:id", handlers.SettingUpdateRouteHandler)
+
 	app.Get("/user/:id?", handlers.UserGetRouteHandler)
 	app.Post("/user/:id?", handlers.UserUpdateRouteHandler)
 	app.Get("/users/", handlers.UserListRouteHandler)
+	app.Get("/users/featured", handlers.FeaturedUserListRouteHandler)
 	app.Get("/user-stats/", handlers.UserStatGetRouteHandler)
 	app.Post("/user-profile-cover/", handlers.ProfileCoverUploadRouteHandler)
 

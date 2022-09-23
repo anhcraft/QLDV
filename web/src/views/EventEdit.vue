@@ -1,6 +1,6 @@
 <template>
   <Header></Header>
-  <section class="page-section px-10 py-8 lg:py-16">
+  <section class="page-section px-3 lg:px-10 py-8 lg:py-16">
     <LoadingState ref="loadingState">
       <div class="flex flex-col gap-5 mb-10">
         <input type="text" class="border-b-2 border-b-slate-300 w-full text-3xl" placeholder="Tên sự kiện..." v-model.trim="event.title">

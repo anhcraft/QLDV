@@ -1,6 +1,6 @@
 <template>
   <Header></Header>
-  <section class="page-section px-10 py-8 lg:py-16">
+  <section class="page-section px-3 lg:px-10 py-8 lg:py-16">
     <div>
       <button class="btn-success" @click="edit(undefined)">Tạo sự kiện</button>
     </div>

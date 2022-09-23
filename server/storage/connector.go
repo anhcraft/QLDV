@@ -19,7 +19,7 @@ func init() {
 	if err != nil {
 		log.Error().Err(err).Msg("An error occurred while connecting to the database")
 	}
-	err = db_.AutoMigrate(&models.User{}, &models.AnnualRank{}, &models.Achievement{}, &models.Post{}, &models.PostStat{}, &models.Attachment{}, &models.Event{})
+	err = db_.AutoMigrate(&models.User{}, &models.AnnualRank{}, &models.Achievement{}, &models.Post{}, &models.PostStat{}, &models.Attachment{}, &models.Event{}, &models.Settings{})
 	if err != nil {
 		log.Error().Err(err).Msg("An error occurred while migrating tables")
 	}

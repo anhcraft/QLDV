@@ -28,6 +28,11 @@ const UserAPI = {
             return v instanceof ServerError ? v : v["users"]
         })
     },
+    listFeaturedUsers(): Promise<any[] | ServerError> {
+        return API.getObject("/users/featured", undefined).then(v => {
+            return v instanceof ServerError ? v : v["users"]
+        })
+    },
     getUserStats(): Promise<any | ServerError> {
         return API.getObject("/user-stats/", undefined)
     },

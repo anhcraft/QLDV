@@ -1,6 +1,6 @@
 <template>
   <Header></Header>
-  <section class="page-section px-10 py-8 lg:py-16">
+  <section class="page-section px-3 lg:px-10 py-8 lg:py-16">
     <div class="centered-horizontal mb-5 gap-3">
       <UserGroupIcon class="w-8 h-8 text-rose-500"></UserGroupIcon>
       <p class="text-3xl font-heading">Ban chấp hành</p>

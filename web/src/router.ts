@@ -14,6 +14,7 @@ const routes = [
     { name: 'createEvent', path: '/quan-ly/tao-su-kien/', component: () => import("./views/EventEdit.vue") },
     { name: 'updateEvent', path: '/quan-ly/sua-su-kien/:id', component: () => import("./views/EventEdit.vue") },
     { name: 'committeePage', path: '/ban-chap-hanh/', component: () => import("./views/CommitteePage.vue") },
+    { name: 'manageSettings', path: '/cai-dat/', component: () => import("./views/SettingManage.vue") },
     /*
     { name: 'home', path: '/c/', component: () => import("./views/Home.vue") }, // fallback
     { name: 'home', path: '/c/:id', component: () => import("./views/Contest.vue") },
