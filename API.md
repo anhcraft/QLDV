@@ -339,7 +339,8 @@ Every response will be based on the following format:
 ```json
 {
   "result": {
-    "id": 101
+    "id": "0103",
+    "name": "0203.png"
   },
   "success": true
 }

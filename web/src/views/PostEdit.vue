@@ -60,6 +60,7 @@
           </div>
 
           <p class="font-bold">Tải ảnh mới:</p>
+          <p class="italic">Kích thước ảnh tối đa là 10 MB. Ảnh sẽ bị nén và chỉnh kích thước nếu vượt quá 1920x1080.</p>
           <input @change="onAttachmentChange" accept="image/*" multiple
                  class="block px-3 py-1.5 text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
                  type="file">

@@ -14,12 +14,29 @@
 
 ## Project setup
 
-### 1. Backend-side
-**Environmental variables:**
+### 1. Front-end side
+- Production build: `vue-tsc --noEmit && vite build`
+
+### 2. Backend-side
+- Requirements:
+  + `pngquant` installed
+  + `imagemagick` installed
+  + Firebase credential file
+  + MySQL
+- Build the executable file: 
 ```
-GOOGLE_APPLICATION_CREDENTIALS=firebase.json
-sql=user:pass@tcp(127.0.0.1:3306)/das?charset=utf8mb4&parseTime=True&loc=Local
+export GOOS=linux
+go build -o "das" das
 ```
+- To run the program, set the following environment variables:
+```
+export GOOGLE_APPLICATION_CREDENTIALS="firebase.json"
+export sql="user:pass@tcp(127.0.0.1:3306)/das?charset=utf8mb4&parseTime=True&loc=Local"
+export pngquant_path="./libs/pngquant"
+export imagemagick_path="./libs/imagemagick"
+./das
+```
+
 
 ## Project overview
 

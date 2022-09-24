@@ -19,7 +19,7 @@ import (
 	"time"
 )
 
-const MaxAttachmentSize = 2000000 // 2MB
+const MaxAttachmentSize = 3000000 // 3MB
 
 func uploadAttachment(postId uint32, data []byte, ext string) (bool, string, string) {
 	_ = os.Mkdir("public", os.ModePerm)
@@ -27,13 +27,17 @@ func uploadAttachment(postId uint32, data []byte, ext string) (bool, string, str
 	hash.Write([]byte(strconv.FormatUint(uint64(postId), 10) + time.Now().String() + ext))
 	id := hex.EncodeToString(hash.Sum(nil))
 	fileName := id + ext
-	err := os.WriteFile("./public/"+fileName, data, os.ModePerm)
+	path := "./public/" + fileName
+	err := os.WriteFile(path, data, os.ModePerm)
 	if err != nil {
 		log.Error().Err(err).Msg("An error occurred at #uploadAttachment while writing file")
 		return false, "", ""
 	}
+	if !utils.ResizeAndCompressImage(path, ext, 1920, 1080) {
+		return false, "", ""
+	}
 	att := models.Attachment{
-		ID:     id + ext,
+		ID:     fileName,
 		PostId: postId,
 	}
 	tx := storage.Db.Clauses(clause.OnConflict{DoNothing: true}).Create(&att)

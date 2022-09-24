@@ -181,9 +181,13 @@ func setProfileCover(id uint16, data []byte, ext string) (bool, string) {
 	hash := sha256.New()
 	hash.Write([]byte(strconv.Itoa(int(id))))
 	fileName := "cover-" + hex.EncodeToString(hash.Sum(nil)) + ext
-	err := os.WriteFile("./public/"+fileName, data, os.ModePerm)
+	path := "./public/" + fileName
+	err := os.WriteFile(path, data, os.ModePerm)
 	if err != nil {
 		log.Error().Err(err).Msg("An error occurred at #setProfileCover while writing file")
+		return false, ""
+	}
+	if !utils.ResizeAndCompressImage(path, ext, 600, 256) {
 		return false, ""
 	}
 	tx := storage.Db.Model(&models.User{}).Where("id = ?", id).Update("profile_cover", fileName)
