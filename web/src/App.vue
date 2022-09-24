@@ -15,7 +15,7 @@
 
 <script>
 import auth from "./auth/auth";
-import profileCoverDefaultImg from "./assets/profile-cover.jpg"
+import profileCoverDefaultImg from "./assets/profile-cover.webp"
 import UserAPI from "./api/user-api";
 import {ServerError} from "./api/server-error";
 import conf from "./conf";

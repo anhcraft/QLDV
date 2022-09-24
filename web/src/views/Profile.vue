@@ -164,7 +164,7 @@
 <script>
 import Header from "../components/Header.vue";
 import Editor from '@tinymce/tinymce-vue'
-import profileCoverDefaultImg from "../assets/profile-cover.jpg";
+import profileCoverDefaultImg from "../assets/profile-cover.webp";
 import LoadingState from "../components/LoadingState.vue";
 import {GetRoleName} from "../auth/roles";
 import UserAPI from "../api/user-api";

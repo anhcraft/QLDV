@@ -41,8 +41,8 @@
           <div class="xl:centered-horizontal gap-3 xl:px-10">
 
             <div class="grow centered-horizontal justify-center xl:justify-start gap-3">
-              <img src="../assets/youth-logo.png" class="w-12 h-12" alt=""/>
-              <img src="../assets/das-logo.png" class="w-12 h-12" alt=""/>
+              <img src="../assets/youth-logo.webp" class="w-12 h-12" alt=""/>
+              <img src="../assets/das-logo.webp" class="w-12 h-12" alt=""/>
               <router-link :to="{ name: 'home' }" class="text-3xl xl:text-4xl ml-5 font-light">
                 <span class="block md:inline">ĐOÀN TRƯỜNG THPT</span> <span>DĨ AN</span>
                 <p class="text-sm italic">Website đang hoạt động thử nghiệm</p>
