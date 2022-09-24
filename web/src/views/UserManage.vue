@@ -102,7 +102,7 @@
           <section class="mt-5">
             <p class="text-xl">Xếp hạng</p>
             <ul class="list-disc list-inside">
-              <li v-for="v in normalizeAnnualRanks(users[selectedUser])">
+              <li v-for="v in users[selectedUser].annualRanks">
                 <select v-model.number="v.level" class="bg-white">
                   <option v-for="option in this.rateOptions" :value="option.value">{{ option.text }}</option>
                 </select>
@@ -267,26 +267,6 @@ export default {
     getRoleName(r) {
       return GetRoleName(r)
     },
-    normalizeAnnualRanks(user) {
-      const ar = {}
-      ar[user.entryYear] = 0
-      ar[user.entryYear + 1] = 0
-      ar[user.entryYear + 2] = 0
-      if (user.hasOwnProperty("annualRanks")) {
-        user.annualRanks.map(v => {
-          if (ar.hasOwnProperty(v.year)) {
-            ar[v.year] = v.level
-          }
-        })
-      }
-      user.annualRanks = Object.keys(ar).map(v => {
-        return {
-          level: ar[v],
-          year: v
-        }
-      })
-      return user.annualRanks
-    },
     getRoleStyle(role) {
       if (GetRoleGroup(role) === RoleGroupClassManager) {
         return 'text-emerald-500'
@@ -378,14 +358,30 @@ export default {
         "achievements": true,
         "annual-ranks": true
       }).then(res => {
-        this.$refs.loadingStateForUserProgression.deactivate()
         if (res instanceof ServerError) {
           this.$root.popupError(res)
-          return
+        } else {
+          this.users[index]["achievements"] = res.achievements
+          const ar = {}
+          ar[this.users[index].entryYear] = 0
+          ar[this.users[index].entryYear + 1] = 0
+          ar[this.users[index].entryYear + 2] = 0
+          if (res.hasOwnProperty("annualRanks")) {
+            res["annualRanks"].forEach(v => {
+              if (ar.hasOwnProperty(v.year)) {
+                ar[v.year] = v.level
+              }
+            })
+          }
+          this.users[index]["annualRanks"] = Object.keys(ar).map(v => {
+            return {
+              level: ar[v],
+              year: v
+            }
+          })
+          this.selectedUser = index
         }
-        this.users[index]["achievements"] = res.achievements
-        this.users[index]["annualRanks"] = res.annualRanks
-        this.selectedUser = index
+        this.$refs.loadingStateForUserProgression.deactivate()
       })
     },
     batchUpdate() {
@@ -393,7 +389,7 @@ export default {
       this.updatingBatchUsers = true
       this.processedBatchedUsers = 0
       const role = this.batchUpdateRole
-      const users = this.selectedBatchUsers.reverse() // clone
+      const users = [...this.selectedBatchUsers] // clone
       users.map(v => {
         UserAPI.updateUser(this.users[v].id, {
           profile: {
