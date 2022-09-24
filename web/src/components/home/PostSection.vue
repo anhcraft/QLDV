@@ -4,8 +4,7 @@
       <RssIcon class="w-8 h-8 text-rose-500"></RssIcon>
       <p class="text-3xl font-heading">Tin tức</p>
     </div>
-    <router-link class="centered-horizontal gap-1 ml-auto text-slate-500 hover:text-black transition-all duration-300"
-                 to="/p">
+    <router-link class="centered-horizontal gap-1 ml-auto text-slate-500 hover:text-black transition-all duration-300" :to="{name: 'listPosts'}">
       <p class="text-sm">Xem thêm</p>
       <ArrowRightIcon class="w-3 h-3"></ArrowRightIcon>
     </router-link>
@@ -16,7 +15,7 @@
         <PostWidget :data="posts[0]" large v-if="posts.length > 0"></PostWidget>
       </div>
       <div class="col-span-1">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-none lg:grid-rows-2 gap-5" v-if="posts.length > 1">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-none lg:grid-rows-2 gap-5 place-content-between h-full" v-if="posts.length > 1">
           <PostWidget v-for="data in posts.slice(1)" :data="data"></PostWidget>
         </div>
       </div>
