@@ -181,13 +181,16 @@ export default {
           this.$root.popupError(res)
           return
         }
-        return PostAPI.deleteAttachment(this.removeAttachments)
-      }).then(res => {
-        this.submittingPost = false
-        if (res instanceof ServerError) {
-          this.$root.popupError(res)
-          return
-        }
+        return PostAPI.deleteAttachment(this.removeAttachments).then(res2 => {
+          this.submittingPost = false
+          if (res2 instanceof ServerError) {
+            this.$root.popupError(res2)
+            return undefined
+          }
+          return res.id
+        })
+      }).then(postId => {
+        if (postId === undefined) return
         if (this.attachmentUpload.length === 0) {
           this.$router.push({name: "managePosts"})
           return;
@@ -199,7 +202,7 @@ export default {
         this.attachmentFailedUpload = []
         for (let i = 0; i < this.attachmentUpload.length; i++) {
           let a = this.attachmentUpload[i]
-          PostAPI.uploadAttachment(id, a).then(res => {
+          PostAPI.uploadAttachment(postId, a).then(res => {
             if (res instanceof ServerError) {
               this.$root.popupError(res)
               this.attachmentFailedUpload.push(a)
