@@ -1,13 +1,13 @@
 <template>
   <router-link
-      class="pw-container block cursor-pointer rounded-2xl before:rounded-2xl w-full max-h-[300px] lg:max-h-[600px] relative"
+      class="pw-container block cursor-pointer rounded-2xl before:rounded-2xl w-full max-h-[300px] relative" :class="{'lg:max-h-[600px]' : large}"
       :to="{
     name: 'readPost',
     params: {
       id: data.link
     }
   }">
-    <img :src="getBackground(data)" class="object-cover object-center rounded-2xl w-full max-h-[300px] lg:max-h-[600px]"/>
+    <img :src="getBackground(data)" class="object-cover object-center rounded-2xl w-full max-h-[300px]" :class="{'lg:max-h-[600px]' : large}" />
     <div class="absolute text-white top-3 right-5 z-10">
       <div class="flex flex-row gap-1">
         <EyeIcon class="w-4"></EyeIcon>
