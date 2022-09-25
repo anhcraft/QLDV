@@ -447,26 +447,32 @@ func UserListRouteHandler(c *fiber.Ctx) error {
 }
 
 func FeaturedUserListRouteHandler(c *fiber.Ctx) error {
-	users := gabs.New()
-	_, _ = users.Array("users")
-	json, err := gabs.ParseJSON([]byte(getSetting(HomepageSettingKey, rootRequester)))
-	if err == nil {
-		featuredUserLimit := cast.ToUint8(json.Path("featuredUserLimit").Data())
-		featuredAchievementLimit := cast.ToUint8(json.Path("featuredAchievementLimit").Data())
-		for _, user := range getFeaturedUsers(featuredUserLimit) {
-			u := gabs.New()
-			_, _ = u.Set(user.PID, "pid")
-			_, _ = u.Set(user.Class, "class")
-			_, _ = u.Set(user.Name, "name")
-			_, _ = u.Array("achievements")
-			for _, v := range getAchievementById(user.ID, featuredAchievementLimit) {
-				_ = u.ArrayAppend(v.Serialize(), "achievements")
+	cache, ok := storage.GetCache("featured-users", "")
+	if ok {
+		return ReturnString(c, cast.ToString(cache))
+	} else {
+		users := gabs.New()
+		_, _ = users.Array("users")
+		json, err := gabs.ParseJSON([]byte(getSetting(HomepageSettingKey, rootRequester)))
+		if err == nil {
+			featuredUserLimit := cast.ToUint8(json.Path("featuredUserLimit").Data())
+			featuredAchievementLimit := cast.ToUint8(json.Path("featuredAchievementLimit").Data())
+			for _, user := range getFeaturedUsers(featuredUserLimit) {
+				u := gabs.New()
+				_, _ = u.Set(user.PID, "pid")
+				_, _ = u.Set(user.Class, "class")
+				_, _ = u.Set(user.Name, "name")
+				_, _ = u.Array("achievements")
+				for _, v := range getAchievementById(user.ID, featuredAchievementLimit) {
+					_ = u.ArrayAppend(v.Serialize(), "achievements")
+				}
+				_ = users.ArrayAppend(u, "users")
 			}
-			_ = users.ArrayAppend(u, "users")
 		}
+		data := BuildResponse(users)
+		storage.SetCache("featured-users", "", data, 10*time.Minute)
+		return ReturnString(c, data)
 	}
-
-	return ReturnJSON(c, users)
 }
 
 func UserStatGetRouteHandler(c *fiber.Ctx) error {
