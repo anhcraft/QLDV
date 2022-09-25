@@ -60,7 +60,7 @@
         <tr v-for="(user, i) in users" class="text-sm hover:bg-blue-200 w-full"
             :class="{'bg-blue-200' : selectedBatchUsers.includes(i)}">
           <td>
-            <CheckCircleIcon v-if="user.id !== $root.user.profile.id" class="w-6 cursor-pointer text-gray-300"
+            <CheckCircleIcon v-if="user.pid !== $root.user.profile.pid" class="w-6 cursor-pointer text-gray-300"
                              :class="{'text-blue-500' : selectedBatchUsers.includes(i)}"
                              @click="toggleSelectBatchUser(i)"></CheckCircleIcon>
           </td>
@@ -94,8 +94,7 @@
         <ChevronDoubleRightIcon class="w-8 cursor-pointer border-slate-400 border-2 rounded-full text-slate-500 p-1"
                                 @click="selectUser(-1)"></ChevronDoubleRightIcon>
         <p class="my-5 font-bold">{{ users[selectedUser].name }}</p>
-        <router-link target="_blank"
-                     :to="'/u/' + users[selectedUser].email.substring(0, users[selectedUser].email.search('@'))">
+        <router-link target="_blank" :to="{name: 'profile', params: { id: users[selectedUser].pid } }">
           <button class="btn-info">Xem trang cá nhân</button>
         </router-link>
         <div class="border-t-2 border-t-slate-300 mt-10">
@@ -257,7 +256,7 @@ export default {
   },
   methods: {
     toggleSelectBatchUser(u) {
-      if (this.updatingBatchUsers || this.users[u].id === this.$root.user.profile.id) return
+      if (this.updatingBatchUsers || this.users[u].pid === this.$root.user.profile.pid) return
       if (this.selectedBatchUsers.includes(u)) {
         this.selectedBatchUsers = this.selectedBatchUsers.filter(v => v !== u)
       } else {
@@ -353,7 +352,7 @@ export default {
         return
       }
       this.$refs.loadingStateForUserProgression.activate()
-      UserAPI.getUser(this.users[index].id, {
+      UserAPI.getUser(this.users[index].pid, {
         "profile": false,
         "achievements": true,
         "annual-ranks": true
@@ -391,7 +390,7 @@ export default {
       const role = this.batchUpdateRole
       const users = [...this.selectedBatchUsers] // clone
       users.map(v => {
-        UserAPI.updateUser(this.users[v].id, {
+        UserAPI.updateUser(this.users[v].pid, {
           profile: {
             role: role
           },
@@ -413,7 +412,7 @@ export default {
     toggleFeatured(index) {
       if (this.$refs.loadingStateForUserProgression.loading || this.updatingUser || this.updatingBatchUsers) return
       this.updatingUser = true
-      UserAPI.updateUser(this.users[index].id, {
+      UserAPI.updateUser(this.users[index].pid, {
         profile: {
           featured: !this.users[index].featured
         },
@@ -431,7 +430,7 @@ export default {
     saveProgressionChanges() {
       if (this.$refs.loadingStateForUserProgression.loading || this.updatingUser || this.updatingBatchUsers) return
       this.updatingUser = true
-      UserAPI.updateUser(this.users[this.selectedUser].id, {
+      UserAPI.updateUser(this.users[this.selectedUser].pid, {
         profile: undefined,
         achievements: this.users[this.selectedUser].achievements,
         annualRanks: this.users[this.selectedUser].annualRanks

@@ -33,6 +33,7 @@ export default {
       user: {
         profile: {
           id: 0,
+          pid: "",
           email: "",
           role: 0,
           name: "",

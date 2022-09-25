@@ -28,35 +28,22 @@ const UserListLimit = 50
 const MaxProfileCoverSize = 3000000  // 3MB
 const MaxProfileAvatarSize = 1000000 // 1MB
 
-func getUserByEmail(email string) *models.User {
-	cache, ok := storage.GetCache("email-to-user", email)
+func getUserByPID(pid string) *models.User {
+	cache, ok := storage.GetCache("pid-to-user", pid)
 	var user models.User
 	if ok {
 		user = cache.(models.User)
 	} else {
-		result := storage.Db.Take(&user, "email = ?", email)
+		result := storage.Db.Take(&user, "pid = ?", pid)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil
 		} else if result.Error != nil {
-			log.Error().Err(result.Error).Msg("An error occurred at #getUserByEmail while processing DB transaction")
+			log.Error().Err(result.Error).Msg("An error occurred at #getUserByPID while processing DB transaction")
 			return nil
 		}
-		storage.SetCache("email-to-user", email, user, 5*time.Minute)
+		storage.SetCache("pid-to-user", pid, user, 5*time.Minute)
 	}
 	return &user
-}
-
-func getUserById(id interface{}) *models.User {
-	var user models.User
-	result := storage.Db.Take(&user, "id = ?", id)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil
-	} else if result.Error != nil {
-		log.Error().Err(result.Error).Msg("An error occurred at #getUserById while processing DB transaction")
-		return nil
-	} else {
-		return &user
-	}
 }
 
 func getAchievementById(id interface{}, lim uint8) []models.Achievement {
@@ -234,20 +221,16 @@ func UserGetRouteHandler(c *fiber.Ctx) error {
 		return ReturnError(c, utils.ErrInvalidRequestQuery)
 	}
 
-	requester, err := GetRequester(c)
+	requester, err := GetRequesterUser(c)
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	whoParam := c.Params("id")
+	whoParam := c.Params("pid")
 	var who *models.User
 	if whoParam == "" {
 		who = requester
 	} else {
-		if utils.ValidateNonNegativeInteger(whoParam) {
-			who = getUserById(whoParam)
-		} else {
-			who = getUserByEmail(whoParam + "@dian.sgdbinhduong.edu.vn")
-		}
+		who = getUserByPID(whoParam)
 	}
 	if who == nil || who.Role == security.RoleGuest {
 		return ReturnError(c, utils.ErrUnknownUser)
@@ -273,20 +256,16 @@ func UserGetRouteHandler(c *fiber.Ctx) error {
 }
 
 func UserUpdateRouteHandler(c *fiber.Ctx) error {
-	requester, err := GetRequester(c)
+	requester, err := GetRequesterUser(c)
 	if err != "" {
 		return ReturnError(c, err)
 	}
-	whoParam := c.Params("id")
+	whoParam := c.Params("pid")
 	var who *models.User
 	if whoParam == "" {
 		who = requester
 	} else {
-		if utils.ValidateNonNegativeInteger(whoParam) {
-			who = getUserById(whoParam)
-		} else {
-			who = getUserByEmail(whoParam + "@dian.sgdbinhduong.edu.vn")
-		}
+		who = getUserByPID(whoParam)
 	}
 	if who == nil || who.Role == security.RoleGuest {
 		return ReturnError(c, utils.ErrUnknownUser)
@@ -439,7 +418,7 @@ func UserUpdateRouteHandler(c *fiber.Ctx) error {
 }
 
 func UserListRouteHandler(c *fiber.Ctx) error {
-	requester, err := GetRequester(c)
+	requester, err := GetRequesterUser(c)
 	if err != "" {
 		return ReturnError(c, err)
 	}
@@ -470,13 +449,13 @@ func UserListRouteHandler(c *fiber.Ctx) error {
 func FeaturedUserListRouteHandler(c *fiber.Ctx) error {
 	users := gabs.New()
 	_, _ = users.Array("users")
-	json, err := gabs.ParseJSON([]byte(getSetting(HomepageSettingKey, rootUser)))
+	json, err := gabs.ParseJSON([]byte(getSetting(HomepageSettingKey, rootRequester)))
 	if err == nil {
 		featuredUserLimit := cast.ToUint8(json.Path("featuredUserLimit").Data())
 		featuredAchievementLimit := cast.ToUint8(json.Path("featuredAchievementLimit").Data())
 		for _, user := range getFeaturedUsers(featuredUserLimit) {
 			u := gabs.New()
-			_, _ = u.Set(user.ID, "id")
+			_, _ = u.Set(user.PID, "pid")
 			_, _ = u.Set(user.Class, "class")
 			_, _ = u.Set(user.Name, "name")
 			_, _ = u.Array("achievements")

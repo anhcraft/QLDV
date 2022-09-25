@@ -30,9 +30,13 @@ Every response will be based on the following format:
 ### "Authentication required"
 - This means a request must have "access-token" header field to unlock further access to an endpoint.
 
+### "PID"
+- **Not** an `ID` which is always a number
+- PID = Personal Identifier: the leading consequence of a user's email (before `@`)
+
 ---
 
-### GET /user/:id?
+### GET /user/:pid?
 - Get a user's profile, achievements and annual ranks
 - Optional authentication
 - Queries:
@@ -42,13 +46,13 @@ Every response will be based on the following format:
 - Note:
   + If the id is absent, this API acts like "getting your own profile". The "access-token" field is required to obtain the corresponding user's id, and in case of absence, the API returns error.
   + If the id is present, this API acts like "getting someone profile" which "someone" can be "self" or "another"
-  + The id can be either `number` or a `string` which is the leading consequence of the email (before `@`)
 - Example response:
 ```json
 {
   "result": {
     "profile": {
       "id": 120,
+      "pid": "nick",
       "settings": {
         "classPublic": false
       },
@@ -71,7 +75,7 @@ Every response will be based on the following format:
 }
 ```
 
-### POST /user/:id?
+### POST /user/:pid?
 - Change a user's data such as information, achievements, annual ranks, etc
 - Authentication required
 - Example request:
@@ -99,7 +103,6 @@ Every response will be based on the following format:
 ```
 - Note:
   + If the id is present, this API acts like "getting someone profile" which "someone" can be "self" or "another"
-  + The id can be either `number` or a `string` which is the leading consequence of the email (before `@`)
   + "achievements" and "annualRanks" must be present with empty values to reset the corresponding field; otherwise, there is no effect if they are absent in the response.
   + Only fields which were specified in the request are considered. However, not all of them are editable because of various reasons mentioned above. Some profile fields are modifiable if and only if certain requirements met. For example, the requester must be the user himself or has special permissions. In addition, a few fields are open to the managers only and members are prohibited to edit them. Besides, there are fields reserved and under read-only mode such as ID, Email, etc **(See the Data document for further information)**
 - Example response:
@@ -137,9 +140,8 @@ Every response will be based on the following format:
     + Class managers are prohibited from fetching users out of their classes
     + Global managers and root users can fetch all users
   + `filterRole` has a limit defined by the role of the requester; in other words, a requester is prohibited from fetching users whom role is higher
-  + The system will determine which fields are included in the response, which is the same as `GET /user/:id?`
+  + The system will determine which fields are included in the response, which is the same as `GET /user/:pid?`
 - Example response:
-
 ```json
 {
   "result": {
@@ -149,6 +151,32 @@ Every response will be based on the following format:
       },
       {
         "id": 1
+      }
+    ]
+  },
+  "success": true
+}
+```
+
+### GET /users/featured/
+- Lists all featured users
+- Optional authentication
+- Example response:
+```json
+{
+  "result": {
+    "users": [
+      {
+        "pid": "a",
+        "class": "A1",
+        "name": "A",
+        "achievements": []
+      },
+      {
+        "pid": "b",
+        "class": "B1",
+        "name": "B",
+        "achievements": []
       }
     ]
   },
@@ -185,6 +213,19 @@ Every response will be based on the following format:
 
 ### POST /user-profile-cover/
 - Uploads and sets the specified image as profile cover
+- Authentication required
+- Example response:
+```json
+{
+  "result": {
+    "name": "file_name.png"
+  },
+  "success": true
+}
+```
+
+### POST /user-profile-avatar/
+- Uploads and sets the specified image as profile avatar
 - Authentication required
 - Example response:
 ```json

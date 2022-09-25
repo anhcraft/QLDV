@@ -14,7 +14,7 @@
           <div class="bg-slate-300 w-32 h-32"></div>
         </div>
         <div>
-          <p class="text-xl">{{ user.name }}</p>
+          <router-link class="text-xl" :to="{name: 'profile', params: { id: user.pid } }">{{ user.name }}</router-link>
           <p class="italic text-sm">- Lớp {{ user.class }}</p>
           <ul class="list-disc list-inside mt-2">
             <li v-for="val in user.achievements">{{ val.title }} ({{ val.year }})</li>

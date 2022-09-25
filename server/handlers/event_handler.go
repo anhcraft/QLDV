@@ -20,7 +20,7 @@ const MaxEventTitleLength = 300
 const MinEventTitleLength = 10
 const EventListLimit = 50
 
-func getEvents(req *request.EventListModel, requester *models.User) []models.Event {
+func getEvents(req *request.EventListModel, requester *Requester) []models.Event {
 	var events []models.Event
 	a := storage.Db.Limit(int(req.Limit)).Order("end_date desc, begin_date desc, id desc")
 	a = a.Where("privacy <= ?", requester.Role)

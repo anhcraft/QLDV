@@ -2,19 +2,19 @@ import API from "./api";
 import {ServerError} from "./server-error";
 
 const UserAPI = {
-    getUser(id: string, queries: {
+    getUser(pid: string, queries: {
         "profile": boolean,
         "achievements": boolean,
         "annual-ranks": boolean
     }): Promise<any | ServerError> {
-        return API.getObject("/user/" + id, queries)
+        return API.getObject("/user/" + pid, queries)
     },
-    updateUser(id: string, data: {
+    updateUser(pid: string, data: {
         "profile": any | undefined,
         "achievements": any[] | undefined,
         "annualRanks": any[] | undefined,
     }): Promise<any | ServerError> {
-        return API.postObject("/user/" + id, data)
+        return API.postObject("/user/" + pid, data)
     },
     listUsers(queries: {
         "limit": number,

@@ -43,7 +43,7 @@ func getPost(id interface{}) *models.Post {
 	}
 }
 
-func serializePost(post *models.Post, requester *models.User, withContent bool) *gabs.Container {
+func serializePost(post *models.Post, requester *Requester, withContent bool) *gabs.Container {
 	response := post.Serialize(withContent)
 	if requester != nil && security.IsLoggedIn(requester.Role) {
 		result := struct {
@@ -95,7 +95,7 @@ func removePost(id interface{}) bool {
 	return tx.RowsAffected > 0
 }
 
-func getPosts(req *request.PostListModel, requester *models.User) []models.Post {
+func getPosts(req *request.PostListModel, requester *Requester) []models.Post {
 	var posts []models.Post
 	cmd := storage.Db.Limit(int(req.Limit))
 	cmd = cmd.Where("privacy <= ?", requester.Role)

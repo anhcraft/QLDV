@@ -10,6 +10,7 @@ const GenderFemale = true
 
 type User struct {
 	ID    uint16 `gorm:"autoIncrement;primaryKey"`
+	PID   string `gorm:"unique;not null"`
 	Email string `gorm:"unique;not null"`
 	Role  uint8
 	// Personal information:
@@ -69,6 +70,7 @@ func (u *User) HasPrivilegeOver(who *User) bool {
 func (u *User) Serialize(requester *User) *gabs.Container {
 	res := gabs.New()
 	_, _ = res.Set(u.ID, "id")
+	_, _ = res.Set(u.PID, "pid")
 	_, _ = res.Set(u.IsProfileLocked(), "settings", "profileLocked")
 	_, _ = res.Set(u.IsClassPublic(), "settings", "classPublic")
 	_, _ = res.Set(u.IsAchievementPublic(), "settings", "achievementPublic")

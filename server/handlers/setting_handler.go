@@ -17,7 +17,7 @@ import (
 
 const HomepageSettingKey = "homepage"
 
-func getSetting(key string, requester *models.User) string {
+func getSetting(key string, requester *Requester) string {
 	cache, ok := storage.GetCache("settings", key)
 	if ok {
 		data := cache.(models.Settings)
@@ -40,7 +40,7 @@ func getSetting(key string, requester *models.User) string {
 	}
 }
 
-func updateSetting(key string, val string, requester *models.User) bool {
+func updateSetting(key string, val string, requester *Requester) bool {
 	tx := storage.Db.Model(&models.Settings{}).Where("`key` = ? and privacy <= ?", key, requester.Role).Update("value", val)
 	if tx.Error != nil {
 		log.Error().Err(tx.Error).Msg("An error occurred at #updateSetting while processing DB transaction")

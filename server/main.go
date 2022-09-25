@@ -33,8 +33,8 @@ func main() {
 	app.Get("/settings/:id", handlers.SettingGetRouteHandler)
 	app.Post("/settings/:id", handlers.SettingUpdateRouteHandler)
 
-	app.Get("/user/:id?", handlers.UserGetRouteHandler)
-	app.Post("/user/:id?", handlers.UserUpdateRouteHandler)
+	app.Get("/user/:pid?", handlers.UserGetRouteHandler)
+	app.Post("/user/:pid?", handlers.UserUpdateRouteHandler)
 	app.Get("/users/", handlers.UserListRouteHandler)
 	app.Get("/users/featured", handlers.FeaturedUserListRouteHandler)
 	app.Get("/user-stats/", handlers.UserStatGetRouteHandler)

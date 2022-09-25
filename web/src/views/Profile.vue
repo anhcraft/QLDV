@@ -104,6 +104,7 @@ export default {
       user: {
         profile: {
           id: 0,
+          pid: "",
           email: "",
           role: 0,
           name: "",
@@ -134,11 +135,7 @@ export default {
       return this.$route.params.id.toString()
     },
     isPersonalProfile() {
-      if (/^\d+$/.test(this.userId)) {
-        return this.$root.user.profile.id === this.userId
-      } else {
-        return this.$root.user.profile.email === this.userId + "@dian.sgdbinhduong.edu.vn"
-      }
+      return this.$root.user.profile.pid === this.userId
     }
   },
   methods: {
