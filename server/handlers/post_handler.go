@@ -17,6 +17,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const MaxPostTitleLength = 300
@@ -400,18 +401,25 @@ func PostStatUpdateRouteHandler(c *fiber.Ctx) error {
 }
 
 func PostHashtagListRouteHandler(c *fiber.Ctx) error {
-	var hashtags []struct {
-		Hashtag string
+	cache, ok := storage.GetCache("posts", "hashtags")
+	if ok {
+		return ReturnString(c, cast.ToString(cache))
+	} else {
+		var hashtags []struct {
+			Hashtag string
+		}
+		tx := storage.Db.Model(&models.Post{}).Distinct("hashtag").Find(&hashtags)
+		if tx.Error != nil {
+			log.Error().Err(tx.Error).Msg("An error occurred at #PostHashtagListRouteHandler while processing DB transaction")
+			return ReturnError(c, utils.ErrPostHashtagListFailed)
+		}
+		res := gabs.New()
+		_, _ = res.Array("hashtags")
+		for _, t := range hashtags {
+			_ = res.ArrayAppend(t.Hashtag, "hashtags")
+		}
+		json := BuildResponse(res)
+		storage.SetCache("posts", "hashtags", json, 10*time.Minute)
+		return ReturnString(c, json)
 	}
-	tx := storage.Db.Model(&models.Post{}).Distinct("hashtag").Find(&hashtags)
-	if tx.Error != nil {
-		log.Error().Err(tx.Error).Msg("An error occurred at #PostHashtagListRouteHandler while processing DB transaction")
-		return ReturnError(c, utils.ErrPostHashtagListFailed)
-	}
-	res := gabs.New()
-	_, _ = res.Array("hashtags")
-	for _, t := range hashtags {
-		_ = res.ArrayAppend(t.Hashtag, "hashtags")
-	}
-	return ReturnJSON(c, res)
 }

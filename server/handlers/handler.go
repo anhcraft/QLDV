@@ -23,6 +23,7 @@ var rootUser = &models.User{
 // - 1st return value is always not-null; if the authentication failed, it returns a "dummy" guest
 // - 2nd return value is the error code; will be empty in case of success
 func GetRequester(c *fiber.Ctx) (*models.User, string) {
+	// TODO DON'T CACHE ACCESS TOKEN (SECURITY CONCERNS)
 	token := strings.TrimSpace(c.Get("access-token"))
 	if token != "" {
 		res, txt := security.GetEmailFromToken(c.UserContext(), token)
@@ -45,15 +46,23 @@ func ReturnError(c *fiber.Ctx, err string) error {
 	return c.Status(fiber.StatusBadRequest).SendString(res.String())
 }
 
-func ReturnJSON(c *fiber.Ctx, container *gabs.Container) error {
+func ReturnString(c *fiber.Ctx, data string) error {
+	return c.Status(fiber.StatusOK).SendString(data)
+}
+
+func BuildResponse(container *gabs.Container) string {
 	res := gabs.New()
 	_, _ = res.Set(container, "result")
 	_, _ = res.Set(true, "success")
-	return c.Status(fiber.StatusOK).SendString(res.String())
+	return res.String()
+}
+
+func ReturnJSON(c *fiber.Ctx, container *gabs.Container) error {
+	return ReturnString(c, BuildResponse(container))
 }
 
 func ReturnEmpty(c *fiber.Ctx) error {
 	res := gabs.New()
 	_, _ = res.Set(true, "success")
-	return c.Status(fiber.StatusOK).SendString(res.String())
+	return ReturnString(c, res.String())
 }

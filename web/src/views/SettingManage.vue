@@ -32,7 +32,6 @@
             nhật
           </button>
         </div>
-        <div class="font-bold mt-5">Lưu ý: Vui lòng đợi 3-5 phút để các cài đặt có tác dụng.</div>
       </div>
     </LoadingState>
   </section>

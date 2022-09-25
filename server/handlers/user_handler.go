@@ -19,6 +19,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const MaxProfileBoardLength = 10000
@@ -28,16 +29,21 @@ const MaxProfileCoverSize = 3000000  // 3MB
 const MaxProfileAvatarSize = 1000000 // 1MB
 
 func getUserByEmail(email string) *models.User {
+	cache, ok := storage.GetCache("email-to-user", email)
 	var user models.User
-	result := storage.Db.Take(&user, "email = ?", email)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil
-	} else if result.Error != nil {
-		log.Error().Err(result.Error).Msg("An error occurred at #getUserByEmail while processing DB transaction")
-		return nil
+	if ok {
+		user = cache.(models.User)
 	} else {
-		return &user
+		result := storage.Db.Take(&user, "email = ?", email)
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil
+		} else if result.Error != nil {
+			log.Error().Err(result.Error).Msg("An error occurred at #getUserByEmail while processing DB transaction")
+			return nil
+		}
+		storage.SetCache("email-to-user", email, user, 5*time.Minute)
 	}
+	return &user
 }
 
 func getUserById(id interface{}) *models.User {

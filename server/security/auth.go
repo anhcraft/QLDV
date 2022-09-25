@@ -29,6 +29,7 @@ func init() {
 // - 1st return value: true if success
 // - 2nd return value: the email (when success), or the error code
 func GetEmailFromToken(c context.Context, token string) (bool, string) {
+	// TODO DON'T CACHE ACCESS TOKEN (SECURITY CONCERNS)
 	tkn, err := client.VerifyIDToken(c, token)
 	if err != nil {
 		log.Error().Err(err).Msg("An error occurred while validating Firebase ID token")
