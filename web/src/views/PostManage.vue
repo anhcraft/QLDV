@@ -134,8 +134,8 @@ export default {
       if (!b || this.deletingPost) return
       this.deletingPost = true
       PostAPI.deletePost(this.postRemoveId).then(s => {
+        this.deletingPost = false
         if (s instanceof ServerError) {
-          this.deletingPost = false
           this.$root.popupError(s)
           return
         }
