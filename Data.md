@@ -21,6 +21,7 @@ type User struct {
     // Profile stuff:
     ProfileCover    string
     ProfileBoard    string
+    ProfileAvatar   string
     ProfileSettings uint8
     // Date stuff:
     UpdateDate uint64
@@ -41,7 +42,7 @@ const RoleRoot uint8 = 7
 ```
 
 #### Read operation
-- Common information: id, profileSettings, profileCover, profileBoard, featured
+- Common information: id, profileSettings, profileCover, profileBoard, profileAvatar, featured
 - Personal information: name, gender, entryYear, class, role; achievements and annual ranks
   <br>At least one requirement met to gain access:
   + Be the user himself
@@ -56,7 +57,7 @@ const RoleRoot uint8 = 7
   + The requester is in the manager group
 
 #### Write operation
-- A user can edit his profile with the following acceptable fields: profileSettings, profileCover, profileBoard
+- A user can edit his profile with the following acceptable fields: profileSettings, profileCover, profileBoard, profileAvatar
 - Managers can edit the role, achievements and annual ranks of other users
   + With class managers (Class Secretary, Class Deputy Secretary), there are additional restrictions:
     + The target user must be in the same class as the class manager

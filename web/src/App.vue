@@ -16,6 +16,8 @@
 <script>
 import auth from "./auth/auth";
 import profileCoverDefaultImg from "./assets/profile-cover.webp"
+import profileFemaleAvatarDefaultImg from "./assets/avatar-female.webp";
+import profileMaleAvatarDefaultImg from "./assets/avatar-male.webp";
 import UserAPI from "./api/user-api";
 import {ServerError} from "./api/server-error";
 import conf from "./conf";
@@ -47,6 +49,7 @@ export default {
           },
           profileCover: "",
           profileBoard: "",
+          profileAvatar: "",
           updateDate: 0,
           createDate: 0
         },
@@ -118,6 +121,15 @@ export default {
         res.profile.profileCover = profileCoverDefaultImg
       } else {
         res.profile.profileCover = conf.assetURL + "/" + res.profile.profileCover
+      }
+      if (res.profile.profileAvatar === "") {
+        if(res.profile.hasOwnProperty("gender") && res.profile["gender"] === "female") {
+          res.profile.profileAvatar = profileFemaleAvatarDefaultImg
+        } else {
+          res.profile.profileAvatar = profileMaleAvatarDefaultImg
+        }
+      } else {
+        res.profile.profileAvatar = conf.assetURL + "/" + res.profile.profileAvatar
       }
       Object.assign(this.user, res)
       this.$forceUpdate()

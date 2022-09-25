@@ -24,7 +24,8 @@ import (
 const MaxProfileBoardLength = 10000
 const MinProfileBoardLength = 10
 const UserListLimit = 50
-const MaxProfileCoverSize = 500000 // 500KB
+const MaxProfileCoverSize = 3000000  // 3MB
+const MaxProfileAvatarSize = 1000000 // 1MB
 
 func getUserByEmail(email string) *models.User {
 	var user models.User
@@ -193,6 +194,28 @@ func setProfileCover(id uint16, data []byte, ext string) (bool, string) {
 	tx := storage.Db.Model(&models.User{}).Where("id = ?", id).Update("profile_cover", fileName)
 	if tx.Error != nil {
 		log.Error().Err(tx.Error).Msg("An error occurred at #setProfileCover while processing DB transaction")
+		return false, ""
+	}
+	return tx.RowsAffected > 0, fileName
+}
+
+func setProfileAvatar(id uint16, data []byte, ext string) (bool, string) {
+	_ = os.Mkdir("public", os.ModePerm)
+	hash := sha256.New()
+	hash.Write([]byte(strconv.Itoa(int(id))))
+	fileName := "avatar-" + hex.EncodeToString(hash.Sum(nil)) + ext
+	path := "./public/" + fileName
+	err := os.WriteFile(path, data, os.ModePerm)
+	if err != nil {
+		log.Error().Err(err).Msg("An error occurred at #setProfileCover while writing file")
+		return false, ""
+	}
+	if !utils.ResizeAndCompressImage(path, ext, 512, 512) {
+		return false, ""
+	}
+	tx := storage.Db.Model(&models.User{}).Where("id = ?", id).Update("profile_avatar", fileName)
+	if tx.Error != nil {
+		log.Error().Err(tx.Error).Msg("An error occurred at #setProfileAvatar while processing DB transaction")
 		return false, ""
 	}
 	return tx.RowsAffected > 0, fileName
@@ -531,6 +554,37 @@ func ProfileCoverUploadRouteHandler(c *fiber.Ctx) error {
 
 	if !ok {
 		return ReturnError(c, utils.ErrProfileCoverUploadFailed)
+	}
+
+	response := gabs.New()
+	_, _ = response.Set(fn, "name")
+	return ReturnJSON(c, response)
+}
+
+func ProfileAvatarUploadRouteHandler(c *fiber.Ctx) error {
+	if len(c.Body()) > MaxProfileAvatarSize {
+		return ReturnError(c, utils.ErrProfileAvatarTooLarge)
+	}
+
+	requester, err := GetRequester(c)
+	if err != "" || !security.IsLoggedIn(requester.Role) {
+		return ReturnError(c, err)
+	}
+
+	t := c.Get("content-type")
+
+	ok := false
+	fn := ""
+	if t == "image/png" {
+		ok, fn = setProfileAvatar(requester.ID, c.Body(), ".png")
+	} else if t == "image/jpeg" {
+		ok, fn = setProfileAvatar(requester.ID, c.Body(), ".jpeg")
+	} else {
+		return ReturnError(c, utils.ErrUnsupportedProfileAvatar)
+	}
+
+	if !ok {
+		return ReturnError(c, utils.ErrProfileAvatarUploadFailed)
 	}
 
 	response := gabs.New()

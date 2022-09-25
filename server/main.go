@@ -39,6 +39,7 @@ func main() {
 	app.Get("/users/featured", handlers.FeaturedUserListRouteHandler)
 	app.Get("/user-stats/", handlers.UserStatGetRouteHandler)
 	app.Post("/user-profile-cover/", handlers.ProfileCoverUploadRouteHandler)
+	app.Post("/user-profile-avatar/", handlers.ProfileAvatarUploadRouteHandler)
 
 	app.Get("/post/:id", handlers.PostGetRouteHandler)
 	app.Post("/post/:id?", handlers.PostUpdateRouteHandler)

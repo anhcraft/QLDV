@@ -21,6 +21,7 @@ type User struct {
 	Class     string
 	Featured  bool
 	// Profile stuff:
+	ProfileAvatar   string
 	ProfileCover    string
 	ProfileBoard    string
 	ProfileSettings uint8
@@ -74,6 +75,7 @@ func (u *User) Serialize(requester *User) *gabs.Container {
 	_, _ = res.Set(u.IsAnnualRankPublic(), "settings", "annualRankPublic")
 	_, _ = res.Set(u.ProfileCover, "profileCover")
 	_, _ = res.Set(u.ProfileBoard, "profileBoard")
+	_, _ = res.Set(u.ProfileAvatar, "profileAvatar")
 	_, _ = res.Set(u.Featured, "featured")
 
 	// Group-distinct check

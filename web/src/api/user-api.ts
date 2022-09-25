@@ -38,6 +38,9 @@ const UserAPI = {
     },
     uploadProfileCover(data: Blob): Promise<any | ServerError> {
         return API.postBlob("/user-profile-cover/", data)
+    },
+    uploadProfileAvatar(data: Blob): Promise<any | ServerError> {
+        return API.postBlob("/user-profile-avatar/", data)
     }
 }
 

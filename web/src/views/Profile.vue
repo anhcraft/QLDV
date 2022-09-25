@@ -2,97 +2,15 @@
   <Header></Header>
   <section class="page-section px-3 lg:px-10 py-8 lg:py-16">
     <LoadingState ref="profileLoadingState" hidden>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-16">
+      <div class="grid grid-cols-1 md:grid-cols-3 md:gap-8 lg:gap-10 xl:gap-16">
         <div class="col-span-1 self-start">
-
-          <div class="shadow-lg shadow-slate-400">
-            <section>
-              <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">THÔNG
-                TIN
-              </div>
-              <div class="px-5 py-3">
-                <p>Tên: {{ user.profile.name }}</p>
-                <p v-if="user.profile.hasOwnProperty('class')">Chi đoàn: {{ user.profile.class }}</p>
-                <p v-if="user.profile.hasOwnProperty('gender')">Giới tính:
-                  {{ user.profile.gender === "female" ? "Nữ" : "Nam" }}</p>
-                <p v-if="user.profile.hasOwnProperty('role')">Chức vụ: {{ roleName }}</p>
-                <p v-if="user.profile.hasOwnProperty('entryYear')">Niên khóa: {{ user.profile.entryYear }} -
-                  {{ user.profile.entryYear + 3 }}</p>
-              </div>
-            </section>
-            <section v-if="user.achievements.length > 0">
-              <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">THÀNH
-                TÍCH
-              </div>
-              <div class="px-5 py-3">
-                <ul class="list-disc list-inside">
-                  <li v-for="v in user.achievements">{{ v.title }} ({{ v.year }})</li>
-                </ul>
-              </div>
-            </section>
-            <section v-if="user.annualRanks.length > 0">
-              <div class="border-l-4 border-l-emerald-400 bg-emerald-100 px-4 py-2 shadow-lg shadow-slate-300">XẾP
-                LOẠI
-              </div>
-              <div class="px-5 py-3">
-                <ul class="list-disc list-inside">
-                  <li v-for="v in user.annualRanks">
-                    {{ v.level === 1 ? "Xuất sắc" : (v.level === 2 ? "Khá" : (v.level === 3 ? "Trung bình" : "-")) }}
-                    ({{ v.year }} - {{ v.year + 1 }})
-                  </li>
-                </ul>
-              </div>
-            </section>
-          </div>
-
-          <div class="shadow-lg shadow-slate-400 mt-7" v-if="isPersonalProfile">
-            <div class="border-l-4 border-l-sky-400 bg-sky-200 px-4 py-2 shadow-lg shadow-slate-300">THIẾT LẬP</div>
-            <div class="p-5">
-              <div class="flex flex-row place-items-center gap-1">
-                <input type="checkbox" class="w-4 h-4" v-bind:checked="user.profile.settings.profileLocked"
-                       @input="user.profile.settings.profileLocked = !user.profile.settings.profileLocked"/>
-                <p>Khóa trang cá nhân</p>
-              </div>
-              <div class="flex flex-row place-items-center gap-1"
-                   :class="{'opacity-50' : user.profile.settings.profileLocked}">
-                <input type="checkbox" class="w-4 h-4" v-bind:checked="user.profile.settings.classPublic"
-                       @input="user.profile.settings.classPublic = !user.profile.settings.classPublic"
-                       :disabled="user.profile.settings.profileLocked"/>
-                <p>Công khai chi đoàn</p>
-              </div>
-              <div class="flex flex-row place-items-center gap-1"
-                   :class="{'opacity-50' : user.profile.settings.profileLocked}">
-                <input type="checkbox" class="w-4 h-4" v-bind:checked="user.profile.settings.achievementPublic"
-                       @input="user.profile.settings.achievementPublic = !user.profile.settings.achievementPublic"
-                       :disabled="user.profile.settings.profileLocked"/>
-                <p>Công khai thành tích</p>
-              </div>
-              <div class="flex flex-row place-items-center gap-1"
-                   :class="{'opacity-50' : user.profile.settings.profileLocked}">
-                <input type="checkbox" class="w-4 h-4" v-bind:checked="user.profile.settings.annualRankPublic"
-                       @input="user.profile.settings.annualRankPublic = !user.profile.settings.annualRankPublic"
-                       :disabled="user.profile.settings.profileLocked"/>
-                <p>Công khai xếp loại</p>
-              </div>
-              <button class="btn-success mt-3" :class="{'opacity-50' : savingProfileSettings}" @click="saveSettings">Lưu
-                thay đổi
-              </button>
-            </div>
-          </div>
-
-
-          <div class="shadow-lg shadow-slate-400 mt-7" v-if="isPersonalProfile">
-            <div class="border-l-4 border-l-gray-400 bg-gray-200 px-4 py-2 shadow-lg shadow-slate-300">TÀI KHOẢN</div>
-            <div class="p-5">
-              <button class="btn-outline-sm ml-auto" @click="logout">Đăng xuất</button>
-            </div>
-          </div>
+          <ProfileSidebar :user="user" :is-personal-profile="isPersonalProfile"></ProfileSidebar>
         </div>
 
         <div class="col-span-2 mt-10 md:mt-0">
           <section v-if="user.profile.hasOwnProperty('profileCover')"
                    class="w-full inline-block relative overflow-hidden shadow-lg shadow-slate-400"
-                   :class="isPersonalProfile ? ('border-4 border-dashed border-white hover:border-black ' + (savingProfileCover ? 'opacity-50' : 'hover:opacity-80')) : ''">
+                   :class="isPersonalProfile ? ('cursor-pointer border-4 border-dashed border-white hover:border-black ' + (savingProfileCover ? 'opacity-50' : 'hover:opacity-80')) : ''">
             <div :style="{ 'background-image': 'url(' + user.profile.profileCover + ')' }"
                  @click="openProfileCoverEditor()" class="w-full h-64 bg-cover bg-center bg-no-repeat"/>
           </section>
@@ -165,21 +83,21 @@
 import Header from "../components/Header.vue";
 import Editor from '@tinymce/tinymce-vue'
 import profileCoverDefaultImg from "../assets/profile-cover.webp";
+import profileFemaleAvatarDefaultImg from "../assets/avatar-female.webp";
+import profileMaleAvatarDefaultImg from "../assets/avatar-male.webp";
 import LoadingState from "../components/LoadingState.vue";
-import {GetRoleName} from "../auth/roles";
 import UserAPI from "../api/user-api";
 import {ServerError} from "../api/server-error";
 import conf from "../conf";
 import Footer from "../components/Footer.vue";
-import auth from "../auth/auth";
 import ImgCutter from 'vue-img-cutter'
+import ProfileSidebar from "../components/profile/ProfileSidebar.vue";
 
 export default {
   name: "Profile",
-  components: {Footer, LoadingState, Header, Editor, ImgCutter},
+  components: {ProfileSidebar, Footer, LoadingState, Header, Editor, ImgCutter},
   data() {
     return {
-      savingProfileSettings: false,
       savingProfileBoard: false,
       savingProfileCover: false,
       showProfileCoverEditor: false,
@@ -202,6 +120,7 @@ export default {
           },
           profileCover: "",
           profileBoard: "",
+          profileAvatar: "",
           updateDate: 0,
           createDate: 0
         },
@@ -211,9 +130,6 @@ export default {
     }
   },
   computed: {
-    roleName() {
-      return GetRoleName(this.user.profile.role)
-    },
     userId() {
       return this.$route.params.id.toString()
     },
@@ -227,19 +143,18 @@ export default {
   },
   methods: {
     openProfileCoverEditor() {
+      if(!this.isPersonalProfile) return
       this.showProfileCoverEditor = true
-      if (this.user.profile.profileCover !== "") {
-        this.$nextTick(() => {
-          this.$refs.imgCutterModal.handleOpen({
-            name: new URL(this.user.profile.profileCover).pathname.split("/").pop(),
-            src: this.user.profile.profileCover,
-          });
-        })
-      }
+      this.$nextTick(() => {
+        this.$refs.imgCutterModal.handleOpen({
+          name: new URL(this.user.profile.profileCover).pathname.split("/").pop(),
+          src: this.user.profile.profileCover,
+        });
+      })
     },
     cutDownProfileCover(e) {
-      if (this.savingProfileCover) return
-      if (e.blob.size > 500000) {
+      if (!this.isPersonalProfile || this.savingProfileCover) return
+      if (e.blob.size > 3000000) {
         this.$root.popupError(new ServerError("ERROR_PROFILE_COVER_TOO_LARGE"))
         return
       }
@@ -282,35 +197,6 @@ export default {
           });
         }
       })
-    },
-    saveSettings() {
-      if (this.savingProfileSettings) return
-      this.savingProfileSettings = true
-      UserAPI.updateUser("", {
-        profile: {
-          settings: this.user.profile.settings
-        },
-        achievements: undefined,
-        annualRanks: undefined,
-      }).then(res => {
-        this.savingProfileSettings = false
-        if (res instanceof ServerError) {
-          this.$root.popupError(res)
-        } else {
-          this.$notify({
-            title: "Đã lưu thay đổi",
-            text: "",
-            type: "success"
-          });
-        }
-      })
-    },
-    logout() {
-      auth.logout().then(() => {
-        this.$router.push({name: "home"}).then(() => {
-          window.location.reload()
-        })
-      })
     }
   },
   mounted() {
@@ -327,6 +213,15 @@ export default {
         res.profile.profileCover = profileCoverDefaultImg
       } else {
         res.profile.profileCover = conf.assetURL + "/" + res.profile.profileCover
+      }
+      if (res.profile.profileAvatar === "") {
+        if(res.profile.hasOwnProperty("gender") && res.profile["gender"] === "female") {
+          res.profile.profileAvatar = profileFemaleAvatarDefaultImg
+        } else {
+          res.profile.profileAvatar = profileMaleAvatarDefaultImg
+        }
+      } else {
+        res.profile.profileAvatar = conf.assetURL + "/" + res.profile.profileAvatar
       }
       Object.assign(this.user, res)
       this.$forceUpdate()
