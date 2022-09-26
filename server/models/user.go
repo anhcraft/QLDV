@@ -10,7 +10,7 @@ const GenderFemale = true
 
 type User struct {
 	ID    uint16 `gorm:"autoIncrement;primaryKey"`
-	PID   string `gorm:"unique;not null"`
+	PID   string `gorm:"unique;not null;column:pid"`
 	Email string `gorm:"unique;not null"`
 	Role  uint8
 	// Personal information:
