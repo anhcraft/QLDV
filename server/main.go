@@ -8,10 +8,13 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/rs/zerolog"
 	"time"
 )
 
 func main() {
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+
 	app := fiber.New(fiber.Config{
 		BodyLimit: 10 * 1024 * 1024,
 	})
