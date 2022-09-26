@@ -485,40 +485,48 @@ func UserStatGetRouteHandler(c *fiber.Ctx) error {
 		return ReturnError(c, utils.ErrNoPermission)
 	}
 
-	result := struct {
-		a int64
-		b int64
-		c int64
-		d int64
-		e int64
-		f int64
-		g int64
-		h int64
-		i int64
-	}{}
+	cache, ok := storage.GetCache("user-stats", "")
+	if ok {
+		return ReturnString(c, cast.ToString(cache))
+	} else {
+		result := struct {
+			a int64
+			b int64
+			c int64
+			d int64
+			e int64
+			f int64
+			g int64
+			h int64
+			i int64
+		}{}
 
-	cmd := "select count(if(class like '10%', 1, null)) as a"
-	cmd += ", count(if(class like '11%', 1, null)) as b"
-	cmd += ", count(if(class like '12%', 1, null)) as c"
-	cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleRegularMember)) + ", 1, null)) as d"
-	cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleCertifiedMember)) + ", 1, null)) as e"
-	cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleClassDeputySecretary)) + ", 1, null)) as f"
-	cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleClassSecretary)) + ", 1, null)) as g"
-	cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleDeputySecretary)) + ", 1, null)) as h"
-	cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleSecretary)) + ", 1, null)) as i"
-	cmd += " from users"
-	_ = storage.Db.Raw(cmd).Row().Scan(&result.a, &result.b, &result.c, &result.d, &result.e)
-	response := gabs.New()
-	_, _ = response.Set(result.a, "user-count-by-grade", "grade-10")
-	_, _ = response.Set(result.b, "user-count-by-grade", "grade-11")
-	_, _ = response.Set(result.c, "user-count-by-grade", "grade-12")
-	_, _ = response.Set(result.d, "user-count-by-role", "regular-member")
-	_, _ = response.Set(result.e, "user-count-by-role", "certified-member")
-	_, _ = response.Set(result.f, "user-count-by-role", "class-deputy-secretary")
-	_, _ = response.Set(result.g, "user-count-by-role", "class-secretary")
-	_, _ = response.Set(result.h, "user-count-by-role", "deputy-secretary")
-	_, _ = response.Set(result.i, "user-count-by-role", "secretary")
-	return ReturnJSON(c, response)
+		cmd := "select count(if(class like '10%', 1, null)) as a"
+		cmd += ", count(if(class like '11%', 1, null)) as b"
+		cmd += ", count(if(class like '12%', 1, null)) as c"
+		cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleRegularMember)) + ", 1, null)) as d"
+		cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleCertifiedMember)) + ", 1, null)) as e"
+		cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleClassDeputySecretary)) + ", 1, null)) as f"
+		cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleClassSecretary)) + ", 1, null)) as g"
+		cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleDeputySecretary)) + ", 1, null)) as h"
+		cmd += ", count(if(role = " + strconv.Itoa(int(security.RoleSecretary)) + ", 1, null)) as i"
+		cmd += " from users"
+		_ = storage.Db.Raw(cmd).Row().Scan(&result.a, &result.b, &result.c, &result.d, &result.e)
+		response := gabs.New()
+		_, _ = response.Set(result.a, "user-count-by-grade", "grade-10")
+		_, _ = response.Set(result.b, "user-count-by-grade", "grade-11")
+		_, _ = response.Set(result.c, "user-count-by-grade", "grade-12")
+		_, _ = response.Set(result.d, "user-count-by-role", "regular-member")
+		_, _ = response.Set(result.e, "user-count-by-role", "certified-member")
+		_, _ = response.Set(result.f, "user-count-by-role", "class-deputy-secretary")
+		_, _ = response.Set(result.g, "user-count-by-role", "class-secretary")
+		_, _ = response.Set(result.h, "user-count-by-role", "deputy-secretary")
+		_, _ = response.Set(result.i, "user-count-by-role", "secretary")
+
+		json := BuildResponse(response)
+		storage.SetCache("user-stats", "", json, 10*time.Minute)
+		return ReturnString(c, json)
+	}
 }
 
 func ProfileCoverUploadRouteHandler(c *fiber.Ctx) error {
