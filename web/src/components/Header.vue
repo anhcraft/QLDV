@@ -130,7 +130,7 @@ export default {
       })
     },
     viewProfile() {
-      this.$router.push("/u/" + this.$root.user.profile.email.substring(0, this.$root.user.profile.email.search("@")))
+      this.$router.push("/u/" + this.$root.user.profile.pid)
     }
   }
 }
