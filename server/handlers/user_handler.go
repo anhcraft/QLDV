@@ -459,9 +459,10 @@ func FeaturedUserListRouteHandler(c *fiber.Ctx) error {
 			featuredAchievementLimit := cast.ToUint8(json.Path("featuredAchievementLimit").Data())
 			for _, user := range getFeaturedUsers(featuredUserLimit) {
 				u := gabs.New()
-				_, _ = u.Set(user.PID, "pid")
-				_, _ = u.Set(user.Class, "class")
-				_, _ = u.Set(user.Name, "name")
+				_, _ = u.Set(user.PID, "profile", "pid")
+				_, _ = u.Set(user.Class, "profile", "class")
+				_, _ = u.Set(user.Name, "profile", "name")
+				_, _ = u.Set(user.ProfileAvatar, "profile", "profileAvatar")
 				_, _ = u.Array("achievements")
 				for _, v := range getAchievementById(user.ID, featuredAchievementLimit) {
 					_ = u.ArrayAppend(v.Serialize(), "achievements")

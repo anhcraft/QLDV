@@ -167,15 +167,21 @@ Every response will be based on the following format:
   "result": {
     "users": [
       {
-        "pid": "a",
-        "class": "A1",
-        "name": "A",
+        "profile": {
+          "pid": "a",
+          "class": "A1",
+          "name": "A",
+          "avatar": ""
+        },
         "achievements": []
       },
       {
-        "pid": "b",
-        "class": "B1",
-        "name": "B",
+        "profile": {
+          "pid": "b",
+          "class": "B1",
+          "name": "B",
+          "avatar": ""
+        },
         "achievements": []
       }
     ]

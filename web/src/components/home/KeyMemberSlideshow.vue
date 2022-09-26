@@ -11,11 +11,13 @@
     <swiper-slide v-for="user in featuredUsers">
       <div class="flex flex-row gap-5 my-10">
         <div>
-          <div class="bg-slate-300 w-32 h-32"></div>
+          <div class="bg-slate-300 w-32 h-32">
+            <img :src="user.profile.profileAvatar" class="w-32 h-32" />
+          </div>
         </div>
         <div>
-          <router-link class="text-xl" :to="{name: 'profile', params: { id: user.pid } }">{{ user.name }}</router-link>
-          <p class="italic text-sm">- Lớp {{ user.class }}</p>
+          <router-link class="text-xl" :to="{name: 'profile', params: { id: user.profile.pid } }">{{ user.profile.name }}</router-link>
+          <p class="italic text-sm">- Lớp {{ user.profile.class }}</p>
           <ul class="list-disc list-inside mt-2">
             <li v-for="val in user.achievements">{{ val.title }} ({{ val.year }})</li>
           </ul>
@@ -32,6 +34,9 @@ import "swiper/css";
 import "swiper/css/pagination";
 import UserAPI from "../../api/user-api";
 import {ServerError} from "../../api/server-error";
+import profileFemaleAvatarDefaultImg from "../../assets/avatar-female.webp";
+import profileMaleAvatarDefaultImg from "../../assets/avatar-male.webp";
+import conf from "../../conf";
 
 export default {
   name: "KeyMemberSlideshow",
@@ -56,7 +61,18 @@ export default {
           this.$root.popupError(data)
           return
         }
-        this.featuredUsers = data
+        this.featuredUsers = data.map(res => {
+          if (res.profile.profileAvatar === "") {
+            if(res.profile.hasOwnProperty("gender") && res.profile["gender"] === "female") {
+              res.profile.profileAvatar = profileFemaleAvatarDefaultImg
+            } else {
+              res.profile.profileAvatar = profileMaleAvatarDefaultImg
+            }
+          } else {
+            res.profile.profileAvatar = conf.assetURL + "/" + res.profile.profileAvatar
+          }
+          return res
+        })
       })
     }
   },
