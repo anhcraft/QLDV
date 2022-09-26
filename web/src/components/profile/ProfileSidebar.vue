@@ -10,7 +10,10 @@
              @click="openProfileAvatarEditor()">
       </div>
       <div class="text-sm ml-5 md:ml-0">
-        <p class="text-xl mb-1" v-if="user.profile.hasOwnProperty('name')">{{ user.profile.name }}</p>
+        <p class="text-xl mb-1">
+          <span v-if="!isPersonalProfile && user.profile.settings.profileLocked">???</span>
+          <span v-else-if="user.profile.hasOwnProperty('name')">{{ user.profile.name }}</span>
+        </p>
         <p v-if="user.profile.hasOwnProperty('class')">Chi đoàn: {{ user.profile.class }}</p>
         <p v-if="user.profile.hasOwnProperty('role')">Chức vụ: {{ roleName }}</p>
         <p v-if="user.profile.hasOwnProperty('entryYear')">Niên khóa: {{ user.profile.entryYear }} -

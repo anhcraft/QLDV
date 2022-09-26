@@ -15,7 +15,8 @@
                  @click="openProfileCoverEditor()" class="w-full h-64 bg-cover bg-center bg-no-repeat"/>
           </section>
 
-          <section v-if="user.profile.hasOwnProperty('profileBoard')" class="mt-7 p-5 shadow-lg shadow-slate-400">
+          <section v-if="user.profile.hasOwnProperty('profileBoard') && (isPersonalProfile || user.profile.settings.profileLocked || user.profile.profileBoard.length > 0)"
+                   class="mt-7 p-5 shadow-lg shadow-slate-400">
             <div v-if="isPersonalProfile">
               <Editor
                   apiKey="r7g4lphizuprqmrjv0ooj15pn5qpcesynrg101ekc40avzlg"
@@ -36,9 +37,14 @@
                 </button>
               </div>
             </div>
+            <div v-else-if="user.profile.settings.profileLocked">
+              <div class="centered-horizontal text-slate-700 gap-2">
+                <LockClosedIcon class="w-6 h-6"></LockClosedIcon>
+                <p>Quyền truy cập trang cá nhân đã bị giới hạn.</p>
+              </div>
+            </div>
             <div v-else class="break-words prose w-full" v-html="user.profile.profileBoard"></div>
           </section>
-
         </div>
       </div>
     </LoadingState>
@@ -92,10 +98,11 @@ import conf from "../conf";
 import Footer from "../components/Footer.vue";
 import ImgCutter from 'vue-img-cutter'
 import ProfileSidebar from "../components/profile/ProfileSidebar.vue";
+import {LockClosedIcon} from "@heroicons/vue/24/solid";
 
 export default {
   name: "Profile",
-  components: {ProfileSidebar, Footer, LoadingState, Header, Editor, ImgCutter},
+  components: {ProfileSidebar, Footer, LoadingState, Header, Editor, ImgCutter, LockClosedIcon},
   data() {
     return {
       savingProfileBoard: false,
