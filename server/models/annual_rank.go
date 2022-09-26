@@ -10,8 +10,8 @@ const GoodRank = 2
 const MediumRank = 3
 
 type AnnualRank struct {
-	UserId     uint16 `gorm:"primaryKey"`
-	User       User   `gorm:"constraint:OnDelete:CASCADE"`
+	UserId     uint16
+	User       User `gorm:"constraint:OnDelete:CASCADE"`
 	Year       uint16
 	Level      uint8
 	UpdateDate uint64 `gorm:"autoUpdateTime:milli"`

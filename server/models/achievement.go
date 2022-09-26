@@ -5,8 +5,8 @@ import (
 )
 
 type Achievement struct {
-	UserId uint16 `gorm:"primaryKey"`
-	User   User   `gorm:"constraint:OnDelete:CASCADE"`
+	UserId uint16
+	User   User `gorm:"constraint:OnDelete:CASCADE"`
 	Title  string
 	Year   uint16
 	// Date stuff:
