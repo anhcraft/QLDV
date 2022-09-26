@@ -55,7 +55,7 @@ func GetRequester(c *fiber.Ctx) (*Requester, string) {
 	// TODO DON'T CACHE ACCESS TOKEN (SECURITY CONCERNS)
 	token := strings.TrimSpace(c.Get("access-token"))
 	if token == "" {
-		return guestRequester, utils.ErrTokenVerify
+		return guestRequester, ""
 	}
 	has, txt := security.GetEmailFromToken(c.UserContext(), token)
 	if !has {
