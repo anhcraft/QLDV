@@ -201,36 +201,45 @@ export default {
           });
         }
       })
+    },
+    loadUser(who) {
+      UserAPI.getUser(who, {
+        profile: true,
+        achievements: true,
+        "annual-ranks": true
+      }).then((res) => {
+        if (res instanceof ServerError) {
+          this.$root.popupError(res)
+          return
+        }
+        if (res.profile.profileCover === "") {
+          res.profile.profileCover = profileCoverDefaultImg
+        } else {
+          res.profile.profileCover = conf.assetURL + "/" + res.profile.profileCover
+        }
+        if (res.profile.profileAvatar === "") {
+          if(res.profile.hasOwnProperty("gender") && res.profile["gender"] === "female") {
+            res.profile.profileAvatar = profileFemaleAvatarDefaultImg
+          } else {
+            res.profile.profileAvatar = profileMaleAvatarDefaultImg
+          }
+        } else {
+          res.profile.profileAvatar = conf.assetURL + "/" + res.profile.profileAvatar
+        }
+        Object.assign(this.user, res)
+        this.$forceUpdate()
+        this.$refs.profileLoadingState.deactivate()
+      })
     }
   },
+  beforeRouteUpdate(to, from) {
+    this.loadUser(to.params.id)
+  },
   mounted() {
-    UserAPI.getUser(this.userId, {
-      profile: true,
-      achievements: true,
-      "annual-ranks": true
-    }).then((res) => {
-      if (res instanceof ServerError) {
-        this.$root.popupError(res)
-        return
-      }
-      if (res.profile.profileCover === "") {
-        res.profile.profileCover = profileCoverDefaultImg
-      } else {
-        res.profile.profileCover = conf.assetURL + "/" + res.profile.profileCover
-      }
-      if (res.profile.profileAvatar === "") {
-        if(res.profile.hasOwnProperty("gender") && res.profile["gender"] === "female") {
-          res.profile.profileAvatar = profileFemaleAvatarDefaultImg
-        } else {
-          res.profile.profileAvatar = profileMaleAvatarDefaultImg
-        }
-      } else {
-        res.profile.profileAvatar = conf.assetURL + "/" + res.profile.profileAvatar
-      }
-      Object.assign(this.user, res)
-      this.$forceUpdate()
-      this.$refs.profileLoadingState.deactivate()
-    })
+    const f = () => {
+      this.loadUser(this.userId)
+    }
+    this.$root.pushQueue(f.bind(this))
   }
 }
 </script>

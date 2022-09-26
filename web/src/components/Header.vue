@@ -130,7 +130,12 @@ export default {
       })
     },
     viewProfile() {
-      this.$router.push("/u/" + this.$root.user.profile.pid)
+      this.$router.push({
+        name: "profile",
+        params: {
+          id: this.$root.user.profile.pid
+        }
+      })
     }
   }
 }
