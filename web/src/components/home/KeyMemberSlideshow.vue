@@ -11,7 +11,7 @@
     <swiper-slide v-for="user in featuredUsers">
       <div class="flex flex-row gap-5 my-10">
         <div>
-          <div class="bg-slate-300 w-32 h-32">
+          <div class="w-32 h-32">
             <img :src="user.profile.profileAvatar" class="w-32 h-32" />
           </div>
         </div>
