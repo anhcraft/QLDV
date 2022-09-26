@@ -109,7 +109,7 @@ export default {
       while (true) {
         const m = cursor.getMonth()
         const y = cursor.getFullYear()
-        const k = m + "/" + y
+        const k = (m+1) + "/" + y
         let arr = []
         if (this.scheduler.hasOwnProperty(k)) {
           arr = this.scheduler[k]
